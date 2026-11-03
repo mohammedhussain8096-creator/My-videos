@@ -1100,10 +1100,17 @@ def main():
         wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(sr)
         wf.writeframes((np.clip(sfx, -1, 1) * 32767).astype(np.int16).tobytes())
     name = os.environ.get('NAME', 'Why_Egypt_Never_Died.mp4')
+    music = os.path.join(OUT, 'music.wav')
+    mus_in = ['-ss', f'{t0:.3f}', '-t', f'{t1 - t0:.3f}', '-i', music] if os.path.exists(music) else []
+    # voice on top; sound effects under it; music lower still and ducked further whenever the narrator speaks
+    graph = ('[1:a]aresample=44100,asplit=2[v][key];[2:a]aresample=44100,volume=0.6[s];'
+             + ('[3:a]aresample=44100,lowpass=f=7000,volume=0.20[m0];[m0][key]sidechaincompress=threshold=0.03:ratio=5:attack=30:release=600[m];'
+                '[v][s][m]amix=inputs=3:duration=first:normalize=0' if mus_in else '[key]anullsink;[v][s]amix=inputs=2:duration=first:normalize=0')
+             + ',loudnorm=I=-16:TP=-1.5[a]')
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-f', 'concat', '-safe', '0', '-i', lst,
                     '-ss', f'{t0:.3f}', '-t', f'{t1 - t0:.3f}', '-i', os.path.join(OUT, 'narration.wav'),
-                    '-i', os.path.join(OUT, 'sfx.wav'),
-                    '-filter_complex', '[1:a]volume=1.0[v];[2:a]volume=0.6[s];[v][s]amix=inputs=2:duration=first:normalize=0,loudnorm=I=-16:TP=-1.5[a]',
+                    '-i', os.path.join(OUT, 'sfx.wav'), *mus_in,
+                    '-filter_complex', graph,
                     '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart',
                     os.path.join(OUT, name)], check=True)
     print('wrote', os.path.join(OUT, name))

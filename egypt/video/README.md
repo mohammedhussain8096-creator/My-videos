@@ -7,6 +7,7 @@ animatic MP4 in the reference video's style.
 pip install piper-tts fonttools brotli scipy numpy pillow   # plus ffmpeg on the PATH
 python3 setup_assets.py          # map imagery, fonts, narrator voice, character cut-out -> ./assets
 python3 tts.py                   # narration.wav + timing.json in ./build (about 30 min of audio)
+python3 music.py                 # original background music (composed in code), ducked under the voice
 python3 render.py                # renders every scene and writes build/Why_Egypt_Never_Died.mp4
 python3 render.py 1 15           # or just a range of scenes (Batch 1)
 ```
