@@ -11,7 +11,8 @@ for line in open('visuals.txt'):
         continue
     n, setc, visual, text, cam, sfx = [p.strip() for p in line.split(' | ')]
     vis[int(n)] = dict(set=setc, visual=visual, text=text, cam=cam, sfx=sfx)
-assert len(chunks) == len(vis) == 132
+N = len(chunks)
+assert N == len(vis) == 163
 
 SET_NAMES = {
     'MAP': 'A · Satellite map',
@@ -37,26 +38,27 @@ def tts_text(s):
     return s.replace(' // ', ' ... ')
 
 def pace(syl):
-    sec = syl / RATE
-    if sec > 11.0:
-        note = 'Dense line: do NOT speed up. Let it run to ~{:.1f}s and hold the picture until the line ends.'.format(sec)
-    elif sec < 9.0:
-        note = 'Light line: keep the same speed; leave a ~{:.1f}s beat of music at the end.'.format(10 - sec)
-    else:
-        note = 'Normal pace.'
-    return sec, note
+    return syl / RATE
 
-BATCH = 10
-batches = [list(range(i, i + BATCH)) for i in range(1, 121, BATCH)] + [list(range(121, 133))]
+DUR = [round(pace(spoken.stats(c)[1]), 1) for c in chunks]
+START = [0.0]
+for d in DUR:
+    START.append(round(START[-1] + d, 1))
+
+def tc(t):
+    return f'{int(t // 60):02d}:{t % 60:04.1f}'
+
+BOUNDS = [1, 14, 25, 34, 48, 61, 73, 85, 101, 113, 124, 137, 147, 164]
+batches = [list(range(BOUNDS[i], BOUNDS[i + 1])) for i in range(len(BOUNDS) - 1)]
 
 # ---------------- Markdown ----------------
 md = []
 w = md.append
 w('# Why Egypt Never Died: Scene-by-Scene Production Script\n')
-w('**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** 132 × 10 s · **Runtime:** ≈ 22 min · '
+w('**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** 163 (6–10 s each, average 8 s) · **Runtime:** ≈ ' + str(round(START[-1] / 60, 1)) + ' min · '
   '**Narration pace:** locked at ≈ 155–160 words per minute (the same pace as the reference video)\n')
 w('> The script you sent stops mid-sentence (*"Octavian, now Emperor Augustus, kept Egypt as his personal…"*). '
-  'Scene 132 ends on that line. Send the rest and the next batch continues from Scene 133 in the same format.\n')
+  'Scene 163 ends on that line. Send the rest and the next batch continues from Scene 164 in the same format.\n')
 
 w('## 1. Visual style bible (from the reference video)\n')
 w('What the reference video does, and what every scene below follows:\n')
@@ -70,6 +72,7 @@ w('| Set C: illustrated world | Simple cartoon landscapes: blue sky with puffy w
 w('| Set D: artefact close-up | A papyrus, stone relief or clay tablet, redrawn in the same cartoon line style (not a photo). Use for quotes, documents and inscriptions. |')
 w('| Text | Two kinds only. (1) **Labels:** white, hand-lettered, all caps, thin dark shadow. (2) **Punch words / numbers:** big bold **yellow comic lettering with a dark-brown outline**, slammed in (e.g. "THE CRAZY PART" in the reference). Numbers count up like a ticker. |')
 w('| Motion | Gentle, constant: slow push-ins and pans on maps; elements **pop** in with a small overshoot bounce; red X **stamps**; arrows **draw** themselves. One new idea on screen roughly every 2–3 seconds. |')
+w('| Pace of cuts | The reference changes picture about every 4–5 s (22 cuts in 102 s). Here each scene is 6–10 s with 2–3 visual beats inside it, so the screen changes every 3–5 s, like the reference. |')
 w('| Cuts | Hard cuts or quick whooshes between scenes, cut on the voice. No fancy transitions. |')
 w('| Music & SFX | Soft, low ambient/orchestral bed under the whole video (about −22 dB under the voice); small cartoon SFX for pops, stamps and whooshes. |')
 w('| Palette | Sand #D9B26B · Desert brown #A9773E · Nile blue #3A7CC3 · Black-land mud #3B2F2A · Field green #7FAF4E · Empire red #E2552D · Sky #9CCBEA · Sunset #F2994A → #6C4F8C · Studio grey #C9C9C9 · Text yellow #F6C934 |')
@@ -99,11 +102,11 @@ w('## 3. Voice direction (same in every batch)\n')
 w('| Setting | Value |')
 w('|---|---|')
 w('| Voice | One narrator for the whole video. Warm, clear, curious storyteller; mid-low pitch; friendly and confident, like explaining to a smart friend. Not dramatic movie-trailer, not flat news-reader. |')
-w('| Speed | **≈ 155–160 words per minute**, about 4 syllables per second. Never speed up to fit 10 seconds. Let the picture wait for the voice. |')
+w('| Speed | **≈ 155–160 words per minute**, about 4 syllables per second. Never speed up or slow down to fit a scene: each scene\'s length comes from the voice line, not the other way round. |')
 w('| Pauses | Comma ≈ 0.25 s · full stop ≈ 0.5 s · `...` (new paragraph) ≈ 0.9 s · before a big reveal ≈ 0.7 s |')
 w('| Emphasis | Lean slightly on numbers, dates and the key word of each line (shown in the on-screen text column). Questions go up at the end. |')
 w('| Energy | Keep it level across all batches. The hook (Scenes 1–3) can be 5% brighter; collapse and death beats 5% softer, same speed. |')
-w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (10 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
+w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 9–17 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
 w('| Recording yourself | Same mic, room and distance every session; read a whole batch in one take; do a 10-second "warm-up" read of the previous batch\'s last line first. |')
 w('| Mix | Voice peaks around −6 dB, music −22 dB under the voice, SFX −14 dB. |')
 w('')
@@ -133,45 +136,45 @@ w('Numbers: read years as "twenty-five sixty B C", Roman numerals as "Thutmose *
 w('## 4. Batch overview\n')
 w('| Batch | Scenes | Time | Chapter |')
 w('|---|---|---|---|')
-chapters = ['The hook and the Nile', 'Unification, gods and the god-king', 'The first pyramids', 'Pyramid builders and the first collapse',
-            'The Middle Kingdom', 'The Hyksos and the fight back', 'The New Kingdom and Hatshepsut',
-            'Thutmose III and Akhenaten', 'Tutankhamun', 'Ramesses II',
-            'Bronze Age collapse and outsiders', 'Persia and Alexander', 'The Ptolemies and Cleopatra']
+chapters = ['The hook and the Nile', 'Unification, gods and the god-king', 'The first pyramids', 'Building the pyramids',
+            'Collapse and the Middle Kingdom', 'The Hyksos and the fight back', 'The New Kingdom and Hatshepsut',
+            'Thutmose III and Akhenaten', 'Tutankhamun', 'Ramesses II and the Bronze Age collapse',
+            'Strikes, outsiders and Assyria', 'Persia and Alexander', 'The Ptolemies and Cleopatra']
 for bi, b in enumerate(batches):
-    w(f'| {bi + 1} | {b[0]}–{b[-1]} | {mmss((b[0] - 1) * 10)}–{mmss(b[-1] * 10)} | {chapters[bi]} |')
+    w(f'| {bi + 1} | {b[0]}–{b[-1]} | {tc(START[b[0] - 1])}–{tc(START[b[-1]])} | {chapters[bi]} |')
 w('')
 
 w('## 5. Scenes\n')
 w('How to read each scene: **VO** is the exact voice line. **Visual** is what we see and what the Guide does. '
-  '**On-screen text** uses `/` to separate separate text pops (in order). **Pace** gives the estimated voice length at the locked speed. '
+  '**On-screen text** uses `/` between separate text pops (in order). **Length** is the scene length at the locked voice speed; cut the picture to the voice. '
   '**AI prompt** is ready to paste into an image/video generator together with `character_reference.png`.\n')
 
 rows = []
 for bi, b in enumerate(batches):
-    w(f'### Batch {bi + 1}: {chapters[bi]} (Scenes {b[0]}–{b[-1]}, {mmss((b[0] - 1) * 10)}–{mmss(b[-1] * 10)})\n')
+    w(f'### Batch {bi + 1}: {chapters[bi]} (Scenes {b[0]}–{b[-1]}, {tc(START[b[0] - 1])}–{tc(START[b[-1]])})\n')
     for n in b:
         v = vis[n]
         vo = chunks[n - 1]
         words, syl = spoken.stats(vo)
-        sec, note = pace(syl)
-        start, end = (n - 1) * 10, n * 10
+        sec = DUR[n - 1]
+        start, end = START[n - 1], START[n]
         guide = '' if 'Guide' in v['visual'] else ' The Guide is not in this shot.'
         prompt = (f"{STYLE}. Setting: {SET_PROMPT[v['set']]}. Scene: {v['visual']}"
                   + (" Include the Guide exactly as in the character reference." if 'Guide' in v['visual'] else '')
                   + f" Text in frame: {v['text']}.")
-        motion = f"{v['cam']}. Gentle cartoon motion, elements pop in with a small bounce, 10 seconds."
-        w(f'#### Scene {n:03d} · {mmss(start)}–{mmss(end)} · {SET_NAMES[v["set"]]}\n')
+        motion = f"{v['cam']}. Gentle cartoon motion, elements pop in with a small bounce, {sec:.0f} seconds."
+        w(f'#### Scene {n:03d} · {tc(start)}–{tc(end)} ({sec:.1f} s) · {SET_NAMES[v["set"]]}\n')
         w(f'**VO:** "{vo.replace(" // ", " … ")}"\n')
         w(f'- **Visual:** {v["visual"]}{guide}')
         w(f'- **On-screen text:** {v["text"]}')
         w(f'- **Camera / animation:** {v["cam"]}')
         w(f'- **SFX / music:** {v["sfx"]}')
-        w(f'- **Pace:** {words} spoken words · ≈ {sec:.1f} s at locked speed. {note}')
+        w(f'- **Length:** {words} spoken words · {sec:.1f} s at the locked voice speed')
         w(f'- **AI image prompt:** `{prompt}`')
         w(f'- **AI motion prompt:** `{motion}`\n')
-        rows.append(dict(scene=n, start=mmss(start), end=mmss(end), set=SET_NAMES[v['set']], voice_line=vo.replace(' // ', ' … '),
+        rows.append(dict(scene=n, start=tc(start), end=tc(end), set=SET_NAMES[v['set']], voice_line=vo.replace(' // ', ' … '),
                          visual=v['visual'], on_screen_text=v['text'], camera=v['cam'], sfx=v['sfx'],
-                         est_voice_seconds=f'{sec:.1f}', image_prompt=prompt, motion_prompt=motion))
+                         seconds=f'{sec:.1f}', image_prompt=prompt, motion_prompt=motion))
     w(f'**Batch {bi + 1} consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · '
       'labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.\n')
 
@@ -187,14 +190,16 @@ vo = ['WHY EGYPT NEVER DIED: VOICEOVER SCRIPT',
 for bi, b in enumerate(batches):
     vo.append(f'===== BATCH {bi + 1}: {chapters[bi]} (Scenes {b[0]}-{b[-1]}) =====')
     for n in b:
-        vo.append(f'[{n:03d} | {mmss((n - 1) * 10)}] {tts_text(chunks[n - 1])}')
+        vo.append(f'[{n:03d} | {tc(START[n - 1])}] {tts_text(chunks[n - 1])}')
     vo.append('')
 open('voiceover_script.txt', 'w').write('\n'.join(vo))
 
-# subtitle / timing guide (nominal 10 s slots)
+# subtitle / timing guide (estimated scene lengths)
+def srt_t(t):
+    ms = int(round(t * 1000))
+    return f'{ms // 3600000:02d}:{ms // 60000 % 60:02d}:{ms // 1000 % 60:02d},{ms % 1000:03d}'
 srt = []
-for n in range(1, 133):
-    a, b2 = (n - 1) * 10, n * 10
-    srt.append(f'{n}\n00:{a // 60:02d}:{a % 60:02d},000 --> 00:{b2 // 60:02d}:{b2 % 60:02d},000\n{chunks[n - 1].replace(" // ", " ")}\n')
+for n in range(1, N + 1):
+    srt.append(f'{n}\n{srt_t(START[n - 1])} --> {srt_t(START[n])}\n{chunks[n - 1].replace(" // ", " ")}\n')
 open('scene_timing.srt', 'w').write('\n'.join(srt))
 print('ok')
