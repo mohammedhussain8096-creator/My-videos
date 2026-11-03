@@ -14,13 +14,15 @@ VOICE = os.environ.get('VOICE', os.path.join(ASSETS, 'voices', 'en_US-ryan-high.
 LENGTH_SCALE = float(os.environ.get('LENGTH_SCALE', 1.2))   # ~155 words per minute
 ENGINE = os.environ.get('ENGINE', 'kokoro')            # 'kokoro' (natural, default) or 'piper' (basic)
 KVOICE = os.environ.get('KVOICE', 'am_puck')            # Kokoro voice
-KSPEED = float(os.environ.get('KSPEED', 0.95))
+KSPEED = float(os.environ.get('KSPEED', 0.85))          # slower, like the reference narrator
 _FX_PIPER = ('rubberband=pitch=0.88:formant=preserved:pitchq=quality,highpass=f=70,'
              'equalizer=f=160:t=q:w=1:g=2.5,equalizer=f=3500:t=q:w=1.2:g=1.5,'
              'acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
 _FX_KOKORO = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
 VOICE_FX = os.environ.get('VOICE_FX', _FX_KOKORO if ENGINE == 'kokoro' else _FX_PIPER)
-GAP_SENT, GAP_PARA, LEAD_IN, TAIL = 0.25, 0.7, 0.5, 2.0
+GAP_SENT = float(os.environ.get('GAP_SENT', 0.38))      # pause after a sentence (s)
+GAP_PARA = float(os.environ.get('GAP_PARA', 0.85))      # pause after a paragraph (s)
+LEAD_IN, TAIL = 0.5, 2.0
 FPS = 24
 LIMIT = int(os.environ.get('LIMIT_SCENES', 0))               # render only the first N scenes (sample)
 

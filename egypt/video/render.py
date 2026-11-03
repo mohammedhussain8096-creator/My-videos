@@ -404,30 +404,11 @@ def text_img(text, fname, size, fill, stroke, sw, maxw=None, spacing=0):
         draw_runs(d, ((wd - lw) / 2, sw + i * lh), l, fname, f, fill, sw, stroke)
     return shadowed(img, off=int(4 * S), blur=int(4 * S), alpha=110)
 
-_ecache = {}
+import icons
+
 def emoji_img(em, size):
-    k = (em, size)
-    if k in _ecache: return _ecache[k]
-    if em == 'PYR':
-        im = Image.new('RGBA', (220, 200), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-        d.polygon([(110, 10), (210, 190), (10, 190)], fill=(222, 182, 110), outline=INK, width=5)
-        d.polygon([(110, 10), (210, 190), (130, 190)], fill=(190, 145, 80), outline=INK, width=5)
-        for y in range(50, 190, 28): d.line([(110 - (y - 10) * 0.55, y), (110 + (y - 10) * 0.55, y)], fill=(150, 110, 60), width=2)
-    elif em == '𓂀':
-        im = Image.new('RGBA', (220, 200), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-        d.ellipse((40, 60, 180, 130), outline=INK, width=8); d.ellipse((90, 70, 130, 120), fill=INK)
-        d.line([(110, 130), (100, 180)], fill=INK, width=8); d.arc((120, 120, 180, 190), 180, 300, fill=INK, width=8)
-        d.line([(30, 50), (190, 50)], fill=INK, width=8)
-    else:
-        f = ImageFont.truetype(EMOJI_FONT, 109)
-        im = Image.new('RGBA', (160, 160), (0, 0, 0, 0))
-        ImageDraw.Draw(im).text((10, 10), em, font=f, embedded_color=True)
-        bb = im.getbbox()
-        im = im.crop(bb) if bb else im
-    r = size / max(im.size)
-    im = im.resize((max(1, int(im.width * r)), max(1, int(im.height * r))), Image.LANCZOS)
-    _ecache[k] = im
-    return im
+    """card / map icons: hand-drawn style illustrations (icons.py), no emoji"""
+    return icons.draw_icon(em, size)
 
 def card_img(em, size):
     pad = int(size * 0.18)
