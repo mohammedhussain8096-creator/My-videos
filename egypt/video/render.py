@@ -91,6 +91,41 @@ OVERLAYS = {
     'NUBIA': [(22.0, 30.0), (22.0, 33.5), (18.0, 34.0), (18.0, 30.5)],
 }
 
+# empire / region definitions built from real country borders (Natural Earth, public domain) plus a few drawn shapes
+REGIONS = {
+    'EGYPT': ['Egypt'],
+    'NK': ['Egypt', 'Israel', 'Palestine', 'Lebanon', 'Syria', '#NUBIA'],
+    'PERSIA': ['Iran', 'Iraq', 'Turkey', 'Syria', 'Lebanon', 'Israel', 'Palestine', 'Jordan', 'Egypt', 'Afghanistan',
+               'Turkmenistan', 'Armenia', 'Azerbaijan', 'Kuwait', 'Cyprus', 'Uzbekistan', 'Pakistan'],
+    'ROME': ['Italy', 'France', 'Spain', 'Portugal', 'Greece', 'Turkey', 'Syria', 'Lebanon', 'Israel', 'Palestine', 'Jordan',
+             'Egypt', 'Libya', 'Tunisia', 'Algeria', 'Morocco', 'Albania', 'North Macedonia', 'Bulgaria', 'Republic of Serbia',
+             'Croatia', 'Bosnia and Herzegovina', 'Montenegro', 'Slovenia', 'Switzerland', 'Belgium', 'Austria', 'Cyprus', 'Kosovo'],
+    'OTTOMAN': ['Turkey', 'Syria', 'Iraq', 'Lebanon', 'Israel', 'Palestine', 'Jordan', 'Egypt', 'Greece', 'Bulgaria', 'Albania',
+                'North Macedonia', 'Republic of Serbia', 'Bosnia and Herzegovina', 'Kosovo', 'Montenegro', 'Libya', 'Tunisia', 'Cyprus'],
+    'ARAB': ['Saudi Arabia', 'Yemen', 'Oman', 'United Arab Emirates', 'Qatar', 'Kuwait', 'Jordan', 'Iraq', 'Syria', 'Lebanon',
+             'Israel', 'Palestine', 'Egypt', 'Libya', 'Iran'],
+    'HYKSOS': ['#HYKSOS'], 'NUBIA': ['#NUBIA'], 'UPPER': ['#UPPER'], 'LOWERD': ['#LOWERD'],
+}
+# a place name -> the country to highlight in tan (reference: "MONGOLIA" lit up with a soft glowing edge)
+COUNTRY_OF = {'EGYPT': 'Egypt', 'SUDAN': 'Sudan', 'KUSH': 'Sudan', 'NUBIA': '#NUBIA', 'SYRIA': 'Syria', 'IRAN': 'Iran',
+              'PERSIA': 'Iran', 'ETHIOPIA': 'Ethiopia', 'LIBYA': 'Libya', 'ISRAEL': 'Israel', 'CANAAN': 'Israel',
+              'IRAQ': 'Iraq', 'BABYLON': 'Iraq', 'ASSYRIA': 'Iraq', 'BAGHDAD': 'Iraq', 'ANATOLIA': 'Turkey', 'HITTITE': 'Turkey',
+              'ARABIA': 'Saudi Arabia', 'MECCA': 'Saudi Arabia', 'INDIA': 'India', 'BRITAIN': 'United Kingdom',
+              'FRANCE': 'France', 'GREECE': 'Greece', 'ROME': 'Italy', 'ISTANBUL': 'Turkey', 'CONSTANTINOPLE': 'Turkey',
+              'LEVANT': 'Lebanon', 'PUNT': 'Eritrea', 'UPPER EGYPT': '#UPPER', 'LOWER EGYPT': '#LOWERD', 'DELTA': '#LOWERD'}
+REGION_LABEL = {'Egypt': 'EGYPT', 'Sudan': 'NUBIA', 'Syria': 'SYRIA', 'Iran': 'PERSIA', 'Ethiopia': 'ETHIOPIA', 'Libya': 'LIBYA',
+                'Israel': 'CANAAN', 'Iraq': 'MESOPOTAMIA', 'Turkey': 'ANATOLIA', 'Saudi Arabia': 'ARABIA', 'India': 'INDIA',
+                'United Kingdom': 'BRITAIN', 'France': 'FRANCE', 'Greece': 'GREECE', 'Italy': 'ITALY', 'Lebanon': 'LEVANT',
+                'Eritrea': 'PUNT', '#NUBIA': 'NUBIA', '#UPPER': 'UPPER EGYPT', '#LOWERD': 'LOWER EGYPT', '#HYKSOS': 'HYKSOS'}
+_countries = None
+def country_polys(name):
+    global _countries
+    if name.startswith('#'):
+        return [[(lon, lat) for lat, lon in OVERLAYS[name[1:]]]]
+    if _countries is None:
+        _countries = json.load(open(os.path.join(HERE, 'data', 'countries.json')))
+    return [[tuple(p) for p in ring] for ring in _countries.get(name, [])]
+
 # characters: regex -> (label, headgear, robe colour, skin)
 SKIN = (246, 211, 178); SKIN_TAN = (222, 175, 135); SKIN_DARK = (150, 100, 70); SKIN_BLUE = (95, 140, 210); SKIN_GREEN = (110, 165, 95)
 CHARS = [
@@ -266,6 +301,15 @@ def plan_scene(sn, v, dur):
     p['pop'] = [0.5 + i * max(0.45, (dur - 1.5) / max(1, k)) for i in range(k)]
     p['places'] = find_places(vis + ' ' + v['text']) if setc == 'MAP' else []
     p['overlay'] = overlay_for(v, sn) if setc == 'MAP' else None
+    if p['overlay'] in ('EGYPT', 'UPPER', 'LOWERD'):
+        p['overlay'] = None
+    hl = []
+    if setc == 'MAP' and not p['overlay']:
+        for pl in p['places']:
+            c = COUNTRY_OF.get(pl)
+            if c and c not in hl: hl.append(c)
+        if not hl and re.search(r'Egypt', vis): hl = ['Egypt']
+    p['highlights'] = hl[:2]
     p['arrow'] = setc == 'MAP' and bool(re.search(r'arrow|route|march|sail|loop|dotted|chase|push', vis, re.I)) and len(p['places']) >= 2
     p['boat'] = bool(re.search(r'boat|ship|barge|fleet|sail', vis, re.I))
     p['nile'] = setc == 'MAP'
@@ -685,6 +729,7 @@ class SceneRenderer:
         elif setc == 'MAP': self.gpos = (int(W * 0.80), int(H - g.height + H * 0.02))
         else: self.gpos = (int(W * 0.82), int(H - g.height - H * 0.04))
         self.slide_in = p['guide'] and p['prev_set'] != setc
+        self.region_label = None
         self.clouds = None
         if setc == 'MAP':
             self.setup_map()
@@ -761,16 +806,37 @@ class SceneRenderer:
         self.ovl = Image.new('RGBA', (OW, OH), (0, 0, 0, 0))
         d = ImageDraw.Draw(self.ovl)
         tr = self.w2o
+        self.region_label = None
+        from PIL import ImageChops
+        def region_layer(names, fill, edge_rgb):
+            mask = Image.new('L', self.ovl.size, 0); md = ImageDraw.Draw(mask)
+            for nm in names:
+                for ring in country_polys(nm):
+                    md.polygon([tr(*ll2px(lat, lon)) for lon, lat in ring], fill=255)
+            k = max(3, int(5 * S)) | 1
+            edge = ImageChops.subtract(mask.filter(ImageFilter.MaxFilter(k)), mask.filter(ImageFilter.MinFilter(k)))
+            glow = edge.filter(ImageFilter.GaussianBlur(4 * S))
+            col = Image.new('RGBA', self.ovl.size, fill[:3] + (0,)); col.putalpha(mask.point(lambda v: v * fill[3] // 255))
+            ed = Image.new('RGBA', self.ovl.size, edge_rgb + (0,)); ed.putalpha(ImageChops.lighter(edge, glow.point(lambda v: min(255, v * 3))))
+            col.alpha_composite(ed)
+            bb = mask.getbbox()
+            return col, mask, bb
         if p['overlay']:
-            poly = [tr(*ll2px(*q)) for q in OVERLAYS[p['overlay']]]
-            empire = p['overlay'] not in ('EGYPT', 'UPPER', 'LOWERD')
-            fill = (226, 80, 50, 205) if empire else (236, 160, 80, 150)
-            edge = (255, 205, 170, 255) if empire else (255, 236, 200, 255)
-            d.polygon(poly, fill=fill)
-            d.line(poly + [poly[0]], fill=edge, width=max(2, int(4 * S)), joint='curve')
-            xs = [q[0] for q in poly]; ys = [q[1] for q in poly]
+            col, mask, bb = region_layer(REGIONS[p['overlay']], (226, 72, 45, 215), (255, 214, 190))
+            self.ovl.alpha_composite(col)
             seedll = PLACES.get(p['places'][0]) if p['places'] and p['places'][0] in PLACES else None
-            self.seed = tr(*ll2px(*seedll)) if seedll else (sum(xs) / len(xs), sum(ys) / len(ys))
+            if seedll: self.seed = tr(*ll2px(*seedll))
+            elif bb: self.seed = ((bb[0] + bb[2]) / 2, (bb[1] + bb[3]) / 2)
+            else: self.seed = (self.ovl.width / 2, self.ovl.height / 2)
+        elif p['highlights']:
+            col, mask, bb = region_layer(p['highlights'], (240, 150, 60, 125), (255, 240, 205))
+            dim = Image.new('RGBA', self.ovl.size, (10, 15, 30, 0)); dim.putalpha(mask.point(lambda v: 95 - v * 95 // 255))
+            dim.alpha_composite(col)
+            self.ovl = dim
+            first, fmask, fbb = region_layer(p['highlights'][:1], (0, 0, 0, 0), (0, 0, 0))
+            if fbb:
+                a2 = np.asarray(fmask, np.float32); ys, xs = np.nonzero(a2 > 0)
+                if len(xs): self.region_label = (REGION_LABEL.get(p['highlights'][0], p['highlights'][0].upper()), float(xs.mean()), float(ys.mean()))
         self.nile_pts = [tr(*ll2px(*q)) for q in NILE]
         self.delta = [tr(*ll2px(*q)) for q in DELTA]
         self.pins = [(n, *tr(*ll2px(*PLACES[n]))) for n in p['places'] if n != 'EGYPT' and n in PLACES]
@@ -798,8 +864,8 @@ class SceneRenderer:
         settle = 1.5
         layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
         # empire / region overlay that grows out from a point
-        if p['overlay'] and t > settle:
-            g = ease_out((t - settle) / 1.5)
+        if (p['overlay'] or p['highlights']) and t > settle:
+            g = ease_out((t - settle) / 1.5) if p['overlay'] else 1.0
             ox, oy = to_screen(0, 0)
             f = sc / self.ok
             ol = self.ovl.resize((max(1, int(self.ovl.width * f)), max(1, int(self.ovl.height * f))), Image.BILINEAR)
@@ -811,7 +877,16 @@ class SceneRenderer:
                 a = ol.split()[3]
                 from PIL import ImageChops
                 ol.putalpha(ImageChops.multiply(a, m))
-            layer.alpha_composite(ol, (int(ox), int(oy))) if ox >= 0 and oy >= 0 else layer.paste(ol, (int(ox), int(oy)), ol)
+            if not p['overlay']:      # highlight (and the dimmed surroundings) fade in
+                if ox > 0 or oy > 0 or ox + ol.width < W or oy + ol.height < H:   # keep the dim outside the overlay area too
+                    edge = Image.new('RGBA', (W, H), (10, 15, 30, 95))
+                    edge.paste((0, 0, 0, 0), (max(0, int(ox)), max(0, int(oy)), min(W, int(ox) + ol.width), min(H, int(oy) + ol.height)))
+                    fa0 = ease((t - settle) / 0.7)
+                    edge.putalpha(edge.split()[3].point(lambda v: int(v * fa0)))
+                    layer.alpha_composite(edge)
+                fa = ease((t - settle) / 0.7)
+                if fa < 1: ol.putalpha(ol.split()[3].point(lambda v: int(v * fa)))
+            layer.paste(ol, (int(ox), int(oy)), ol)
         d = ImageDraw.Draw(layer)
         # the Nile: draws itself south -> north when it is the subject
         pts = [to_screen(*q) for q in self.nile_pts]
@@ -862,7 +937,19 @@ class SceneRenderer:
             bx = bp[i0][0] * (1 - fr) + bp[i0 + 1][0] * fr; by = bp[i0][1] * (1 - fr) + bp[i0 + 1][1] * fr
             e = emoji_img('⛵', int(100 * S))
             img.alpha_composite(e, (int(bx - e.width / 2), int(by - e.height * 0.9 + math.sin(t * 4) * 3 * S)))
+        if self.region_label and t > settle:
+            name, lx, ly = self.region_label
+            X, Y = to_screen(lx, ly)
+            n = len(name); k = min(1.0, (t - settle) / (0.06 * n + 0.2))
+            sub = name[: max(1, int(round(n * k)))]
+            key = ('R', sub)
+            if key not in self._labels: self._labels[key] = text_img(sub, 'patrick.ttf', 84, (255, 255, 255), (70, 45, 25), 4)
+            if ('R', name) not in self._labels: self._labels[('R', name)] = text_img(name, 'patrick.ttf', 84, (255, 255, 255), (70, 45, 25), 4)
+            lab = self._labels[key]; fw = self._labels[('R', name)].width
+            if 0 < X < W * 0.95 and 0 < Y < H:
+                img.alpha_composite(lab, (int(X - fw / 2), int(Y - lab.height / 2)))
         for name, X, Y, at in shown:
+            if self.region_label and REGION_LABEL.get(COUNTRY_OF.get(name, ''), None) == self.region_label[0]: continue
             n = len(name); k = min(1.0, (t - at) / (0.04 * n + 0.15))
             sub = name[: max(1, int(round(n * k)))]
             if sub not in self._labels:
