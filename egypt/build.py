@@ -12,7 +12,7 @@ for line in open('visuals.txt'):
     n, setc, visual, text, cam, sfx = [p.strip() for p in line.split(' | ')]
     vis[int(n)] = dict(set=setc, visual=visual, text=text, cam=cam, sfx=sfx)
 N = len(chunks)
-assert N == len(vis) == 163
+assert N == len(vis)
 
 SET_NAMES = {
     'MAP': 'A · Satellite map',
@@ -48,17 +48,17 @@ for d in DUR:
 def tc(t):
     return f'{int(t // 60):02d}:{t % 60:04.1f}'
 
-BOUNDS = [1, 14, 25, 34, 48, 61, 73, 85, 101, 113, 124, 137, 147, 164]
+BOUNDS = [1, 16, 28, 38, 52, 66, 79, 91, 109, 122, 135, 148, 158, N + 1]
 batches = [list(range(BOUNDS[i], BOUNDS[i + 1])) for i in range(len(BOUNDS) - 1)]
 
 # ---------------- Markdown ----------------
 md = []
 w = md.append
 w('# Why Egypt Never Died: Scene-by-Scene Production Script\n')
-w('**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** 163 (6–10 s each, average 8 s) · **Runtime:** ≈ ' + str(round(START[-1] / 60, 1)) + ' min · '
+w('**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** ' + str(N) + ' (about 7–8 s each, average 7.5 s) · **Runtime:** ≈ ' + str(round(START[-1] / 60, 1)) + ' min · '
   '**Narration pace:** locked at ≈ 155–160 words per minute (the same pace as the reference video)\n')
 w('> The script you sent stops mid-sentence (*"Octavian, now Emperor Augustus, kept Egypt as his personal…"*). '
-  'Scene 163 ends on that line. Send the rest and the next batch continues from Scene 164 in the same format.\n')
+  'Scene ' + str(N) + ' ends on that line. Send the rest and the next batch continues from Scene ' + str(N + 1) + ' in the same format.\n')
 
 w('## 1. Visual style bible (from the reference video)\n')
 w('What the reference video does, and what every scene below follows:\n')
@@ -72,7 +72,7 @@ w('| Set C: illustrated world | Simple cartoon landscapes: blue sky with puffy w
 w('| Set D: artefact close-up | A papyrus, stone relief or clay tablet, redrawn in the same cartoon line style (not a photo). Use for quotes, documents and inscriptions. |')
 w('| Text | Two kinds only. (1) **Labels:** white, hand-lettered, all caps, thin dark shadow. (2) **Punch words / numbers:** big bold **yellow comic lettering with a dark-brown outline**, slammed in (e.g. "THE CRAZY PART" in the reference). Numbers count up like a ticker. |')
 w('| Motion | Gentle, constant: slow push-ins and pans on maps; elements **pop** in with a small overshoot bounce; red X **stamps**; arrows **draw** themselves. One new idea on screen roughly every 2–3 seconds. |')
-w('| Pace of cuts | The reference changes picture about every 4–5 s (22 cuts in 102 s). Here each scene is 6–10 s with 2–3 visual beats inside it, so the screen changes every 3–5 s, like the reference. |')
+w('| Pace of cuts | The reference changes picture about every 4–5 s (22 cuts in 102 s). Here each scene is 7–8 s (a few run 6–9 s so a cut never splits a phrase) with 2 visual beats inside it, so the screen changes every 3–4 s, like the reference. |')
 w('| Cuts | Hard cuts or quick whooshes between scenes, cut on the voice. No fancy transitions. |')
 w('| Music & SFX | Soft, low ambient/orchestral bed under the whole video (about −22 dB under the voice); small cartoon SFX for pops, stamps and whooshes. |')
 w('| Palette | Sand #D9B26B · Desert brown #A9773E · Nile blue #3A7CC3 · Black-land mud #3B2F2A · Field green #7FAF4E · Empire red #E2552D · Sky #9CCBEA · Sunset #F2994A → #6C4F8C · Studio grey #C9C9C9 · Text yellow #F6C934 |')
@@ -106,7 +106,7 @@ w('| Speed | **≈ 155–160 words per minute**, about 4 syllables per second. N
 w('| Pauses | Comma ≈ 0.25 s · full stop ≈ 0.5 s · `...` (new paragraph) ≈ 0.9 s · before a big reveal ≈ 0.7 s |')
 w('| Emphasis | Lean slightly on numbers, dates and the key word of each line (shown in the on-screen text column). Questions go up at the end. |')
 w('| Energy | Keep it level across all batches. The hook (Scenes 1–3) can be 5% brighter; collapse and death beats 5% softer, same speed. |')
-w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 9–17 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
+w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 10–19 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
 w('| Recording yourself | Same mic, room and distance every session; read a whole batch in one take; do a 10-second "warm-up" read of the previous batch\'s last line first. |')
 w('| Mix | Voice peaks around −6 dB, music −22 dB under the voice, SFX −14 dB. |')
 w('')
