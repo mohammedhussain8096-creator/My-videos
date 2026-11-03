@@ -34,10 +34,13 @@ def world():
     w = im.crop((x0, y0, x1, y1)).convert('RGB')
     a = np.asarray(w).astype(np.float32)
     water = (a[..., 2] > a[..., 0] + 12) & (a[..., 2] > a[..., 1] - 5)
-    g = ImageEnhance.Contrast(ImageEnhance.Color(w).enhance(1.3)).enhance(1.2)
+    g = ImageEnhance.Contrast(ImageEnhance.Color(w).enhance(1.45)).enhance(1.35)
     b = np.asarray(g).astype(np.float32)
-    b[water] = b[water] * 0.4 + np.array([22, 70, 140], np.float32) * 0.6
-    b[~water] = b[~water] * np.array([0.93, 0.92, 0.80])
+    b[water] = b[water] * 0.3 + np.array([14, 58, 128], np.float32) * 0.7
+    land = ~water
+    b[land] = b[land] * np.array([0.80, 0.78, 0.62])
+    green = (a[..., 1] > a[..., 0] + 4) & land
+    b[green] = b[green] * np.array([0.78, 0.92, 0.70])
     Image.fromarray(np.clip(b, 0, 255).astype(np.uint8)).save(out, quality=92)
 
 def guide():

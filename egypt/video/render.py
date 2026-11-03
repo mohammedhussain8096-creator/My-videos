@@ -214,8 +214,38 @@ def segments(text):
     for s in segs:
         punch = bool(re.search(r'\d', s)) or len(s.split()) <= 3 or s.endswith('!') or s.endswith('?')
         if len(s) > 34: punch = False
-        out.append({'text': s, 'punch': punch})
+        style = 'punch' if punch else 'label'
+        if s.strip('"!?.') in STAMP_WORDS: style = 'stamp'
+        out.append({'text': s, 'punch': punch, 'style': style, 'count': countable(s) if style == 'punch' else None})
     return out
+
+STAMP_WORDS = {'GONE', 'ERASED', 'NOT BUILT BY SLAVES', 'NOT SLAVES', 'NEVER ROBBED', 'ROBBED', 'UNANSWERED', 'EMPTY',
+               'COLLAPSE', 'FORGOTTEN', 'EMPIRE OVER', 'EMPIRE LOST', 'LEFT OUT', 'TOO STEEP', 'NO CLEAR WINNER',
+               'ERASED FROM THE RECORD', 'AMARNA ABANDONED', 'HARVESTS FAILED', 'FIRST RECORDED STRIKE'}
+
+def countable(s):
+    """'2,300 YEARS' -> (prefix, number, decimals, suffix) to animate as a ticker; years are not counted"""
+    if re.search(r'\bBC\b|\bAD\b', s): return None
+    m = re.search(r'(\d[\d,]*(?:\.\d+)?)', s)
+    if not m: return None
+    raw = m.group(1); val = float(raw.replace(',', ''))
+    if ',' not in raw and 1000 <= val <= 2100: return None     # a year like 1922
+    if val < 2: return None
+    dec = len(raw.split('.')[1]) if '.' in raw else 0
+    return (s[:m.start()], val, dec, ',' in raw, s[m.end():])
+
+YEAR_RX = re.compile(r'(?:\bAD\s?(\d{2,4}))|(\d{1,4})(?:\s?(BC))?')
+def scene_year(text):
+    """first year named in the on-screen text: negative for BC"""
+    m = re.search(r'\b(\d{1,4})\s?BC\b', text)
+    if m: return -int(m.group(1))
+    m = re.search(r'\bAD\s?(\d{1,4})\b', text)
+    if m: return int(m.group(1))
+    m = re.search(r'(?<![\d,.])(1[0-9]{3}|20[0-2][0-9])(?![\d,])(?!\s?(?:YEARS|KG|M\b|OBJECTS))', text)
+    if m: return int(m.group(1))
+    m = re.search(r'(?<![\d,.])([3-9]\d{2})(?![\d,])(?!\s?(?:YEARS|KG|M\b))', text)
+    if m and 'AD' not in text: return int(m.group(1))
+    return None
 
 def plan_scene(sn, v, dur):
     setc = v['set']
@@ -247,7 +277,20 @@ def plan_scene(sn, v, dur):
     p['river'] = bool(re.search(r'river|Nile|flood|boat|water', vis, re.I))
     p['buildings'] = bool(re.search(r'temple|palace|city|Cairo|Alexandria|town|street|church|mosque|museum|Karnak|Thebes', vis))
     p['seed'] = sn
+    p['walk'] = bool(re.search(r'walks|marches|march |arrives|rides|steps (in|onto|forward|to)|sails into|enters', vis))
+    p['year'] = scene_year(v['text'])
+    p['prev_set'] = None; p['prev_year'] = None
     return p
+
+def plan_all(vis, durs):
+    plans = []; last_year = None; prev_set = None
+    for sn in sorted(durs):
+        p = plan_scene(sn, vis[sn], durs[sn])
+        p['prev_set'] = prev_set; p['prev_year'] = last_year
+        if p['year'] is not None: last_year = p['year']
+        prev_set = p['set']
+        plans.append(p)
+    return plans
 
 # ----------------------------------------------------------------------------- drawing helpers
 def ease_pop(t):
@@ -455,6 +498,13 @@ def draw_figure(label, hat, robe, skin, h=420, show_label=True):
         return canvas
     return im
 
+# ----------------------------------------------------------------------------- easing
+def ease(x):
+    x = min(1.0, max(0.0, x)); return x * x * (3 - 2 * x)
+
+def ease_out(x):
+    x = min(1.0, max(0.0, x)); return 1 - (1 - x) ** 3
+
 # ----------------------------------------------------------------------------- backgrounds
 _world = None
 def world():
@@ -464,6 +514,7 @@ def world():
     return _world
 
 LON0, LAT1, PPD = -25.0, 62.0, 60.0     # crop origin and pixels per degree
+WW, WH = 6420, 6120                     # world image size
 
 def ll2px(lat, lon):
     return (lon - LON0) * PPD, (LAT1 - lat) * PPD
@@ -477,22 +528,23 @@ def map_view(places):
         lat0, lat1, lon0, lon1 = min(lats), max(lats), min(lons), max(lons)
         padlat = max(3.0, (lat1 - lat0) * 0.35); padlon = max(4.0, (lon1 - lon0) * 0.35)
         lat0 -= padlat; lat1 += padlat; lon0 -= padlon; lon1 += padlon * 1.6   # room for the Guide on the right
-    # fix aspect 16:9 in pixel space
     x0, y1 = ll2px(lat0, lon0); x1, y0 = ll2px(lat1, lon1)
     wpx, hpx = x1 - x0, y1 - y0
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     if wpx / hpx < 16 / 9: wpx = hpx * 16 / 9
-    else: hpx = wpx * 9 / 16
-    wpx = max(wpx, 1500); hpx = wpx * 9 / 16
-    # keep the view (incl. the 1.1x zoom margin) inside the map image
-    WW, HH = 6420, 6120
-    wpx = min(wpx, WW / 1.12); hpx = wpx * 9 / 16
-    cx = min(max(cx, wpx * 0.56), WW - wpx * 0.56); cy = min(max(cy, hpx * 0.56), HH - hpx * 0.56)
-    return cx, cy, wpx, hpx
+    wpx = max(wpx, 1500)
+    wpx = min(wpx, WW / 1.05)
+    return clamp_view(cx, cy, wpx)
 
-def sky_bg(p):
+def clamp_view(cx, cy, wpx):
+    wpx = min(wpx, WW, WH * 16 / 9); hpx = wpx * 9 / 16
+    cx = min(max(cx, wpx / 2), WW - wpx / 2); cy = min(max(cy, hpx / 2), WH - hpx / 2)
+    return cx, cy, wpx
+
+def sky_layers(p):
+    """returns (static background, cloud layer) for illustrated scenes"""
     rnd = random.Random(p['seed'])
-    Wb, Hb = int(W * 1.08), int(H * 1.08)
+    Wb, Hb = int(W * 1.06), int(H * 1.06)
     img = Image.new('RGB', (Wb, Hb)); d = ImageDraw.Draw(img)
     if p['night']: top, bot = (20, 30, 70), (70, 70, 120)
     elif p['sunset']: top, bot = (120, 90, 160), (246, 160, 90)
@@ -501,28 +553,33 @@ def sky_bg(p):
     for y in range(hor):
         t = y / hor; d.line([(0, y), (Wb, y)], fill=tuple(int(top[i] * (1 - t) + bot[i] * t) for i in range(3)))
     if p['night']:
-        for _ in range(120):
+        for _ in range(140):
             x, y = rnd.randrange(Wb), rnd.randrange(hor); r = rnd.choice((1, 1, 2)) * S
             d.ellipse((x - r, y - r, x + r, y + r), fill=(255, 250, 220))
-    else:
-        cloud = (255, 220, 225) if p['sunset'] else (255, 255, 255)
-        mask = Image.new('L', (Wb, Hb), 0); md = ImageDraw.Draw(mask)
-        for _ in range(4):
-            cx, cy = rnd.randrange(int(Wb * 0.05), int(Wb * 0.95)), rnd.randrange(int(Hb * 0.08), int(Hb * 0.26))
+        d.ellipse((Wb * 0.8, Hb * 0.08, Wb * 0.8 + 90 * S, Hb * 0.08 + 90 * S), fill=(250, 245, 215))
+    elif not p['sunset']:
+        sx, sy = Wb * 0.12, Hb * 0.1
+        d.ellipse((sx, sy, sx + 110 * S, sy + 110 * S), fill=(255, 236, 150))
+    # clouds on their own layer so they can drift
+    clouds = Image.new('RGBA', (int(Wb * 1.5), Hb), (0, 0, 0, 0))
+    if not p['night']:
+        cloud = (255, 225, 230) if p['sunset'] else (255, 255, 255)
+        mask = Image.new('L', clouds.size, 0); md = ImageDraw.Draw(mask)
+        for _ in range(6):
+            cx, cy = rnd.randrange(int(clouds.width * 0.03), int(clouds.width * 0.97)), rnd.randrange(int(Hb * 0.08), int(Hb * 0.27))
             k = rnd.uniform(0.8, 1.3) * S
             for (dx, dy, r) in ((-60, 0, 34), (-20, -24, 46), (30, -14, 40), (68, 4, 30)):
                 md.ellipse((cx + (dx - r) * k, cy + (dy - r) * k, cx + (dx + r) * k, cy + (dy + r) * k), fill=255)
             md.rounded_rectangle((cx - 92 * k, cy - 8 * k, cx + 96 * k, cy + 32 * k), radius=int(20 * k), fill=255)
         edge = mask.filter(ImageFilter.MaxFilter(5))
-        img.paste(INK, (0, 0), edge)
-        img.paste(cloud, (0, 0), mask)
-    # distant hills
-    hill = (150, 120, 150) if p['sunset'] else ((60, 60, 90) if p['night'] else (190, 160, 120))
+        clouds.paste(INK + (255,), (0, 0), edge)
+        clouds.paste(cloud + (255,), (0, 0), mask)
+    hill = (150, 120, 150) if p['sunset'] else ((60, 60, 90) if p['night'] else (176, 170, 120))
     pts = [(0, hor)] + [(x, hor - 40 * S - 30 * S * math.sin(x / (180 * S) + p['seed'])) for x in range(0, Wb + 40, 40)] + [(Wb, hor + 10)]
     d.polygon(pts + [(Wb, Hb), (0, Hb)], fill=hill)
     if p['pyramids']:
         base = hor + 10 * S
-        for i, (px, ph) in enumerate(((0.62, 230), (0.74, 200), (0.83, 120))):
+        for px, ph in ((0.62, 230), (0.74, 200), (0.83, 120)):
             x = Wb * px; hh = ph * S
             col = (205, 160, 100) if not p['night'] else (80, 70, 90)
             d.polygon([(x - hh, base), (x, base - hh), (x + hh, base)], fill=col, outline=INK)
@@ -535,19 +592,18 @@ def sky_bg(p):
             d.rectangle((x, base - bh, x + bw, base), fill=col, outline=INK, width=max(2, int(3 * S)))
             for c in range(4): d.line([(x + 15 * S + c * 27 * S, base - bh + 18 * S), (x + 15 * S + c * 27 * S, base)], fill=INK, width=max(2, int(3 * S)))
             d.rectangle((x - 8 * S, base - bh - 14 * S, x + bw + 8 * S, base - bh), fill=col, outline=INK, width=max(2, int(3 * S)))
-    # ground
-    ground = (217, 178, 107) if not p['night'] else (90, 80, 70)
+    ground = (205, 180, 110) if not p['night'] else (90, 80, 70)
     d.rectangle((0, hor + 20 * S, Wb, Hb), fill=ground)
-    for _ in range(140):
+    for _ in range(220):
         x, y = rnd.randrange(Wb), rnd.randrange(int(hor + 40 * S), Hb)
-        d.line([(x, y), (x + 4 * S, y - 10 * S)], fill=(180, 140, 70), width=max(1, int(2 * S)))
+        d.line([(x, y), (x + 4 * S, y - 10 * S)], fill=(160, 140, 70), width=max(1, int(2 * S)))
     if p['river']:
         ry = hor + 90 * S
         d.polygon([(0, ry), (Wb, ry - 30 * S), (Wb, ry + 50 * S), (0, ry + 80 * S)], fill=(70, 140, 200), outline=INK)
-        for k in range(10):
+        for _ in range(10):
             x = rnd.randrange(Wb); y = ry + rnd.randint(10, 50) * S
             d.arc((x, y, x + 60 * S, y + 20 * S), 200, 340, fill=(200, 230, 250), width=max(2, int(3 * S)))
-    return img
+    return img, clouds
 
 def studio_bg(p):
     rnd = np.random.default_rng(p['seed'])
@@ -565,207 +621,344 @@ def art_bg(p):
     a = base[None, None, :] * (1 - 0.28 * np.clip(r - 0.5, 0, 1))[..., None]
     a += rnd.normal(0, 4, (Hb, Wb, 1))
     img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
-    d = ImageDraw.Draw(img)
-    m = int(40 * S)
+    d = ImageDraw.Draw(img); m = int(40 * S)
     d.rectangle((m, m, Wb - m, Hb - m), outline=(150, 110, 60), width=max(2, int(6 * S)))
     d.rectangle((m + 14 * S, m + 14 * S, Wb - m - 14 * S, Hb - m - 14 * S), outline=(150, 110, 60), width=max(1, int(2 * S)))
     return img
+
+# ----------------------------------------------------------------------------- the Guide (talking + blinking)
+MOUTH = (446, 512)            # smile centre in guide.png
+EYES = ((364, 428), (510, 416))
+GUIDE_SKIN = (250, 214, 184)
+
+def guide_variants(h):
+    base = Image.open(os.path.join(ASSETS, 'guide.png')).convert('RGBA')
+    out = {}
+    for name in ('rest', 'open1', 'open2', 'open3', 'blink'):
+        g = base.copy(); d = ImageDraw.Draw(g)
+        if name.startswith('open'):
+            k = int(name[-1])
+            mx, my = MOUTH
+            d.ellipse((mx - 62, my - 22, mx + 62, my + 22), fill=GUIDE_SKIN)      # hide the drawn smile
+            w, hh = 30 + 8 * k, 10 + 13 * k
+            d.chord((mx - w, my - 14 - hh * 0.25, mx + w, my - 14 + hh), 0, 360, fill=(95, 30, 30), outline=(40, 20, 15), width=5)
+            d.chord((mx - w * 0.55, my - 14 + hh * 0.35, mx + w * 0.55, my - 14 + hh * 0.95), 0, 180, fill=(225, 110, 110))
+        if name == 'blink':
+            for ex, ey in EYES:
+                d.ellipse((ex - 30, ey - 40, ex + 30, ey + 40), fill=GUIDE_SKIN)
+                d.arc((ex - 26, ey - 18, ex + 26, ey + 14), 20, 160, fill=(40, 25, 20), width=7)
+        r = h / g.height
+        out[name] = g.resize((int(g.width * r), int(g.height * r)), Image.LANCZOS)
+    return out
+
+# ----------------------------------------------------------------------------- text animation
+def stamp_img(text):
+    f = F('bangers.ttf', 96)
+    d0 = ImageDraw.Draw(Image.new('RGBA', (1, 1)))
+    tw = int(d0.textlength(text, font=f)); pad = int(28 * S)
+    im = Image.new('RGBA', (tw + pad * 2, int(f.size * 1.35) + pad), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    red = (205, 45, 40, 255)
+    d.rounded_rectangle((4, 4, im.width - 5, im.height - 5), radius=int(12 * S), outline=red, width=max(4, int(9 * S)), fill=(255, 255, 255, 60))
+    d.text((pad, pad * 0.6), text, font=f, fill=red)
+    # rough ink texture
+    a = np.asarray(im).copy(); rng = np.random.default_rng(len(text))
+    holes = rng.random(a.shape[:2]) < 0.06
+    a[..., 3] = np.where(holes, a[..., 3] // 3, a[..., 3])
+    im = Image.fromarray(a).rotate(7, expand=True, resample=Image.BICUBIC)
+    return im
+
+def fmt_count(c, k):
+    pre, val, dec, comma, suf = c
+    v = val * k
+    s = f'{v:,.{dec}f}' if comma or val >= 10000 else f'{v:.{dec}f}'
+    return pre + s + suf
 
 # ----------------------------------------------------------------------------- scene renderer
 class SceneRenderer:
     def __init__(self, p, env, t0):
         self.p = p; self.env = env; self.t0 = t0
         setc = p['set']
-        self.guide = Image.open(os.path.join(ASSETS, 'guide.png')).convert('RGBA')
         gh = {'STUDIO': 0.62, 'MAP': 0.46, 'SCENE': 0.40, 'ART': 0.40}[setc]
-        r = H * gh / self.guide.height
-        self.guide = self.guide.resize((int(self.guide.width * r), int(self.guide.height * r)), Image.LANCZOS)
+        self.gv = guide_variants(int(H * gh))
+        g = self.gv['rest']
         if setc == 'STUDIO': self.gpos = (int(W * 0.07), int(H * 0.30))
-        elif setc == 'MAP': self.gpos = (int(W * 0.80), int(H - self.guide.height + H * 0.02))
-        else: self.gpos = (int(W * 0.82), int(H - self.guide.height - H * 0.04))
+        elif setc == 'MAP': self.gpos = (int(W * 0.80), int(H - g.height + H * 0.02))
+        else: self.gpos = (int(W * 0.82), int(H - g.height - H * 0.04))
+        self.slide_in = p['guide'] and p['prev_set'] != setc
+        self.clouds = None
         if setc == 'MAP':
-            self.view = map_view(p['places'])
-            self.bg = None
-            self.ovl = self.make_overlay()
+            self.setup_map()
+        elif setc == 'SCENE':
+            self.bg, self.clouds = sky_layers(p)
         else:
-            self.bg = {'STUDIO': studio_bg, 'SCENE': sky_bg, 'ART': art_bg}[setc](p)
-        # elements
-        self.elems = []   # (appear_t, img, (x, y) centre-bottom anchor, kind)
+            self.bg = {'STUDIO': studio_bg, 'ART': art_bg}[setc](p)
+        # characters + cards
+        self.elems = []
         fh = 0.40 if len(p['chars']) <= 3 else 0.30
         chars = [draw_figure(*c, h=int(H * (fh if setc != 'SCENE' else 0.34))) for c in p['chars']]
         cards = [card_img(e, int(H * (0.17 if setc == 'STUDIO' else 0.15))) for e in p['icons']]
         pops = list(p['pop'])
-        # layout
-        if setc == 'STUDIO':
-            xs0, xs1 = W * 0.36, W * 0.95
-        elif setc == 'SCENE' or setc == 'ART':
-            xs0, xs1 = W * 0.08, W * (0.78 if p['guide'] else 0.92)
-        else:
-            xs0, xs1 = W * 0.1, W * 0.9
-        allel = [('char', c) for c in chars] + [('card', c) for c in cards]
-        nc = len(chars); nk = len(cards)
-        i = 0
+        if setc == 'STUDIO': xs0, xs1 = W * 0.36, W * 0.95
+        elif setc in ('SCENE', 'ART'): xs0, xs1 = W * 0.08, W * (0.78 if p['guide'] else 0.92)
+        else: xs0, xs1 = W * 0.1, W * 0.9
+        nc, nk = len(chars), len(cards); i = 0
         for k, c in enumerate(chars):
             x = xs0 + (xs1 - xs0) * (k + 0.5) / max(1, nc)
             y = H * (0.93 if setc != 'SCENE' else 0.95)
-            self.elems.append((pops[i] if i < len(pops) else 0.5, c, (x, y), 'char')); i += 1
+            self.elems.append([pops[i] if i < len(pops) else 0.5, c, (x, y), 'char']); i += 1
         for k, c in enumerate(cards):
             x = xs0 + (xs1 - xs0) * (k + 0.5) / max(1, nk)
             y = H * (0.56 if nc else 0.72) if setc != 'SCENE' else H * 0.58
-            self.elems.append((pops[i] if i < len(pops) else 0.5, c, (x, y), 'card')); i += 1
+            self.elems.append([pops[i] if i < len(pops) else 0.5, c, (x, y), 'card']); i += 1
         self.texts = []
-        for s in p['segs']:
-            if s['punch']:
-                img = text_img(s['text'], 'bangers.ttf', 118 if len(s['text']) < 18 else 92, YELLOW, (74, 42, 16), 7, maxw=W * 0.7)
-            else:
-                img = text_img(s['text'], 'patrick.ttf', 66, (255, 255, 255), INK, 4, maxw=W * 0.72)
-            self.texts.append((s['t'], img, s))
+        for sg in p['segs']:
+            self.texts.append(sg)
+        self._tcache = {}
 
-    def make_overlay(self):
-        """full-res overlay layer (in world pixels) for the map's view area"""
-        cx, cy, wpx, hpx = self.view
-        z = 1.1
-        self.vx0, self.vy0 = cx - wpx * z / 2, cy - hpx * z / 2
-        self.vw, self.vh = wpx * z, hpx * z
-        sc = W / self.vw * 1.0
-        layer = Image.new('RGBA', (int(self.vw * sc), int(self.vh * sc)), (0, 0, 0, 0))
+    # ---------------- text
+    def text_for(self, sg, t):
+        st = sg['style']; txt = sg['text']
+        if st == 'label':
+            n = len(txt); k = min(1.0, max(0.0, t / (0.03 * n + 0.25)))
+            txt = txt[: max(1, int(round(n * k)))]
+            key = ('L', txt)
+            if key not in self._tcache:
+                full = text_img(sg['text'], 'patrick.ttf', 66, (255, 255, 255), INK, 4, maxw=W * 0.72)
+                part = text_img(txt, 'patrick.ttf', 66, (255, 255, 255), INK, 4, maxw=W * 0.72)
+                # keep the left edge where the full line starts so the text types on in place
+                canvas = Image.new('RGBA', full.size, (0, 0, 0, 0))
+                canvas.alpha_composite(part, (0, 0)) if part.width <= full.width else None
+                self._tcache[key] = canvas if part.width <= full.width else part
+            return self._tcache[key], 1.0
+        if st == 'stamp':
+            key = ('S', txt)
+            if key not in self._tcache: self._tcache[key] = stamp_img(txt)
+            sc = 1 + 0.9 * (1 - ease_out(t / 0.16)) if t < 0.16 else 1.0
+            return self._tcache[key], sc
+        # punch (with optional ticker)
+        if sg['count'] and t < 1.1:
+            txt = fmt_count(sg['count'], ease_out(t / 1.1))
+        key = ('P', txt)
+        if key not in self._tcache:
+            self._tcache[key] = text_img(txt, 'bangers.ttf', 118 if len(sg['text']) < 18 else 92, YELLOW, (74, 42, 16), 7, maxw=W * 0.7)
+        sc = 1 + 0.45 * (1 - ease_out(t / 0.18)) if t < 0.18 else 1.0
+        return self._tcache[key], sc
+
+    # ---------------- map
+    def setup_map(self):
+        p = self.p
+        self.view = map_view(p['places'])
+        cx, cy, wpx = self.view
+        far = 2.6 if p['prev_set'] != 'MAP' else 1.35
+        # starting view: zoomed out over the same spot (from "space" when coming from another set)
+        self.view0 = clamp_view(cx, cy, wpx * far)
+        self.view1 = clamp_view(cx, cy, wpx * 0.94)
+        # overlay layer drawn once in world coordinates around the target view
+        R = 1.7
+        self.ox0 = cx - wpx * R / 2; self.oy0 = cy - wpx * 9 / 16 * R / 2
+        self.ok = W / wpx            # overlay pixels per world pixel
+        OW, OH = int(wpx * R * self.ok), int(wpx * 9 / 16 * R * self.ok)
+        self.ovl = Image.new('RGBA', (OW, OH), (0, 0, 0, 0))
+        d = ImageDraw.Draw(self.ovl)
+        tr = self.w2o
+        if p['overlay']:
+            poly = [tr(*ll2px(*q)) for q in OVERLAYS[p['overlay']]]
+            empire = p['overlay'] not in ('EGYPT', 'UPPER', 'LOWERD')
+            fill = (226, 80, 50, 205) if empire else (236, 160, 80, 150)
+            edge = (255, 205, 170, 255) if empire else (255, 236, 200, 255)
+            d.polygon(poly, fill=fill)
+            d.line(poly + [poly[0]], fill=edge, width=max(2, int(4 * S)), joint='curve')
+            xs = [q[0] for q in poly]; ys = [q[1] for q in poly]
+            seedll = PLACES.get(p['places'][0]) if p['places'] and p['places'][0] in PLACES else None
+            self.seed = tr(*ll2px(*seedll)) if seedll else (sum(xs) / len(xs), sum(ys) / len(ys))
+        self.nile_pts = [tr(*ll2px(*q)) for q in NILE]
+        self.delta = [tr(*ll2px(*q)) for q in DELTA]
+        self.pins = [(n, *tr(*ll2px(*PLACES[n]))) for n in p['places'] if n != 'EGYPT' and n in PLACES]
+        self._labels = {}
+
+    def w2o(self, x, y):
+        return ((x - self.ox0) * self.ok, (y - self.oy0) * self.ok)
+
+    def map_frame(self, t):
+        p = self.p; dur = p['dur']
+        # camera: ease from wide to target in the first ~1.8 s, then a slow push-in
+        k = ease(t / 1.8)
+        c0, c1 = self.view0, self.view
+        cx = c0[0] + (c1[0] - c0[0]) * k; cy = c0[1] + (c1[1] - c0[1]) * k
+        wv = math.exp(math.log(c0[2]) + (math.log(c1[2]) - math.log(c0[2])) * k)
+        if t > 1.8:
+            k2 = (t - 1.8) / max(0.5, dur - 1.8)
+            wv = wv + (self.view1[2] - self.view[2]) * k2
+        cx, cy, wv = clamp_view(cx, cy, wv)
+        hv = wv * 9 / 16
+        x0, y0 = cx - wv / 2, cy - hv / 2
+        img = world().crop((int(x0), int(y0), int(x0 + wv), int(y0 + hv))).resize((W, H), Image.BILINEAR).convert('RGBA')
+        sc = W / wv                                    # screen px per world px
+        to_screen = lambda ox, oy: ((ox / self.ok + self.ox0 - x0) * sc, (oy / self.ok + self.oy0 - y0) * sc)
+        settle = 1.5
+        layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+        # empire / region overlay that grows out from a point
+        if p['overlay'] and t > settle:
+            g = ease_out((t - settle) / 1.5)
+            ox, oy = to_screen(0, 0)
+            f = sc / self.ok
+            ol = self.ovl.resize((max(1, int(self.ovl.width * f)), max(1, int(self.ovl.height * f))), Image.BILINEAR)
+            if g < 1:
+                sx, sy = to_screen(*self.seed)
+                m = Image.new('L', ol.size, 0); md = ImageDraw.Draw(m)
+                r = g * math.hypot(ol.width, ol.height)
+                md.ellipse((sx - ox - r, sy - oy - r, sx - ox + r, sy - oy + r), fill=255)
+                a = ol.split()[3]
+                from PIL import ImageChops
+                ol.putalpha(ImageChops.multiply(a, m))
+            layer.alpha_composite(ol, (int(ox), int(oy))) if ox >= 0 and oy >= 0 else layer.paste(ol, (int(ox), int(oy)), ol)
         d = ImageDraw.Draw(layer)
-        tr = lambda lat, lon: ((ll2px(lat, lon)[0] - self.vx0) * sc, (ll2px(lat, lon)[1] - self.vy0) * sc)
-        self._tr = tr
-        if self.p['overlay']:
-            poly = [tr(*q) for q in OVERLAYS[self.p['overlay']]]
-            d.polygon(poly, fill=(226, 85, 45, 150), outline=(150, 40, 20, 220))
-            d.line(poly + [poly[0]], fill=(150, 40, 20, 230), width=max(2, int(4 * S)))
-        if self.p['nile']:
-            pts = [tr(*q) for q in NILE]
-            if self.p['nile_glow']:
-                glow = Image.new('RGBA', layer.size, (0, 0, 0, 0)); gd = ImageDraw.Draw(glow)
-                gd.line(pts, fill=(90, 220, 90, 200), width=max(6, int(26 * S)), joint='curve')
-                gd.polygon([tr(*q) for q in DELTA], fill=(90, 220, 90, 170))
-                glow = glow.filter(ImageFilter.GaussianBlur(6 * S))
-                layer.alpha_composite(glow)
-                d.line(pts, fill=(40, 150, 60, 255), width=max(3, int(8 * S)), joint='curve')
-            else:
-                d.line(pts, fill=(60, 150, 70, 200), width=max(2, int(5 * S)), joint='curve')
-                d.polygon([tr(*q) for q in DELTA], fill=(80, 170, 80, 110))
-        self.ovl_scale = sc
-        self.pins = []
-        for name in self.p['places']:
-            if name in ('EGYPT',): continue
-            x, y = tr(*PLACES[name])
-            if 0 <= x < layer.width and 0 <= y < layer.height:
-                self.pins.append((name, x, y))
-        return layer
+        # the Nile: draws itself south -> north when it is the subject
+        pts = [to_screen(*q) for q in self.nile_pts]
+        if p['nile_glow']:
+            k = ease((t - 0.6) / 1.6)
+            if k > 0:
+                n = max(2, int(len(pts) * k)); seg = pts[:n]
+                glow = Image.new('RGBA', (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(glow)
+                gd.line(seg, fill=(110, 230, 110, 200), width=max(6, int(26 * S)), joint='curve')
+                if k >= 1: gd.polygon([to_screen(*q) for q in self.delta], fill=(110, 230, 110, 170))
+                layer.alpha_composite(glow.filter(ImageFilter.GaussianBlur(6 * S)))
+                d.line(seg, fill=(40, 160, 60, 255), width=max(3, int(8 * S)), joint='curve')
+        else:
+            d.line(pts, fill=(60, 150, 70, 170), width=max(2, int(4 * S)), joint='curve')
+            d.polygon([to_screen(*q) for q in self.delta], fill=(80, 170, 80, 90))
+        img.alpha_composite(layer)
+        d = ImageDraw.Draw(img)
+        # pins + typed labels
+        shown = []
+        for i, (name, px, py) in enumerate(self.pins):
+            at = settle + 0.2 + i * 0.45
+            if t < at: continue
+            X, Y = to_screen(px, py); shown.append((name, X, Y, at))
+            r = 10 * S * min(1.0, ease_pop(t - at))
+            d.ellipse((X - r, Y - r, X + r, Y + r), fill=(230, 50, 40), outline=(255, 255, 255), width=max(2, int(3 * S)))
+        # arrow: white, drawn on, with an icon riding the tip
+        if p['arrow'] and len(shown) >= 2:
+            (n0, ax, ay, _), (n1, bx, by, at1) = shown[0], shown[1]
+            k = ease((t - at1 - 0.2) / 1.6)
+            if k > 0:
+                mx, my = (ax + bx) / 2 - (by - ay) * 0.22, (ay + by) / 2 + (bx - ax) * 0.22
+                us = np.linspace(0, k, 40)
+                cur = [((1 - u) ** 2 * ax + 2 * (1 - u) * u * mx + u * u * bx, (1 - u) ** 2 * ay + 2 * (1 - u) * u * my + u * u * by) for u in us]
+                d.line(cur, fill=(50, 35, 25), width=max(4, int(15 * S)), joint='curve')
+                d.line(cur, fill=(255, 255, 255), width=max(3, int(9 * S)), joint='curve')
+                (x1, y1), (x2, y2) = cur[-2], cur[-1]
+                ang = math.atan2(y2 - y1, x2 - x1); L = 34 * S
+                tri = [(x2 + 8 * S * math.cos(ang), y2 + 8 * S * math.sin(ang)),
+                       (x2 - L * math.cos(ang - 0.5), y2 - L * math.sin(ang - 0.5)), (x2 - L * math.cos(ang + 0.5), y2 - L * math.sin(ang + 0.5))]
+                d.polygon(tri, fill=(255, 255, 255), outline=(50, 35, 25))
+                if p['boat'] or re.search(r'army|march|chariot|soldier|charge', p['visual'], re.I):
+                    e = emoji_img('⛵' if p['boat'] else '⚔️', int(64 * S))
+                    img.alpha_composite(e, (int(x2 - e.width / 2), int(y2 - e.height - 14 * S)))
+        elif p['boat']:
+            bp = [to_screen(*q) for q in self.nile_pts[6:]]
+            u = (math.sin(t / max(dur, 1) * math.pi * 2 - math.pi / 2) + 1) / 2
+            fpos = u * (len(bp) - 1); i0 = min(int(fpos), len(bp) - 2); fr = fpos - i0
+            bx = bp[i0][0] * (1 - fr) + bp[i0 + 1][0] * fr; by = bp[i0][1] * (1 - fr) + bp[i0 + 1][1] * fr
+            e = emoji_img('⛵', int(100 * S))
+            img.alpha_composite(e, (int(bx - e.width / 2), int(by - e.height * 0.9 + math.sin(t * 4) * 3 * S)))
+        for name, X, Y, at in shown:
+            n = len(name); k = min(1.0, (t - at) / (0.04 * n + 0.15))
+            sub = name[: max(1, int(round(n * k)))]
+            if sub not in self._labels:
+                self._labels[sub] = text_img(sub, 'patrick.ttf', 46, (255, 255, 255), INK, 3)
+            lab = self._labels[sub]
+            full_w = self._labels[name].width if name in self._labels else text_img(name, 'patrick.ttf', 46, (255, 255, 255), INK, 3).width
+            img.alpha_composite(lab, (int(X - full_w / 2), int(Y - lab.height - 12 * S)))
+        return img
 
+    # ---------------- frame
     def frame(self, t):
         p = self.p; setc = p['set']; dur = p['dur']
         prog = t / max(dur, 0.01)
         if setc == 'MAP':
-            z = 1.1 - 0.08 * prog
-            cx, cy, wpx, hpx = self.view
-            vw, vh = wpx * z, hpx * z
-            x0, y0 = cx - vw / 2, cy - vh / 2
-            wl = world()
-            box = (int(x0), int(y0), int(x0 + vw), int(y0 + vh))
-            img = wl.crop(box).resize((W, H), Image.BILINEAR).convert('RGBA')
-            # overlay layer is in the z=1.1 frame; map it to current zoom
-            s = 1.1 / z
-            ow, oh = int(W * s), int(H * s)
-            ox = int((self.vx0 - x0) / vw * W); oy = int((self.vy0 - y0) / vh * H)
-            ol = self.ovl.resize((ow, oh), Image.BILINEAR)
-            # overlay grows in
-            if p['overlay'] and t < 1.2:
-                a = ol.split()[3].point(lambda v: int(v * min(1, t / 1.2)))
-                ol.putalpha(a)
-            img.alpha_composite(ol, (ox, oy))
-            d = ImageDraw.Draw(img)
-            pins = []
-            for k, (name, px, py) in enumerate(self.pins):
-                at = 0.4 + k * 0.5
-                if t < at: continue
-                X = ox + px * s; Y = oy + py * s
-                pins.append((name, X, Y))
-                r = 11 * S * min(1, ease_pop(t - at))
-                d.ellipse((X - r, Y - r, X + r, Y + r), fill=(230, 50, 40), outline=(255, 255, 255), width=max(2, int(3 * S)))
-            if p['arrow'] and len(pins) >= 2:
-                (n0, ax, ay), (n1, bx, by) = pins[0], pins[1]
-                k = min(1, max(0, (t - 0.9) / 1.6))
-                if k > 0:
-                    mx, my = (ax + bx) / 2 - (by - ay) * 0.2, (ay + by) / 2 + (bx - ax) * 0.2
-                    pts = [((1 - u) ** 2 * ax + 2 * (1 - u) * u * mx + u * u * bx, (1 - u) ** 2 * ay + 2 * (1 - u) * u * my + u * u * by) for u in np.linspace(0, k, 30)]
-                    d.line(pts, fill=(255, 255, 255), width=max(3, int(9 * S)), joint='curve')
-                    d.line(pts, fill=(226, 60, 40), width=max(2, int(5 * S)), joint='curve')
-                    if k >= 1:
-                        (x1, y1), (x2, y2) = pts[-2], pts[-1]
-                        ang = math.atan2(y2 - y1, x2 - x1); L = 26 * S
-                        d.polygon([(x2, y2), (x2 - L * math.cos(ang - 0.45), y2 - L * math.sin(ang - 0.45)),
-                                   (x2 - L * math.cos(ang + 0.45), y2 - L * math.sin(ang + 0.45))], fill=(226, 60, 40), outline=(255, 255, 255))
-                    if p['boat']:
-                        bxp, byp = pts[-1]
-                        e = emoji_img('⛵', int(64 * S))
-                        img.alpha_composite(e, (int(bxp - e.width / 2), int(byp - e.height)))
-            if p['boat'] and not (p['arrow'] and len(pins) >= 2):
-                pts = [(ox + self._tr(*q)[0] * s, oy + self._tr(*q)[1] * s) for q in NILE[6:]]
-                u = (math.sin(t / max(dur, 1) * math.pi * 2 - math.pi / 2) + 1) / 2   # north then back south
-                fpos = u * (len(pts) - 1); i0 = min(int(fpos), len(pts) - 2); fr = fpos - i0
-                bx = pts[i0][0] * (1 - fr) + pts[i0 + 1][0] * fr; by = pts[i0][1] * (1 - fr) + pts[i0 + 1][1] * fr
-                e = emoji_img('⛵', int(110 * S))
-                img.alpha_composite(e, (int(bx - e.width / 2), int(by - e.height * 0.9)))
-            for name, X, Y in pins:
-                lab = self._label(name)
-                img.alpha_composite(lab, (int(X - lab.width / 2), int(Y - lab.height - 14 * S)))
+            img = self.map_frame(t)
         else:
             bg = self.bg
             mx, my = bg.width - W, bg.height - H
             img = bg.crop((int(mx * prog), int(my * 0.5), int(mx * prog) + W, int(my * 0.5) + H)).convert('RGBA')
-        # elements
+            if self.clouds is not None:
+                cx = int(self.clouds.width * 0.1 + t * 14 * S)
+                img.alpha_composite(self.clouds.crop((cx, 0, cx + W, H)))
+        # characters and cards
         for at, el, (x, y), kind in self.elems:
             if t < at: continue
-            e = ease_pop(t - at)
+            dt = t - at
+            if kind == 'char' and p['walk'] and setc == 'SCENE':
+                k = ease_out(dt / 1.4); x = x - (1 - k) * W * 0.5
+                hop = -abs(math.sin(dt * 9)) * 10 * S * (1 - k)
+                img.alpha_composite(el, (int(x - el.width / 2), int(y - el.height + hop)))
+                continue
+            e = ease_pop(dt)
             if e <= 0: continue
             im = el if abs(e - 1) < 0.01 else el.resize((max(1, int(el.width * e)), max(1, int(el.height * e))), Image.BILINEAR)
-            bob = math.sin((t + at) * 2.2) * 4 * S if kind == 'card' else 0
-            img.alpha_composite(im, (int(x - im.width / 2), int(y - im.height + bob)))
+            if kind == 'card':
+                slide = (1 - ease_out(dt / 0.35)) * 120 * S
+                bob = math.sin((t + at) * 2.2) * 4 * S
+                img.alpha_composite(im, (int(x - im.width / 2 + slide), int(y - im.height + bob)))
+            else:
+                breathe = math.sin((t + at * 3) * 2.4) * 2.5 * S
+                img.alpha_composite(im, (int(x - im.width / 2), int(y - im.height + breathe)))
         if p['xstamp']:
             st = dur * 0.55
             for k, (at, el, (x, y), kind) in enumerate(self.elems):
                 ts = max(st + k * 0.18, at + 0.3)
                 if t >= ts:
-                    d = ImageDraw.Draw(img); r = 70 * S * min(1, ease_pop(t - ts))
+                    d = ImageDraw.Draw(img); r = 70 * S * min(1.0, ease_pop(t - ts))
                     cy = y - el.height * 0.45
                     d.line([(x - r, cy - r), (x + r, cy + r)], fill=(220, 40, 40), width=max(4, int(16 * S)))
                     d.line([(x + r, cy - r), (x - r, cy + r)], fill=(220, 40, 40), width=max(4, int(16 * S)))
-        # guide
+        # the Guide: slides in, bobs, talks and blinks
         if p['guide']:
             fi = int((self.t0 + t) * FPS)
-            amp = self.env[fi] if 0 <= fi < len(self.env) else 0
-            bob = -amp * 10 * S + math.sin(t * 2.0) * 3 * S
-            img.alpha_composite(self.guide, (self.gpos[0], int(self.gpos[1] + bob)))
-        # text
-        cur = [tx for tx in self.texts if t >= tx[0]]
+            amp = self.env[fi] if 0 <= fi < len(self.env) else 0.0
+            ph = (self.t0 + t) % 3.7
+            if ph < 0.12: g = self.gv['blink']
+            elif amp > 0.62: g = self.gv['open3']
+            elif amp > 0.38: g = self.gv['open2']
+            elif amp > 0.16 and (fi % 3): g = self.gv['open1']
+            else: g = self.gv['rest']
+            gx, gy = self.gpos
+            if self.slide_in:
+                k = ease_out(t / 0.55)
+                gx = int(gx + (1 - k) * (W - gx + 40 * S) * (1 if setc != 'STUDIO' else -1) * (1 if setc != 'STUDIO' else (gx + g.width) / (W - gx)))
+            bob = math.sin(t * 2.0) * 3 * S - amp * 5 * S
+            img.alpha_composite(g, (int(gx), int(gy + bob)))
+        # year counter (top-left, like the reference)
+        if p['year'] is not None:
+            y0 = p['prev_year'] if p['prev_year'] is not None else p['year']
+            k = ease(t / 1.2)
+            yv = int(round(y0 + (p['year'] - y0) * k))
+            ytxt = f'{-yv} BC' if yv < 0 else (f'AD {yv}' if yv < 1000 else f'{yv}')
+            key = ('Y', ytxt)
+            if key not in self._tcache: self._tcache[key] = text_img(ytxt, 'patrick.ttf', 40, (255, 255, 255), INK, 3)
+            img.alpha_composite(self._tcache[key], (int(28 * S), int(18 * S)))
+        # on-screen text
+        cur = [sg for sg in self.texts if t >= sg['t']]
         if cur:
-            at, timg, s = cur[-1]
-            e = ease_pop(t - at)
-            im = timg if abs(e - 1) < 0.01 else timg.resize((max(1, int(timg.width * e)), max(1, int(timg.height * e))), Image.BILINEAR)
-            if s['punch']:
+            sg = cur[-1]
+            timg, scl = self.text_for(sg, t - sg['t'])
+            im = timg if abs(scl - 1) < 0.01 else timg.resize((max(1, int(timg.width * scl)), max(1, int(timg.height * scl))), Image.BILINEAR)
+            if sg['style'] == 'stamp':
+                cx, cy = W * (0.62 if setc == 'STUDIO' else 0.55), H * 0.3
+            elif sg['style'] == 'punch':
                 cx = W * (0.62 if setc == 'STUDIO' else 0.5); cy = H * 0.2
             else:
                 cx = W * (0.6 if setc == 'STUDIO' else 0.5); cy = H * 0.12
             img.alpha_composite(im, (int(cx - im.width / 2), int(cy - im.height / 2)))
         return img.convert('RGB')
 
-    _lc = {}
-    def _label(self, name):
-        if name not in self._lc:
-            self._lc[name] = text_img(name, 'patrick.ttf', 44, (255, 255, 255), INK, 3)
-        return self._lc[name]
-
 # ----------------------------------------------------------------------------- driver
 def render_scene(args):
-    sn, v, start, end, env, f0, nf = args
+    p, start, env, nf = args
+    sn = p['scene']
     path = os.path.join(OUT, 'seg', f'{sn:03d}.mp4')
     if os.path.exists(path) and os.path.getsize(path) > 1000: return path
-    p = plan_scene(sn, v, end - start)
     r = SceneRenderer(p, env, start)
     cmd = ['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', path + '.tmp.mp4']
@@ -777,15 +970,22 @@ def render_scene(args):
     return path
 
 def sfx_track(plans, starts, total, sr=22050):
-    """little pop sounds when cards/characters/text appear"""
+    """pops when things appear, a thud for stamps, a soft whoosh when a map flies in"""
     out = np.zeros(int(total * sr) + sr, np.float32)
     n = int(0.07 * sr); tt = np.arange(n) / sr
-    pop = (np.sin(2 * np.pi * (900 - 4000 * tt) * tt) * np.exp(-tt * 45)).astype(np.float32) * 0.18
+    pop = (np.sin(2 * np.pi * (900 - 4000 * tt) * tt) * np.exp(-tt * 45)).astype(np.float32) * 0.16
+    m = int(0.18 * sr); tm = np.arange(m) / sr
+    thud = (np.sin(2 * np.pi * 70 * tm) * np.exp(-tm * 22) + np.random.default_rng(1).normal(0, 0.3, m) * np.exp(-tm * 40)).astype(np.float32) * 0.35
+    q = int(0.9 * sr); tq = np.arange(q) / sr
+    noise = np.random.default_rng(2).normal(0, 1, q).astype(np.float32)
+    whoosh = np.convolve(noise, np.ones(40) / 40, 'same') * np.sin(np.pi * tq / tq[-1]) ** 2 * 0.12
+    def add(sample, t):
+        i = int(t * sr)
+        if 0 <= i < len(out) - len(sample): out[i:i + len(sample)] += sample
     for p, st in zip(plans, starts):
-        times = list(p['pop'][: len(p['chars']) + len(p['icons'])]) + [s['t'] for s in p['segs']]
-        for t in times:
-            i = int((st + t) * sr)
-            if 0 <= i < len(out) - n: out[i:i + n] += pop
+        for t in p['pop'][: len(p['chars']) + len(p['icons'])]: add(pop, st + t)
+        for sg in p['segs']: add(thud if sg['style'] == 'stamp' else pop, st + sg['t'])
+        if p['set'] == 'MAP' and p['prev_set'] != 'MAP': add(whoosh, st)
     return out, sr
 
 def main():
@@ -795,21 +995,20 @@ def main():
     first, last = 1, len(scenes)
     if len(sys.argv) >= 3: first, last = int(sys.argv[1]), int(sys.argv[2])
     os.makedirs(os.path.join(OUT, 'seg'), exist_ok=True)
+    plans = plan_all(vis, {i + 1: s['end'] - s['start'] for i, s in enumerate(scenes)})
     jobs = []
-    for sn in range(first, last + 1):
-        s = scenes[sn - 1]
-        f0 = round(s['start'] * FPS); f1 = round(s['end'] * FPS)
-        jobs.append((sn, vis[sn], s['start'], s['end'], env, f0, f1 - f0))
+    for p in plans[first - 1:last]:
+        s = scenes[p['scene'] - 1]
+        nf = round(s['end'] * FPS) - round(s['start'] * FPS)
+        jobs.append((p, s['start'], env, nf))
     with Pool(int(os.environ.get('WORKERS', os.cpu_count() or 2))) as pool:
-        for k, path in enumerate(pool.imap(render_scene, jobs), 1):
-            print(f'scene {jobs[k - 1][0]} done', flush=True)
-    # join video
+        for k, _ in enumerate(pool.imap(render_scene, jobs), 1):
+            print(f'scene {jobs[k - 1][0]["scene"]} done', flush=True)
     lst = os.path.join(OUT, 'segments.txt')
     with open(lst, 'w') as f:
-        for j in jobs: f.write(f"file 'seg/{j[0]:03d}.mp4'\n")
+        for j in jobs: f.write(f"file 'seg/{j[0]['scene']:03d}.mp4'\n")
     t0 = scenes[first - 1]['start']; t1 = scenes[last - 1]['end']
-    plans = [plan_scene(j[0], j[1], j[3] - j[2]) for j in jobs]
-    sfx, sr = sfx_track(plans, [j[2] - t0 for j in jobs], t1 - t0)
+    sfx, sr = sfx_track([j[0] for j in jobs], [j[1] - t0 for j in jobs], t1 - t0)
     with wave.open(os.path.join(OUT, 'sfx.wav'), 'wb') as wf:
         wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(sr)
         wf.writeframes((np.clip(sfx, -1, 1) * 32767).astype(np.int16).tobytes())
