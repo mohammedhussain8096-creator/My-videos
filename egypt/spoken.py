@@ -15,6 +15,8 @@ ROMAN={'II':'the second','III':'the third','IV':'the fourth','V':'the fifth','VI
 def expand(t):
     t=t.replace('//','')
     t=re.sub(r'(\d+(?:\.\d+)?) million',lambda m:(m.group(1).replace('.',' point ').replace('2','two').replace('3','three'))+' million',t)
+    t=re.sub(r'\b(\d{3,4})s\b',lambda m:year(int(m.group(1)))+'s',t)
+    t=re.sub(r'\bAD (\d{1,4})\b',lambda m:'A D '+year(int(m.group(1))),t)
     t=re.sub(r'\b(\d{1,4}) BC\b',lambda m:year(int(m.group(1)))+' B C',t)
     t=re.sub(r'\b(\d{4})\b(?!,\d)',lambda m:year(int(m.group(1))) if 1800<int(m.group(1))<2100 else n2w(int(m.group(1))),t)
     t=re.sub(r'\b(\d{1,3}),(\d{3})\b',lambda m:n2w(int(m.group(1)+m.group(2))),t)

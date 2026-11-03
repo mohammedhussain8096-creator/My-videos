@@ -1,8 +1,8 @@
 # Why Egypt Never Died: Scene-by-Scene Production Script
 
-**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** 176 (about 7–8 s each, average 7.5 s) · **Runtime:** ≈ 21.9 min · **Narration pace:** locked at ≈ 155–160 words per minute (the same pace as the reference video)
+**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** 244 (about 7–8 s each, average 7.5 s) · **Runtime:** ≈ 30.5 min · **Narration pace:** locked at ≈ 155–160 words per minute (the same pace as the reference video)
 
-> The script you sent stops mid-sentence (*"Octavian, now Emperor Augustus, kept Egypt as his personal…"*). Scene 176 ends on that line. Send the rest and the next batch continues from Scene 177 in the same format.
+> Covers the full voice-over script, from the hook to the closing question. Scenes 1–175 are unchanged from the earlier version; scenes 176–244 cover the rest of the script.
 
 ## 1. Visual style bible (from the reference video)
 
@@ -58,7 +58,7 @@ The reference video already uses a narrator character with this exact design, so
 | Pauses | Comma ≈ 0.25 s · full stop ≈ 0.5 s · `...` (new paragraph) ≈ 0.9 s · before a big reveal ≈ 0.7 s |
 | Emphasis | Lean slightly on numbers, dates and the key word of each line (shown in the on-screen text column). Questions go up at the end. |
 | Energy | Keep it level across all batches. The hook (Scenes 1–3) can be 5% brighter; collapse and death beats 5% softer, same speed. |
-| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 10–19 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |
+| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 10–18 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |
 | Recording yourself | Same mic, room and distance every session; read a whole batch in one take; do a 10-second "warm-up" read of the previous batch's last line first. |
 | Mix | Voice peaks around −6 dB, music −22 dB under the voice, SFX −14 dB. |
 
@@ -89,6 +89,12 @@ The reference video already uses a narrator character with this exact design, so
 | Siwa | SEE-wah | Ptolemy | TOL-eh-mee | Edfu | ED-foo |
 | Dendera | den-DEH-ruh | Demotic | deh-MOT-ik | Plutarch | PLOO-tark |
 | Caesarion | see-ZAIR-ee-on | Actium | AK-tee-um | Octavian | ok-TAY-vee-un |
+| Philae | FY-lee | Copts | KOPTS | Constantinople | kon-stan-tih-NOH-pul |
+| Amr ibn al-As | AHM-r ib-un al-AHS | Fustat | foos-TAHT | Fatimids | FAT-ih-midz |
+| al-Qahira | al-KAH-hee-ruh | al-Azhar | al-AZ-har | Saladin | SAL-uh-din |
+| Mamluks | MAM-looks | Ain Jalut | AYN juh-LOOT | Selim | seh-LEEM |
+| Rosetta | roh-ZET-uh | Champollion | shahm-pol-YON | Ismail | is-mah-EEL |
+| Saad Zaghloul | SAHD zag-LOOL | Gamal Abdel Nasser | guh-MAHL AB-del NAS-er | Mubarak | moo-BAR-ak |
 
 Numbers: read years as "twenty-five sixty B C", Roman numerals as "Thutmose **the Third**", "Ptolemy **the Fifth**", "Cleopatra **the Seventh**".
 
@@ -108,7 +114,13 @@ Numbers: read years as "twenty-five sixty B C", Roman numerals as "Thutmose **th
 | 10 | 122–134 | 15:04.2–16:41.1 | Ramesses II and the Bronze Age collapse |
 | 11 | 135–147 | 16:41.1–18:21.2 | Strikes, outsiders and Assyria |
 | 12 | 148–157 | 18:21.2–19:37.0 | Persia and Alexander |
-| 13 | 158–176 | 19:37.0–21:56.5 | The Ptolemies and Cleopatra |
+| 13 | 158–175 | 19:37.0–21:49.3 | The Ptolemies and Cleopatra |
+| 14 | 176–188 | 21:49.3–23:24.4 | Rome, Christianity and Byzantium |
+| 15 | 189–199 | 23:24.4–24:47.0 | The Arab conquest, Cairo and Saladin |
+| 16 | 200–211 | 24:47.0–26:20.7 | The Mamluks and the Ottomans |
+| 17 | 212–222 | 26:20.7–27:43.6 | Napoleon, the Rosetta Stone and Muhammad Ali |
+| 18 | 223–232 | 27:43.6–28:57.6 | Suez, Britain and Nasser |
+| 19 | 233–244 | 28:57.6–30:27.2 | The dam, Egypt today and the answer |
 
 ## 5. Scenes
 
@@ -2046,7 +2058,7 @@ How to read each scene: **VO** is the exact voice line. **Visual** is what we se
 
 **Batch 12 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
 
-### Batch 13: The Ptolemies and Cleopatra (Scenes 158–176, 19:37.0–21:56.5)
+### Batch 13: The Ptolemies and Cleopatra (Scenes 158–175, 19:37.0–21:49.3)
 
 #### Scene 158 · 19:37.0–19:43.7 (6.7 s) · C · Illustrated world
 
@@ -2264,16 +2276,856 @@ How to read each scene: **VO** is the exact voice line. **Visual** is what we se
 - **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Antony fades into darkness. Cleopatra on her throne at dusk with a small cobra near her; she fades gently into gold dust. Text in frame: 30 BC.`
 - **AI motion prompt:** `Slow fade. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
 
-#### Scene 176 · 21:49.3–21:56.5 (7.2 s) · C · Illustrated world
+**Batch 13 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
 
-**VO:** "Egypt became part of the Roman Empire. … Octavian, now Emperor Augustus, kept Egypt as his personal"
+### Batch 14: Rome, Christianity and Byzantium (Scenes 176–188, 21:49.3–23:24.4)
+
+#### Scene 176 · 21:49.3–21:57.0 (7.7 s) · C · Illustrated world
+
+**VO:** "Egypt became part of the Roman Empire. … Octavian, now Emperor Augustus, kept Egypt as his personal province,"
 
 - **Visual:** A Roman eagle banner rises over Egypt. Octavian, now Augustus, steps forward holding a small model of Egypt in his hands like a possession. Hold for the cliffhanger. The Guide is not in this shot.
 - **On-screen text:** EGYPT BECOMES ROMAN / AUGUSTUS
 - **Camera / animation:** Banner rises; hold
 - **SFX / music:** eagle cry
-- **Length:** 16 spoken words · 7.2 s at the locked voice speed
+- **Length:** 17 spoken words · 7.7 s at the locked voice speed
 - **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A Roman eagle banner rises over Egypt. Octavian, now Augustus, steps forward holding a small model of Egypt in his hands like a possession. Hold for the cliffhanger. Text in frame: EGYPT BECOMES ROMAN / AUGUSTUS.`
-- **AI motion prompt:** `Banner rises; hold. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+- **AI motion prompt:** `Banner rises; hold. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
 
-**Batch 13 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+#### Scene 177 · 21:57.0–22:05.4 (8.4 s) · A · Satellite map
+
+**VO:** "run by a governor he appointed himself. Roman senators weren't allowed to enter without the emperor's permission."
+
+- **Visual:** Satellite map: Egypt glows with a gold padlock icon and a sign EMPEROR ONLY. A Roman governor in a toga takes the seat in Alexandria. Two Roman senators walk up to the border and are stopped by a guard holding up a hand. The Guide, bottom right, shakes his head.
+- **On-screen text:** A PERSONAL PROVINCE / SENATORS NEED PERMISSION
+- **Camera / animation:** Padlock snaps shut; senators bump to a stop
+- **SFX / music:** padlock click, comic bonk
+- **Length:** 17 spoken words · 8.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: Egypt glows with a gold padlock icon and a sign EMPEROR ONLY. A Roman governor in a toga takes the seat in Alexandria. Two Roman senators walk up to the border and are stopped by a guard holding up a hand. The Guide, bottom right, shakes his head. Include the Guide exactly as in the character reference. Text in frame: A PERSONAL PROVINCE / SENATORS NEED PERMISSION.`
+- **AI motion prompt:** `Padlock snaps shut; senators bump to a stop. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 178 · 22:05.4–22:09.9 (4.5 s) · B · Grey studio
+
+**VO:** "Egypt was too valuable to risk. … The reason was grain. Every year,"
+
+- **Visual:** Grey studio: a gold treasure chest shaped like Egypt sits on a velvet cushion with a TOO VALUABLE tag. The Guide opens it and it is full of wheat.
+- **On-screen text:** TOO VALUABLE TO RISK / THE REASON: GRAIN
+- **Camera / animation:** Chest lid opens; wheat sparkles
+- **SFX / music:** creak, sparkle
+- **Length:** 12 spoken words · 4.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Grey studio: a gold treasure chest shaped like Egypt sits on a velvet cushion with a TOO VALUABLE tag. The Guide opens it and it is full of wheat. Include the Guide exactly as in the character reference. Text in frame: TOO VALUABLE TO RISK / THE REASON: GRAIN.`
+- **AI motion prompt:** `Chest lid opens; wheat sparkles. Gentle cartoon motion, elements pop in with a small bounce, 4 seconds.`
+
+#### Scene 179 · 22:09.9–22:16.4 (6.5 s) · A · Satellite map
+
+**VO:** "ships carried Nile wheat across the Mediterranean, and much of Rome's bread grew in Egyptian mud."
+
+- **Visual:** Satellite map of the Mediterranean: a line of grain ships sails from Alexandria to Rome in a loop. In Rome, loaves of bread pop up with tiny Egyptian flags stuck in them. The Guide is not in this shot.
+- **On-screen text:** NILE WHEAT → ROME / ROME'S BREAD
+- **Camera / animation:** Ships loop along a dotted route; bread pops
+- **SFX / music:** waves, oars, pops
+- **Length:** 16 spoken words · 6.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map of the Mediterranean: a line of grain ships sails from Alexandria to Rome in a loop. In Rome, loaves of bread pop up with tiny Egyptian flags stuck in them. Text in frame: NILE WHEAT → ROME / ROME'S BREAD.`
+- **AI motion prompt:** `Ships loop along a dotted route; bread pops. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 180 · 22:16.4–22:23.3 (6.9 s) · D · Artefact / relief close-up
+
+**VO:** "And on temple walls, Roman emperors were carved dressed as pharaohs, making offerings to Egyptian gods."
+
+- **Visual:** A temple wall relief in the cartoon style: a Roman emperor with a laurel wreath under a pharaoh's double crown, offering to the god Horus. The Guide points at the crown, then at the laurel, and grins.
+- **On-screen text:** ROMAN EMPERORS AS PHARAOHS
+- **Camera / animation:** Slow pan across the relief
+- **SFX / music:** chisel taps, ding
+- **Length:** 16 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: close-up of an ancient object drawn in the same flat cartoon line style (papyrus, stone relief, clay tablet), warm paper-texture background, subtle vignette. Scene: A temple wall relief in the cartoon style: a Roman emperor with a laurel wreath under a pharaoh's double crown, offering to the god Horus. The Guide points at the crown, then at the laurel, and grins. Include the Guide exactly as in the character reference. Text in frame: ROMAN EMPERORS AS PHARAOHS.`
+- **AI motion prompt:** `Slow pan across the relief. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 181 · 22:23.3–22:30.7 (7.4 s) · C · Illustrated world
+
+**VO:** "Under Rome, Christianity spread through Egypt, and Alexandria became one of its great centres. By the late 300s,"
+
+- **Visual:** Alexandria street: a small church with a cross rises among Greek buildings; crowds gather. A year card flips to the late 300s while old temple doors start closing in the background. The Guide is not in this shot.
+- **On-screen text:** CHRISTIANITY SPREADS / ALEXANDRIA
+- **Camera / animation:** Church builds up; card flip
+- **SFX / music:** bells, crowd, page flip
+- **Length:** 19 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Alexandria street: a small church with a cross rises among Greek buildings; crowds gather. A year card flips to the late 300s while old temple doors start closing in the background. Text in frame: CHRISTIANITY SPREADS / ALEXANDRIA.`
+- **AI motion prompt:** `Church builds up; card flip. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 182 · 22:30.7–22:38.9 (8.2 s) · C · Illustrated world
+
+**VO:** "the old temples were closing. The last known hieroglyphic inscription was carved at Philae in AD 394."
+
+- **Visual:** Island temple of Philae on the Nile. A worker carves one last line of hieroglyphs; a tag reads LAST ONE · AD 394. Temple doors close behind him. The Guide is not in this shot.
+- **On-screen text:** PHILAE · AD 394 / LAST HIEROGLYPHIC INSCRIPTION
+- **Camera / animation:** Push in on the carving; doors close
+- **SFX / music:** chisel, door thud
+- **Length:** 22 spoken words · 8.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Island temple of Philae on the Nile. A worker carves one last line of hieroglyphs; a tag reads LAST ONE · AD 394. Temple doors close behind him. Text in frame: PHILAE · AD 394 / LAST HIEROGLYPHIC INSCRIPTION.`
+- **AI motion prompt:** `Push in on the carving; doors close. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 183 · 22:38.9–22:46.8 (7.9 s) · B · Grey studio
+
+**VO:** "After that, no one could read hieroglyphs for about 1,400 years. … But the language survived in another form."
+
+- **Visual:** Grey studio: a hieroglyph scroll fades to grey and a lock appears on it; a counter rolls to 1,400 YEARS. The Guide squints at it and turns it upside down. Then the scroll slowly changes letters.
+- **On-screen text:** NOBODY COULD READ THEM / 1,400 YEARS
+- **Camera / animation:** Fade; counter rolls
+- **SFX / music:** counter, puzzled hum
+- **Length:** 21 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Grey studio: a hieroglyph scroll fades to grey and a lock appears on it; a counter rolls to 1,400 YEARS. The Guide squints at it and turns it upside down. Then the scroll slowly changes letters. Include the Guide exactly as in the character reference. Text in frame: NOBODY COULD READ THEM / 1,400 YEARS.`
+- **AI motion prompt:** `Fade; counter rolls. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 184 · 22:46.8–22:54.2 (7.4 s) · D · Artefact / relief close-up
+
+**VO:** "Egyptian Christians, the Copts, wrote it in an alphabet based on Greek. Coptic is the last stage of ancient Egyptian,"
+
+- **Visual:** A page of Coptic writing: Greek-looking letters plus a few extra Egyptian signs. Labels: COPTS and COPTIC = THE LAST STAGE OF EGYPTIAN. The Guide is not in this shot.
+- **On-screen text:** COPTIC / GREEK LETTERS, EGYPTIAN LANGUAGE
+- **Camera / animation:** Letters write themselves
+- **SFX / music:** quill scratch
+- **Length:** 20 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: close-up of an ancient object drawn in the same flat cartoon line style (papyrus, stone relief, clay tablet), warm paper-texture background, subtle vignette. Scene: A page of Coptic writing: Greek-looking letters plus a few extra Egyptian signs. Labels: COPTS and COPTIC = THE LAST STAGE OF EGYPTIAN. Text in frame: COPTIC / GREEK LETTERS, EGYPTIAN LANGUAGE.`
+- **AI motion prompt:** `Letters write themselves. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 185 · 22:54.2–23:01.1 (6.9 s) · C · Illustrated world
+
+**VO:** "and it is still used in Coptic church services today. Egypt also produced Christianity's first monks,"
+
+- **Visual:** Inside a Coptic church today: candles, a priest reading from a Coptic book. Then cut to a desert cave where a bearded monk sits alone. The Guide is not in this shot.
+- **On-screen text:** STILL USED TODAY / THE FIRST MONKS
+- **Camera / animation:** Cut between the church and the desert
+- **SFX / music:** church chant, desert wind
+- **Length:** 16 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Inside a Coptic church today: candles, a priest reading from a Coptic book. Then cut to a desert cave where a bearded monk sits alone. Text in frame: STILL USED TODAY / THE FIRST MONKS.`
+- **AI motion prompt:** `Cut between the church and the desert. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 186 · 23:01.1–23:07.6 (6.5 s) · A · Satellite map
+
+**VO:** "who went to live in its deserts. … When the Roman Empire split, Egypt was ruled from Constantinople,"
+
+- **Visual:** Desert monks' huts dot the sand. Then the satellite map: the Roman Empire splits in two along a crack line; an arrow points from CONSTANTINOPLE to Egypt. The Guide is not in this shot.
+- **On-screen text:** THE EMPIRE SPLITS / RULED FROM CONSTANTINOPLE
+- **Camera / animation:** Map cracks; arrow draws
+- **SFX / music:** crack, whoosh
+- **Length:** 17 spoken words · 6.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Desert monks' huts dot the sand. Then the satellite map: the Roman Empire splits in two along a crack line; an arrow points from CONSTANTINOPLE to Egypt. Text in frame: THE EMPIRE SPLITS / RULED FROM CONSTANTINOPLE.`
+- **AI motion prompt:** `Map cracks; arrow draws. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 187 · 23:07.6–23:15.0 (7.4 s) · B · Grey studio
+
+**VO:** "by the Byzantine Empire. In 451, Egypt's church broke with the emperor's church over theology,"
+
+- **Visual:** A Byzantine emperor (jewelled crown) and Egypt's church leader stand on two halves of a cracked floor, each holding a different scroll. A year card: 451. The Guide is not in this shot.
+- **On-screen text:** BYZANTINE EMPIRE / 451: CHURCHES SPLIT
+- **Camera / animation:** Floor cracks apart
+- **SFX / music:** crack, gasp
+- **Length:** 19 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: A Byzantine emperor (jewelled crown) and Egypt's church leader stand on two halves of a cracked floor, each holding a different scroll. A year card: 451. Text in frame: BYZANTINE EMPIRE / 451: CHURCHES SPLIT.`
+- **AI motion prompt:** `Floor cracks apart. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 188 · 23:15.0–23:24.4 (9.4 s) · C · Illustrated world
+
+**VO:** "and many Egyptian Christians came to see their Byzantine rulers as oppressors. … Between 639 and 642,"
+
+- **Visual:** Egyptian Christians frown at a tax collector in Byzantine armour. Then a year card flips: 639–642. The Guide is not in this shot.
+- **On-screen text:** SEEN AS OPPRESSORS / 639–642
+- **Camera / animation:** Cut; card flip
+- **SFX / music:** grumbling, page flip
+- **Length:** 24 spoken words · 9.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Egyptian Christians frown at a tax collector in Byzantine armour. Then a year card flips: 639–642. Text in frame: SEEN AS OPPRESSORS / 639–642.`
+- **AI motion prompt:** `Cut; card flip. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+**Batch 14 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+
+### Batch 15: The Arab conquest, Cairo and Saladin (Scenes 189–199, 23:24.4–24:47.0)
+
+#### Scene 189 · 23:24.4–23:32.3 (7.9 s) · A · Satellite map
+
+**VO:** "Arab armies under Amr ibn al-As took Egypt from the Byzantines. They besieged the Roman fortress of Babylon,"
+
+- **Visual:** Arab army arrow (horses, camels, green banners) enters Egypt from Sinai. At BABYLON fortress (next to today's Cairo) the army sets up a siege. The Guide watches from bottom right.
+- **On-screen text:** AMR IBN AL-AS / FORTRESS OF BABYLON
+- **Camera / animation:** Arrow draws in; siege icons
+- **SFX / music:** hooves, drums
+- **Length:** 19 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Arab army arrow (horses, camels, green banners) enters Egypt from Sinai. At BABYLON fortress (next to today's Cairo) the army sets up a siege. The Guide watches from bottom right. Include the Guide exactly as in the character reference. Text in frame: AMR IBN AL-AS / FORTRESS OF BABYLON.`
+- **AI motion prompt:** `Arrow draws in; siege icons. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 190 · 23:32.3–23:38.0 (5.7 s) · C · Illustrated world
+
+**VO:** "beside today's Cairo, then took Alexandria by treaty. Amr founded a new capital,"
+
+- **Visual:** The fortress gates open. In Alexandria, two leaders sign a treaty scroll. Then a tent city starts to grow beside the Nile. The Guide is not in this shot.
+- **On-screen text:** ALEXANDRIA BY TREATY / A NEW CAPITAL
+- **Camera / animation:** Gates open; scroll signed; cut
+- **SFX / music:** gate creak, quill, bustle
+- **Length:** 13 spoken words · 5.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: The fortress gates open. In Alexandria, two leaders sign a treaty scroll. Then a tent city starts to grow beside the Nile. Text in frame: ALEXANDRIA BY TREATY / A NEW CAPITAL.`
+- **AI motion prompt:** `Gates open; scroll signed; cut. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 191 · 23:38.0–23:45.2 (7.2 s) · A · Satellite map
+
+**VO:** "Fustat, beside the Nile, and reopened an old canal to the Red Sea to ship Egyptian grain to Arabia."
+
+- **Visual:** The tent city becomes FUSTAT. A blue canal line draws from the Nile to the Red Sea; grain boats sail along it toward Arabia. The Guide is not in this shot.
+- **On-screen text:** FUSTAT / CANAL TO THE RED SEA
+- **Camera / animation:** Canal draws; boats sail
+- **SFX / music:** water, oars
+- **Length:** 19 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: The tent city becomes FUSTAT. A blue canal line draws from the Nile to the Red Sea; grain boats sail along it toward Arabia. Text in frame: FUSTAT / CANAL TO THE RED SEA.`
+- **AI motion prompt:** `Canal draws; boats sail. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 192 · 23:45.2–23:52.9 (7.7 s) · C · Illustrated world
+
+**VO:** "Once again, the river was feeding someone else's empire. … The new rulers left farming and village life largely in place"
+
+- **Visual:** The Guide points to a grain boat leaving: the same loop as Rome, with a new flag. Then farmers in the fields carry on as before, unchanged, while a new official watches.
+- **On-screen text:** FEEDING SOMEONE ELSE'S EMPIRE / LIFE GOES ON
+- **Camera / animation:** Loop callback; pan across the fields
+- **SFX / music:** ding, birds
+- **Length:** 20 spoken words · 7.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: The Guide points to a grain boat leaving: the same loop as Rome, with a new flag. Then farmers in the fields carry on as before, unchanged, while a new official watches. Include the Guide exactly as in the character reference. Text in frame: FEEDING SOMEONE ELSE'S EMPIRE / LIFE GOES ON.`
+- **AI motion prompt:** `Loop callback; pan across the fields. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 193 · 23:52.9–24:00.6 (7.7 s) · C · Illustrated world
+
+**VO:** "and collected taxes, with Christians paying a special tax. Over the following centuries, most Egyptians became Muslim,"
+
+- **Visual:** A tax table: Christians pay an extra coin. Then a time-lapse over a village: a mosque with a minaret rises; more people walk to it over the centuries. The Guide is not in this shot.
+- **On-screen text:** TAXES / MOST EGYPTIANS BECOME MUSLIM
+- **Camera / animation:** Coin drops; time-lapse
+- **SFX / music:** coin clink, call to prayer (soft)
+- **Length:** 17 spoken words · 7.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A tax table: Christians pay an extra coin. Then a time-lapse over a village: a mosque with a minaret rises; more people walk to it over the centuries. Text in frame: TAXES / MOST EGYPTIANS BECOME MUSLIM.`
+- **AI motion prompt:** `Coin drops; time-lapse. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 194 · 24:00.6–24:09.3 (8.7 s) · B · Grey studio
+
+**VO:** "and Arabic gradually replaced Coptic as the everyday language. It was the biggest cultural change in Egypt's history."
+
+- **Visual:** Grey studio: a speech bubble with Coptic letters slowly morphs into Arabic script. A big gold badge: BIGGEST CULTURAL CHANGE. The Guide holds his hat in both hands.
+- **On-screen text:** ARABIC REPLACES COPTIC / BIGGEST CULTURAL CHANGE
+- **Camera / animation:** Letters morph; badge slams
+- **SFX / music:** morph whoosh, gong
+- **Length:** 18 spoken words · 8.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Grey studio: a speech bubble with Coptic letters slowly morphs into Arabic script. A big gold badge: BIGGEST CULTURAL CHANGE. The Guide holds his hat in both hands. Include the Guide exactly as in the character reference. Text in frame: ARABIC REPLACES COPTIC / BIGGEST CULTURAL CHANGE.`
+- **AI motion prompt:** `Letters morph; badge slams. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 195 · 24:09.3–24:15.8 (6.5 s) · A · Satellite map
+
+**VO:** "In 969, the Fatimids, a dynasty that challenged the caliphs in Baghdad,"
+
+- **Visual:** Year card 969. A Fatimid army arrow with green banners enters from the west; a rival caliph icon in BAGHDAD frowns across the map. The Guide is not in this shot.
+- **On-screen text:** 969 / THE FATIMIDS
+- **Camera / animation:** Arrow sweeps in
+- **SFX / music:** drums
+- **Length:** 16 spoken words · 6.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Year card 969. A Fatimid army arrow with green banners enters from the west; a rival caliph icon in BAGHDAD frowns across the map. Text in frame: 969 / THE FATIMIDS.`
+- **AI motion prompt:** `Arrow sweeps in. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 196 · 24:15.8–24:23.7 (7.9 s) · C · Illustrated world
+
+**VO:** "conquered Egypt and founded a new royal city beside Fustat: al-Qahira, "the Victorious." We call it Cairo. Its mosque,"
+
+- **Visual:** A walled royal city rises beside Fustat. Name tag: AL-QAHIRA, "THE VICTORIOUS" → CAIRO. Then the mosque of al-Azhar with its courtyard appears. The Guide is not in this shot.
+- **On-screen text:** AL-QAHIRA = CAIRO / AL-AZHAR
+- **Camera / animation:** City builds; name tag morph
+- **SFX / music:** construction, fanfare
+- **Length:** 20 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A walled royal city rises beside Fustat. Name tag: AL-QAHIRA, "THE VICTORIOUS" → CAIRO. Then the mosque of al-Azhar with its courtyard appears. Text in frame: AL-QAHIRA = CAIRO / AL-AZHAR.`
+- **AI motion prompt:** `City builds; name tag morph. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 197 · 24:23.7–24:31.6 (7.9 s) · C · Illustrated world
+
+**VO:** "al-Azhar, became one of the oldest universities in the world. The Fatimids were Shia, but most Egyptians stayed Sunni."
+
+- **Visual:** Students sit in circles in al-Azhar's courtyard; a badge ONE OF THE OLDEST UNIVERSITIES. Then two icons: SHIA (rulers) and SUNNI (most people). The Guide sits with the students.
+- **On-screen text:** OLDEST UNIVERSITIES / SHIA RULERS · SUNNI PEOPLE
+- **Camera / animation:** Badge pops; icons pop
+- **SFX / music:** murmuring students, pops
+- **Length:** 20 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Students sit in circles in al-Azhar's courtyard; a badge ONE OF THE OLDEST UNIVERSITIES. Then two icons: SHIA (rulers) and SUNNI (most people). The Guide sits with the students. Include the Guide exactly as in the character reference. Text in frame: OLDEST UNIVERSITIES / SHIA RULERS · SUNNI PEOPLE.`
+- **AI motion prompt:** `Badge pops; icons pop. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 198 · 24:31.6–24:38.8 (7.2 s) · C · Illustrated world
+
+**VO:** "In the 1170s, Saladin ended the Fatimid dynasty, built the Citadel above Cairo,"
+
+- **Visual:** 1170s: Saladin (turban, green cloak) removes the Fatimid banner. On a rocky hill above Cairo, the Citadel walls build up. The Guide is not in this shot.
+- **On-screen text:** SALADIN / THE CITADEL
+- **Camera / animation:** Banner swap; walls rise
+- **SFX / music:** flag, stone thuds
+- **Length:** 14 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: 1170s: Saladin (turban, green cloak) removes the Fatimid banner. On a rocky hill above Cairo, the Citadel walls build up. Text in frame: SALADIN / THE CITADEL.`
+- **AI motion prompt:** `Banner swap; walls rise. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 199 · 24:38.8–24:47.0 (8.2 s) · A · Satellite map
+
+**VO:** "and used Egypt's wealth as his base to retake Jerusalem from the Crusaders in 1187."
+
+- **Visual:** Egyptian gold flows to Saladin's army arrow, which marches to JERUSALEM. Crusader flag falls; year card 1187. The Guide is not in this shot.
+- **On-screen text:** EGYPT'S WEALTH / JERUSALEM · 1187
+- **Camera / animation:** Arrow; flag swap
+- **SFX / music:** march, horns
+- **Length:** 21 spoken words · 8.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Egyptian gold flows to Saladin's army arrow, which marches to JERUSALEM. Crusader flag falls; year card 1187. Text in frame: EGYPT'S WEALTH / JERUSALEM · 1187.`
+- **AI motion prompt:** `Arrow; flag swap. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+**Batch 15 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+
+### Batch 16: The Mamluks and the Ottomans (Scenes 200–211, 24:47.0–26:20.7)
+
+#### Scene 200 · 24:47.0–24:54.4 (7.4 s) · C · Illustrated world
+
+**VO:** "Saladin's heirs relied on Mamluks, soldiers bought as slaves when they were boys, mostly from the steppes north of the Black Sea,"
+
+- **Visual:** Steppe grassland north of the Black Sea: young boys are brought by traders. A label: MAMLUKS. The Guide is not in this shot.
+- **On-screen text:** MAMLUKS = SLAVE SOLDIERS / FROM THE STEPPES
+- **Camera / animation:** Slow pan
+- **SFX / music:** wind, horses
+- **Length:** 22 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Steppe grassland north of the Black Sea: young boys are brought by traders. A label: MAMLUKS. Text in frame: MAMLUKS = SLAVE SOLDIERS / FROM THE STEPPES.`
+- **AI motion prompt:** `Slow pan. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 201 · 24:54.4–25:02.6 (8.2 s) · C · Illustrated world
+
+**VO:** "and trained as elite cavalry. … In 1249, the French king Louis IX invaded Egypt on crusade."
+
+- **Visual:** The boys grow into elite cavalry in armour, charging in formation. Then a year card 1249: French king Louis IX lands with crusaders. The Guide is not in this shot.
+- **On-screen text:** ELITE CAVALRY / 1249: LOUIS IX
+- **Camera / animation:** Training time-lapse; cut
+- **SFX / music:** hooves, horn
+- **Length:** 22 spoken words · 8.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: The boys grow into elite cavalry in armour, charging in formation. Then a year card 1249: French king Louis IX lands with crusaders. Text in frame: ELITE CAVALRY / 1249: LOUIS IX.`
+- **AI motion prompt:** `Training time-lapse; cut. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 202 · 25:02.6–25:11.8 (9.2 s) · C · Illustrated world
+
+**VO:** "His army was defeated and he was captured. The Mamluk officers who won that war then killed the last sultan of Saladin's family,"
+
+- **Visual:** Louis IX's army is defeated; he is led away captured. Then the Mamluk officers turn on the last sultan of Saladin's family; his crown drops. The Guide is not in this shot.
+- **On-screen text:** LOUIS IX CAPTURED / THE LAST SULTAN
+- **Camera / animation:** Cut; crown drops
+- **SFX / music:** clash, crown clatter
+- **Length:** 23 spoken words · 9.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Louis IX's army is defeated; he is led away captured. Then the Mamluk officers turn on the last sultan of Saladin's family; his crown drops. Text in frame: LOUIS IX CAPTURED / THE LAST SULTAN.`
+- **AI motion prompt:** `Cut; crown drops. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 203 · 25:11.8–25:18.7 (6.9 s) · C · Illustrated world
+
+**VO:** "and in 1250 they seized power for themselves. … Ten years later, at Ain Jalut,"
+
+- **Visual:** Mamluk officers lift the crown for themselves; year card 1250. Then a dusty plain: AIN JALUT, ten years later. The Guide is not in this shot.
+- **On-screen text:** 1250: MAMLUKS TAKE POWER / AIN JALUT
+- **Camera / animation:** Crown raise; card
+- **SFX / music:** fanfare, wind
+- **Length:** 19 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Mamluk officers lift the crown for themselves; year card 1250. Then a dusty plain: AIN JALUT, ten years later. Text in frame: 1250: MAMLUKS TAKE POWER / AIN JALUT.`
+- **AI motion prompt:** `Crown raise; card. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 204 · 25:18.7–25:25.9 (7.2 s) · A · Satellite map
+
+**VO:** "they defeated the Mongols, who had just destroyed Baghdad. Egypt became the leading power of the Islamic world,"
+
+- **Visual:** Mongol army arrow (from a smoking BAGHDAD) meets the Mamluk arrow at AIN JALUT and breaks. Egypt glows with a crown icon. The Guide is not in this shot.
+- **On-screen text:** MONGOLS DEFEATED / LEADING POWER OF THE ISLAMIC WORLD
+- **Camera / animation:** Arrows clash; glow
+- **SFX / music:** war horns, crash
+- **Length:** 18 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Mongol army arrow (from a smoking BAGHDAD) meets the Mamluk arrow at AIN JALUT and breaks. Egypt glows with a crown icon. Text in frame: MONGOLS DEFEATED / LEADING POWER OF THE ISLAMIC WORLD.`
+- **AI motion prompt:** `Arrows clash; glow. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 205 · 25:25.9–25:33.3 (7.4 s) · C · Illustrated world
+
+**VO:** "and Cairo one of the largest cities on Earth. Mamluk sultans filled it with mosques, schools and hospitals that still stand."
+
+- **Visual:** Cairo skyline packed with domes and minarets; mosques, schools and a hospital build up. The Guide walks the busy street.
+- **On-screen text:** ONE OF THE LARGEST CITIES ON EARTH
+- **Camera / animation:** Pan across the skyline
+- **SFX / music:** city bustle
+- **Length:** 21 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Cairo skyline packed with domes and minarets; mosques, schools and a hospital build up. The Guide walks the busy street. Include the Guide exactly as in the character reference. Text in frame: ONE OF THE LARGEST CITIES ON EARTH.`
+- **AI motion prompt:** `Pan across the skyline. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 206 · 25:33.3–25:41.0 (7.7 s) · B · Grey studio
+
+**VO:** "Two blows weakened them. The Black Death, from 1347, killed a huge share of Egypt's people."
+
+- **Visual:** "TWO BLOWS" card with two slots. First slot: a dark cloud labelled BLACK DEATH · 1347 sweeps over a crowd and many figures fade. The Guide is not in this shot.
+- **On-screen text:** BLACK DEATH · 1347
+- **Camera / animation:** Cloud sweeps; figures fade
+- **SFX / music:** ominous drone
+- **Length:** 22 spoken words · 7.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: "TWO BLOWS" card with two slots. First slot: a dark cloud labelled BLACK DEATH · 1347 sweeps over a crowd and many figures fade. Text in frame: BLACK DEATH · 1347.`
+- **AI motion prompt:** `Cloud sweeps; figures fade. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 207 · 25:41.0–25:48.2 (7.2 s) · A · Satellite map
+
+**VO:** "Then, in 1498, Portuguese ships reached India by sailing around Africa,"
+
+- **Visual:** Second blow: Portuguese ships sail all the way around Africa to INDIA on a dotted route. The Guide is not in this shot.
+- **On-screen text:** 1498: AROUND AFRICA TO INDIA
+- **Camera / animation:** Route draws around Africa
+- **SFX / music:** waves
+- **Length:** 17 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Second blow: Portuguese ships sail all the way around Africa to INDIA on a dotted route. Text in frame: 1498: AROUND AFRICA TO INDIA.`
+- **AI motion prompt:** `Route draws around Africa. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 208 · 25:48.2–25:54.7 (6.5 s) · A · Satellite map
+
+**VO:** "cutting into the spice trade that had made Mamluk Egypt rich. … In 1517,"
+
+- **Visual:** Spice sacks that used to flow through Egypt now go around Africa; Egypt's coin pile shrinks. Year card 1517. The Guide is not in this shot.
+- **On-screen text:** SPICE TRADE LOST / 1517
+- **Camera / animation:** Coins shrink
+- **SFX / music:** coins draining
+- **Length:** 18 spoken words · 6.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Spice sacks that used to flow through Egypt now go around Africa; Egypt's coin pile shrinks. Year card 1517. Text in frame: SPICE TRADE LOST / 1517.`
+- **AI motion prompt:** `Coins shrink. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 209 · 25:54.7–26:03.6 (8.9 s) · A · Satellite map
+
+**VO:** "the Ottoman sultan Selim I defeated the Mamluks, and Egypt became a province ruled from Istanbul for nearly three centuries,"
+
+- **Visual:** Ottoman sultan Selim I (big white turban) defeats the Mamluks; an arrow from ISTANBUL reaches Egypt; a timer: ~3 CENTURIES. The Guide is not in this shot.
+- **On-screen text:** SELIM I / RULED FROM ISTANBUL
+- **Camera / animation:** Arrow; overlay
+- **SFX / music:** war drums
+- **Length:** 20 spoken words · 8.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Ottoman sultan Selim I (big white turban) defeats the Mamluks; an arrow from ISTANBUL reaches Egypt; a timer: ~3 CENTURIES. Text in frame: SELIM I / RULED FROM ISTANBUL.`
+- **AI motion prompt:** `Arrow; overlay. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 210 · 26:03.6–26:12.0 (8.4 s) · A · Satellite map
+
+**VO:** "though Mamluk families still held much of the local power. Egypt's grain and taxes now flowed to Istanbul, as they once had to Rome."
+
+- **Visual:** Mamluk families still sit in Egypt's local seats. Grain and tax arrows flow from Egypt to ISTANBUL, matching a faint ghost arrow to ROME. The Guide is not in this shot.
+- **On-screen text:** GRAIN → ISTANBUL (LIKE ROME)
+- **Camera / animation:** Arrows flow; ghost arrow
+- **SFX / music:** ding
+- **Length:** 24 spoken words · 8.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Mamluk families still sit in Egypt's local seats. Grain and tax arrows flow from Egypt to ISTANBUL, matching a faint ghost arrow to ROME. Text in frame: GRAIN → ISTANBUL (LIKE ROME).`
+- **AI motion prompt:** `Arrows flow; ghost arrow. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 211 · 26:12.0–26:20.7 (8.7 s) · C · Illustrated world
+
+**VO:** "By the 1700s, Mamluk households were so strong again that Ottoman governors were often little more than figureheads."
+
+- **Visual:** 1700s: huge Mamluk households; the Ottoman governor sits on a tiny chair, a puppet on strings. The Guide pulls a string, smiling.
+- **On-screen text:** FIGUREHEAD GOVERNORS
+- **Camera / animation:** Strings move
+- **SFX / music:** comic notes
+- **Length:** 19 spoken words · 8.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: 1700s: huge Mamluk households; the Ottoman governor sits on a tiny chair, a puppet on strings. The Guide pulls a string, smiling. Include the Guide exactly as in the character reference. Text in frame: FIGUREHEAD GOVERNORS.`
+- **AI motion prompt:** `Strings move. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+**Batch 16 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+
+### Batch 17: Napoleon, the Rosetta Stone and Muhammad Ali (Scenes 212–222, 26:20.7–27:43.6)
+
+#### Scene 212 · 26:20.7–26:28.1 (7.4 s) · A · Satellite map
+
+**VO:** "In 1798, Napoleon invaded, aiming to threaten Britain's route to India."
+
+- **Visual:** 1798: Napoleon (bicorne hat) lands in Egypt; a dotted route shows Britain's route to INDIA with a target on it. The Guide is not in this shot.
+- **On-screen text:** 1798: NAPOLEON
+- **Camera / animation:** Landing; route
+- **SFX / music:** drum roll
+- **Length:** 17 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: 1798: Napoleon (bicorne hat) lands in Egypt; a dotted route shows Britain's route to INDIA with a target on it. Text in frame: 1798: NAPOLEON.`
+- **AI motion prompt:** `Landing; route. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 213 · 26:28.1–26:37.0 (8.9 s) · C · Illustrated world
+
+**VO:** "He defeated the Mamluks near the pyramids, but days later the British destroyed his fleet, trapping his army. The French left in 1801."
+
+- **Visual:** Battle near the pyramids: Mamluk cavalry vs French squares. Then at sea the British fleet sinks Napoleon's ships. The French sail away: 1801. The Guide is not in this shot.
+- **On-screen text:** BATTLE OF THE PYRAMIDS / FLEET DESTROYED / 1801
+- **Camera / animation:** Cuts; ships sink
+- **SFX / music:** cannons, splash
+- **Length:** 25 spoken words · 8.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Battle near the pyramids: Mamluk cavalry vs French squares. Then at sea the British fleet sinks Napoleon's ships. The French sail away: 1801. Text in frame: BATTLE OF THE PYRAMIDS / FLEET DESTROYED / 1801.`
+- **AI motion prompt:** `Cuts; ships sink. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 214 · 26:37.0–26:43.7 (6.7 s) · C · Illustrated world
+
+**VO:** "Napoleon's scholars recorded Egypt's monuments and set off Europe's obsession with ancient Egypt."
+
+- **Visual:** French scholars sketch temples and measure the Sphinx; huge illustrated books stack up; Europeans gasp over them. The Guide is not in this shot.
+- **On-screen text:** EGYPTOMANIA
+- **Camera / animation:** Pages flip
+- **SFX / music:** pencil scratch, gasp
+- **Length:** 13 spoken words · 6.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: French scholars sketch temples and measure the Sphinx; huge illustrated books stack up; Europeans gasp over them. Text in frame: EGYPTOMANIA.`
+- **AI motion prompt:** `Pages flip. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 215 · 26:43.7–26:50.6 (6.9 s) · C · Illustrated world
+
+**VO:** "In 1799, his soldiers found that three-script stone near the town of Rosetta."
+
+- **Visual:** 1799: French soldiers dig near Rosetta and find the dark three-script stone from scene 168. The Guide taps it: told you so.
+- **On-screen text:** 1799 / THE ROSETTA STONE
+- **Camera / animation:** Dig; reveal
+- **SFX / music:** shovel, magical sting
+- **Length:** 20 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: 1799: French soldiers dig near Rosetta and find the dark three-script stone from scene 168. The Guide taps it: told you so. Include the Guide exactly as in the character reference. Text in frame: 1799 / THE ROSETTA STONE.`
+- **AI motion prompt:** `Dig; reveal. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 216 · 26:50.6–26:58.3 (7.7 s) · D · Artefact / relief close-up
+
+**VO:** "Using its Greek text as a key, the French scholar Jean-François Champollion deciphered hieroglyphs in 1822."
+
+- **Visual:** Jean-François Champollion at a desk, matching Greek words to hieroglyphs with lines; he jumps up shouting. Year card 1822. The Guide is not in this shot.
+- **On-screen text:** CHAMPOLLION / DECIPHERED · 1822
+- **Camera / animation:** Lines draw; jump
+- **SFX / music:** page flip, eureka sting
+- **Length:** 19 spoken words · 7.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: close-up of an ancient object drawn in the same flat cartoon line style (papyrus, stone relief, clay tablet), warm paper-texture background, subtle vignette. Scene: Jean-François Champollion at a desk, matching Greek words to hieroglyphs with lines; he jumps up shouting. Year card 1822. Text in frame: CHAMPOLLION / DECIPHERED · 1822.`
+- **AI motion prompt:** `Lines draw; jump. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 217 · 26:58.3–27:06.2 (7.9 s) · B · Grey studio
+
+**VO:** "After 1,400 years, Egypt's ancient writing could be read again. … After the French left, an Albanian officer"
+
+- **Visual:** The locked hieroglyph scroll from scene 183 unlocks and glows; counter 1,400 YEARS. Then the French leave; Muhammad Ali (Albanian officer, white turban) steps in. The Guide is not in this shot.
+- **On-screen text:** READ AGAIN / MUHAMMAD ALI
+- **Camera / animation:** Unlock; cut
+- **SFX / music:** unlock, fanfare
+- **Length:** 20 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: The locked hieroglyph scroll from scene 183 unlocks and glows; counter 1,400 YEARS. Then the French leave; Muhammad Ali (Albanian officer, white turban) steps in. Text in frame: READ AGAIN / MUHAMMAD ALI.`
+- **AI motion prompt:** `Unlock; cut. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 218 · 27:06.2–27:12.7 (6.5 s) · C · Illustrated world
+
+**VO:** "in the Ottoman army, Muhammad Ali, took power in 1805. In 1811,"
+
+- **Visual:** Muhammad Ali takes the seat of power in Cairo; year card 1805. Then an invitation scroll for 1811. The Guide is not in this shot.
+- **On-screen text:** 1805: TAKES POWER / 1811
+- **Camera / animation:** Card flips
+- **SFX / music:** fanfare, page flip
+- **Length:** 15 spoken words · 6.5 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Muhammad Ali takes the seat of power in Cairo; year card 1805. Then an invitation scroll for 1811. Text in frame: 1805: TAKES POWER / 1811.`
+- **AI motion prompt:** `Card flips. Gentle cartoon motion, elements pop in with a small bounce, 6 seconds.`
+
+#### Scene 219 · 27:12.7–27:21.1 (8.4 s) · C · Illustrated world
+
+**VO:** "he invited the Mamluk leaders to a ceremony at the Cairo Citadel and had them killed, ending their power for good."
+
+- **Visual:** Mamluk leaders ride into the Citadel for a ceremony; the gates close behind them. The scene darkens (no gore). The Guide is not in this shot.
+- **On-screen text:** THE CITADEL / MAMLUK POWER ENDS
+- **Camera / animation:** Gates close; darken
+- **SFX / music:** gate slam, drum
+- **Length:** 21 spoken words · 8.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Mamluk leaders ride into the Citadel for a ceremony; the gates close behind them. The scene darkens (no gore). Text in frame: THE CITADEL / MAMLUK POWER ENDS.`
+- **AI motion prompt:** `Gates close; darken. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 220 · 27:21.1–27:28.3 (7.2 s) · C · Illustrated world
+
+**VO:** "He then forced Egypt into the modern world: a conscripted army, factories, schools, and cotton grown for export."
+
+- **Visual:** A fast montage in four pops: soldiers in new uniforms drilling, factory chimneys puffing smoke, a school room with desks, cotton bales loaded onto steamships. The Guide wears a red fez on top of his hat and salutes.
+- **On-screen text:** ARMY · FACTORIES · SCHOOLS · COTTON
+- **Camera / animation:** One pop per item on the beat
+- **SFX / music:** factory whistle, four pops
+- **Length:** 18 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A fast montage in four pops: soldiers in new uniforms drilling, factory chimneys puffing smoke, a school room with desks, cotton bales loaded onto steamships. The Guide wears a red fez on top of his hat and salutes. Include the Guide exactly as in the character reference. Text in frame: ARMY · FACTORIES · SCHOOLS · COTTON.`
+- **AI motion prompt:** `One pop per item on the beat. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 221 · 27:28.3–27:36.2 (7.9 s) · A · Satellite map
+
+**VO:** "His armies conquered Sudan and even threatened the Ottoman sultan himself, until European powers stepped in."
+
+- **Visual:** Satellite map: an Egyptian red arrow pushes south into SUDAN, another north toward the Ottoman sultan in Anatolia. European flags (British, French, Russian, Austrian) pop up in front of it and the arrow stops. The Guide winces.
+- **On-screen text:** CONQUERS SUDAN / EUROPE STEPS IN
+- **Camera / animation:** Arrows draw; flags block
+- **SFX / music:** drums, halt thud
+- **Length:** 16 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: an Egyptian red arrow pushes south into SUDAN, another north toward the Ottoman sultan in Anatolia. European flags (British, French, Russian, Austrian) pop up in front of it and the arrow stops. The Guide winces. Include the Guide exactly as in the character reference. Text in frame: CONQUERS SUDAN / EUROPE STEPS IN.`
+- **AI motion prompt:** `Arrows draw; flags block. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 222 · 27:36.2–27:43.6 (7.4 s) · C · Illustrated world
+
+**VO:** "His family would rule Egypt until 1952. … In 1869, under his grandson Ismail,"
+
+- **Visual:** A palace hallway with a row of Muhammad Ali's family portraits ending with a plaque 1952. Then grandson Ismail (fez, moustache, fine coat) steps out of the last frame; year card 1869. The Guide is not in this shot.
+- **On-screen text:** HIS FAMILY RULES TO 1952 / ISMAIL · 1869
+- **Camera / animation:** Pan along the portraits; card flip
+- **SFX / music:** footsteps, page flip
+- **Length:** 17 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A palace hallway with a row of Muhammad Ali's family portraits ending with a plaque 1952. Then grandson Ismail (fez, moustache, fine coat) steps out of the last frame; year card 1869. Text in frame: HIS FAMILY RULES TO 1952 / ISMAIL · 1869.`
+- **AI motion prompt:** `Pan along the portraits; card flip. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+**Batch 17 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+
+### Batch 18: Suez, Britain and Nasser (Scenes 223–232, 27:43.6–28:57.6)
+
+#### Scene 223 · 27:43.6–27:52.3 (8.7 s) · A · Satellite map
+
+**VO:** "the Suez Canal opened, dug in large part by conscripted Egyptian labourers. Ismail also rebuilt Cairo in European style."
+
+- **Visual:** Satellite map: the Suez Canal draws itself between the Mediterranean and the Red Sea; a steamship passes through with a horn. Inset: Egyptian labourers digging with baskets. Then Cairo boulevards with European-style buildings and gas lamps. The Guide is not in this shot.
+- **On-screen text:** SUEZ CANAL / DUG BY EGYPTIAN LABOURERS / EUROPEAN-STYLE CAIRO
+- **Camera / animation:** Canal draws; inset pops; cut
+- **SFX / music:** ship horn, shovels, carriage wheels
+- **Length:** 19 spoken words · 8.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: the Suez Canal draws itself between the Mediterranean and the Red Sea; a steamship passes through with a horn. Inset: Egyptian labourers digging with baskets. Then Cairo boulevards with European-style buildings and gas lamps. Text in frame: SUEZ CANAL / DUG BY EGYPTIAN LABOURERS / EUROPEAN-STYLE CAIRO.`
+- **AI motion prompt:** `Canal draws; inset pops; cut. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 224 · 27:52.3–27:57.5 (5.2 s) · B · Grey studio
+
+**VO:** "The cost buried Egypt in debt. … For Britain, the canal was the shortcut to India."
+
+- **Visual:** Grey studio: a pile of debt papers grows over Ismail until only his fez shows. Then a map card: the shortcut from BRITAIN through the canal to INDIA, much shorter than the dotted route around Africa. The Guide is not in this shot.
+- **On-screen text:** BURIED IN DEBT / THE SHORTCUT TO INDIA
+- **Camera / animation:** Pile grows; route draws
+- **SFX / music:** paper rustle, whoosh
+- **Length:** 15 spoken words · 5.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Grey studio: a pile of debt papers grows over Ismail until only his fez shows. Then a map card: the shortcut from BRITAIN through the canal to INDIA, much shorter than the dotted route around Africa. Text in frame: BURIED IN DEBT / THE SHORTCUT TO INDIA.`
+- **AI motion prompt:** `Pile grows; route draws. Gentle cartoon motion, elements pop in with a small bounce, 5 seconds.`
+
+#### Scene 225 · 27:57.5–28:05.9 (8.4 s) · B · Grey studio
+
+**VO:** "Ismail sold Egypt's canal shares to Britain in 1875, and European creditors took control of its finances."
+
+- **Visual:** Ismail hands a stack of canal share certificates to a British banker (top hat); year card 1875. European creditors carry off Egypt's money box with a padlock. The Guide reaches for it too late.
+- **On-screen text:** 1875: SHARES SOLD / CREDITORS TAKE CONTROL
+- **Camera / animation:** Handover; box carried off
+- **SFX / music:** coins, stamp
+- **Length:** 19 spoken words · 8.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Ismail hands a stack of canal share certificates to a British banker (top hat); year card 1875. European creditors carry off Egypt's money box with a padlock. The Guide reaches for it too late. Include the Guide exactly as in the character reference. Text in frame: 1875: SHARES SOLD / CREDITORS TAKE CONTROL.`
+- **AI motion prompt:** `Handover; box carried off. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 226 · 28:05.9–28:12.8 (6.9 s) · C · Illustrated world
+
+**VO:** "When Egyptian officers led a revolt against foreign control, Britain invaded in 1882"
+
+- **Visual:** Egyptian army officers raise their fists against foreign flags. Then British warships off Alexandria and red-coated troops landing; year card 1882. The Guide is not in this shot.
+- **On-screen text:** REVOLT AGAINST FOREIGN CONTROL / 1882: BRITAIN INVADES
+- **Camera / animation:** Cut; troops land
+- **SFX / music:** crowd shouts, cannons
+- **Length:** 15 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Egyptian army officers raise their fists against foreign flags. Then British warships off Alexandria and red-coated troops landing; year card 1882. Text in frame: REVOLT AGAINST FOREIGN CONTROL / 1882: BRITAIN INVADES.`
+- **AI motion prompt:** `Cut; troops land. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 227 · 28:12.8–28:21.5 (8.7 s) · C · Illustrated world
+
+**VO:** "and occupied the country. … In 1919, Egyptians, led by the nationalist Saad Zaghloul, rose up against British rule."
+
+- **Visual:** Cairo street with British soldiers on patrol. Then 1919: a huge crowd marches with flags behind Saad Zaghloul (fez, round glasses, moustache). The Guide marches with them.
+- **On-screen text:** OCCUPIED / 1919: SAAD ZAGHLOUL
+- **Camera / animation:** Patrol pan; crowd march
+- **SFX / music:** marching, crowd chants
+- **Length:** 19 spoken words · 8.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Cairo street with British soldiers on patrol. Then 1919: a huge crowd marches with flags behind Saad Zaghloul (fez, round glasses, moustache). The Guide marches with them. Include the Guide exactly as in the character reference. Text in frame: OCCUPIED / 1919: SAAD ZAGHLOUL.`
+- **AI motion prompt:** `Patrol pan; crowd march. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 228 · 28:21.5–28:28.2 (6.7 s) · A · Satellite map
+
+**VO:** "Britain declared Egypt independent in 1922, but kept its troops along the canal"
+
+- **Visual:** Satellite map: a big INDEPENDENT stamp lands on Egypt with year 1922, but small British soldier icons stay lined up along the canal. The Guide is not in this shot.
+- **On-screen text:** 1922: INDEPENDENT... / ...BUT THE TROOPS STAY
+- **Camera / animation:** Stamp; icons pop along the canal
+- **SFX / music:** stamp, uneasy note
+- **Length:** 15 spoken words · 6.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: a big INDEPENDENT stamp lands on Egypt with year 1922, but small British soldier icons stay lined up along the canal. Text in frame: 1922: INDEPENDENT... / ...BUT THE TROOPS STAY.`
+- **AI motion prompt:** `Stamp; icons pop along the canal. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 229 · 28:28.2–28:35.1 (6.9 s) · C · Illustrated world
+
+**VO:** "and its influence over the king. … In 1952, Egyptian army officers overthrew the king."
+
+- **Visual:** A palace throne room: a British shadow looms behind the king's throne. Then 1952: army officers in khaki walk in and the king leaves with a suitcase. The Guide is not in this shot.
+- **On-screen text:** INFLUENCE OVER THE KING / 1952: THE KING IS OVERTHROWN
+- **Camera / animation:** Shadow grows; cut
+- **SFX / music:** tension strings, door
+- **Length:** 16 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A palace throne room: a British shadow looms behind the king's throne. Then 1952: army officers in khaki walk in and the king leaves with a suitcase. Text in frame: INFLUENCE OVER THE KING / 1952: THE KING IS OVERTHROWN.`
+- **AI motion prompt:** `Shadow grows; cut. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 230 · 28:35.1–28:42.5 (7.4 s) · C · Illustrated world
+
+**VO:** "For many Egyptians, it meant Egyptians were ruling Egypt for the first time in about 2,300 years."
+
+- **Visual:** Crowds celebrate in the streets. The yellow counter from the opening rolls up again: 2,300 YEARS. The Guide points at it and nods at the camera.
+- **On-screen text:** EGYPTIANS RULING EGYPT / FIRST TIME IN ~2,300 YEARS
+- **Camera / animation:** Counter callback
+- **SFX / music:** cheering, drum hit
+- **Length:** 20 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Crowds celebrate in the streets. The yellow counter from the opening rolls up again: 2,300 YEARS. The Guide points at it and nods at the camera. Include the Guide exactly as in the character reference. Text in frame: EGYPTIANS RULING EGYPT / FIRST TIME IN ~2,300 YEARS.`
+- **AI motion prompt:** `Counter callback. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 231 · 28:42.5–28:49.7 (7.2 s) · C · Illustrated world
+
+**VO:** "Their leader, Gamal Abdel Nasser, broke up the great estates and gave land to farmers. In 1956,"
+
+- **Visual:** Gamal Abdel Nasser speaks to a big crowd from a balcony. Below, a map of huge estates splits into many small plots handed to farmers. Year card 1956. The Guide is not in this shot.
+- **On-screen text:** NASSER / LAND TO FARMERS
+- **Camera / animation:** Plots split; card flip
+- **SFX / music:** crowd, page flip
+- **Length:** 19 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Gamal Abdel Nasser speaks to a big crowd from a balcony. Below, a map of huge estates splits into many small plots handed to farmers. Year card 1956. Text in frame: NASSER / LAND TO FARMERS.`
+- **AI motion prompt:** `Plots split; card flip. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 232 · 28:49.7–28:57.6 (7.9 s) · A · Satellite map
+
+**VO:** "he nationalised the Suez Canal, and when Britain, France and Israel invaded, international pressure forced them out."
+
+- **Visual:** Satellite map: the canal's flag swaps to Egypt's. Arrows from Britain, France and Israel move in, then a world-pressure symbol (many hands pointing) pushes them back out. The Guide is not in this shot.
+- **On-screen text:** SUEZ CANAL NATIONALISED / INVADERS FORCED OUT
+- **Camera / animation:** Flag swap; arrows in and out
+- **SFX / music:** crowd roar, whoosh
+- **Length:** 17 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: the canal's flag swaps to Egypt's. Arrows from Britain, France and Israel move in, then a world-pressure symbol (many hands pointing) pushes them back out. Text in frame: SUEZ CANAL NATIONALISED / INVADERS FORCED OUT.`
+- **AI motion prompt:** `Flag swap; arrows in and out. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+**Batch 18 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.
+
+### Batch 19: The dam, Egypt today and the answer (Scenes 233–244, 28:57.6–30:27.2)
+
+#### Scene 233 · 28:57.6–29:05.8 (8.2 s) · C · Illustrated world
+
+**VO:** "Then Egypt did what no pharaoh could. The Aswan High Dam, completed in 1970, finally controlled the Nile."
+
+- **Visual:** Near Aswan, a giant dam wall builds across the Nile in time-lapse; year card 1970. The river stops at the wall and a lake fills behind it. The Guide stands on top, tiny.
+- **On-screen text:** WHAT NO PHARAOH COULD / ASWAN HIGH DAM · 1970
+- **Camera / animation:** Dam builds; lake fills
+- **SFX / music:** concrete rumble, water
+- **Length:** 19 spoken words · 8.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Near Aswan, a giant dam wall builds across the Nile in time-lapse; year card 1970. The river stops at the wall and a lake fills behind it. The Guide stands on top, tiny. Include the Guide exactly as in the character reference. Text in frame: WHAT NO PHARAOH COULD / ASWAN HIGH DAM · 1970.`
+- **AI motion prompt:** `Dam builds; lake fills. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 234 · 29:05.8–29:13.7 (7.9 s) · C · Illustrated world
+
+**VO:** "The yearly flood that had shaped Egypt for thousands of years stopped. The dam brought electricity and year-round irrigation,"
+
+- **Visual:** The flood graph line from scene 12 flattens. Power lines run from the dam to glowing villages; fields stay green in every season. The Guide is not in this shot.
+- **On-screen text:** THE FLOOD STOPPED / ELECTRICITY · YEAR-ROUND IRRIGATION
+- **Camera / animation:** Line flattens; lights switch on
+- **SFX / music:** electric hum, birds
+- **Length:** 20 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: The flood graph line from scene 12 flattens. Power lines run from the dam to glowing villages; fields stay green in every season. Text in frame: THE FLOOD STOPPED / ELECTRICITY · YEAR-ROUND IRRIGATION.`
+- **AI motion prompt:** `Line flattens; lights switch on. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 235 · 29:13.7–29:20.6 (6.9 s) · C · Illustrated world
+
+**VO:** "but the fertile silt that built Kemet now settles behind it, and farmers rely on fertiliser instead."
+
+- **Visual:** Black silt sinks to the bottom of the lake behind the dam. A farmer spreads fertiliser from a sack. The Guide holds a handful of old black mud and looks sad.
+- **On-screen text:** KEMET'S SILT IS TRAPPED / FERTILISER INSTEAD
+- **Camera / animation:** Silt settles; cut
+- **SFX / music:** water, sigh
+- **Length:** 17 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Black silt sinks to the bottom of the lake behind the dam. A farmer spreads fertiliser from a sack. The Guide holds a handful of old black mud and looks sad. Include the Guide exactly as in the character reference. Text in frame: KEMET'S SILT IS TRAPPED / FERTILISER INSTEAD.`
+- **AI motion prompt:** `Silt settles; cut. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 236 · 29:20.6–29:27.5 (6.9 s) · C · Illustrated world
+
+**VO:** "The rising lake would have drowned Abu Simbel, so the whole temple was cut into blocks and moved uphill."
+
+- **Visual:** The lake rises toward Abu Simbel. Workers cut the temple into big blocks; cranes lift them up the hill and rebuild it, the statues' faces reassembled. The Guide is not in this shot.
+- **On-screen text:** ABU SIMBEL MOVED UPHILL
+- **Camera / animation:** Water rises; blocks lift and stack
+- **SFX / music:** saws, crane creak
+- **Length:** 19 spoken words · 6.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: The lake rises toward Abu Simbel. Workers cut the temple into big blocks; cranes lift them up the hill and rebuild it, the statues' faces reassembled. Text in frame: ABU SIMBEL MOVED UPHILL.`
+- **AI motion prompt:** `Water rises; blocks lift and stack. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 237 · 29:27.5–29:36.7 (9.2 s) · A · Satellite map
+
+**VO:** "Wars with Israel followed in 1967 and 1973, and then a peace treaty in 1979."
+
+- **Visual:** Satellite map: war arrows between Egypt and Israel with year cards 1967 and 1973. Then a handshake card: 1979 PEACE TREATY. The Guide is not in this shot.
+- **On-screen text:** WARS · 1967 · 1973 / PEACE · 1979
+- **Camera / animation:** Arrows flash; handshake pops
+- **SFX / music:** drums, warm strings
+- **Length:** 21 spoken words · 9.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Satellite map: war arrows between Egypt and Israel with year cards 1967 and 1973. Then a handshake card: 1979 PEACE TREATY. Text in frame: WARS · 1967 · 1973 / PEACE · 1979.`
+- **AI motion prompt:** `Arrows flash; handshake pops. Gentle cartoon motion, elements pop in with a small bounce, 9 seconds.`
+
+#### Scene 238 · 29:36.7–29:41.9 (5.2 s) · C · Illustrated world
+
+**VO:** "In 2011, mass protests ended Hosni Mubarak's 30-year rule."
+
+- **Visual:** 2011: a huge crowd fills a city square with flags; a large ruler's portrait comes down. The Guide is not in this shot.
+- **On-screen text:** 2011 / MUBARAK'S 30-YEAR RULE ENDS
+- **Camera / animation:** Crowd swells; portrait drops
+- **SFX / music:** crowd roar
+- **Length:** 11 spoken words · 5.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: 2011: a huge crowd fills a city square with flags; a large ruler's portrait comes down. Text in frame: 2011 / MUBARAK'S 30-YEAR RULE ENDS.`
+- **AI motion prompt:** `Crowd swells; portrait drops. Gentle cartoon motion, elements pop in with a small bounce, 5 seconds.`
+
+#### Scene 239 · 29:41.9–29:49.6 (7.7 s) · A · Satellite map
+
+**VO:** "Today, more than 100 million people live in Egypt, almost all of them on that same narrow strip along the river."
+
+- **Visual:** Callback to scene 4: the night satellite view of Egypt, the green Nile line now glowing with city lights. A counter rolls to 100,000,000+. The Guide taps the same line with his spear.
+- **On-screen text:** 100+ MILLION PEOPLE / THE SAME NARROW STRIP
+- **Camera / animation:** Slow zoom out; counter
+- **SFX / music:** string swell
+- **Length:** 22 spoken words · 7.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: realistic satellite-photo map background (NASA Blue Marble look), flat red/orange semi-transparent territory overlays, white hand-lettered place labels; the Guide character in the bottom-right corner shown from the knees up, about 40% of frame height. Scene: Callback to scene 4: the night satellite view of Egypt, the green Nile line now glowing with city lights. A counter rolls to 100,000,000+. The Guide taps the same line with his spear. Include the Guide exactly as in the character reference. Text in frame: 100+ MILLION PEOPLE / THE SAME NARROW STRIP.`
+- **AI motion prompt:** `Slow zoom out; counter. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 240 · 29:49.6–29:58.0 (8.4 s) · B · Grey studio
+
+**VO:** "So why did Egypt never die? Because every conqueror needed the same thing: the river, and the farmers who knew how to work it."
+
+- **Visual:** Grey studio: the Guide holds the picture card from scene 3 and flips it: the Nile with a farmer. Conqueror icons (Persian, Greek, Roman, Arab, Turk, British) queue up toward the river and the farmer.
+- **On-screen text:** WHY DID EGYPT NEVER DIE? / THE RIVER + THE FARMERS
+- **Camera / animation:** Card flip; icons queue
+- **SFX / music:** soft strings, card flip
+- **Length:** 24 spoken words · 8.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Grey studio: the Guide holds the picture card from scene 3 and flips it: the Nile with a farmer. Conqueror icons (Persian, Greek, Roman, Arab, Turk, British) queue up toward the river and the farmer. Include the Guide exactly as in the character reference. Text in frame: WHY DID EGYPT NEVER DIE? / THE RIVER + THE FARMERS.`
+- **AI motion prompt:** `Card flip; icons queue. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 241 · 29:58.0–30:05.4 (7.4 s) · B · Grey studio
+
+**VO:** "Persians, Greeks and Romans didn't replace Egypt. They taxed it, and many of them presented themselves as its pharaohs."
+
+- **Visual:** The conqueror icons each put on a pharaoh crown and pick up a tax bag, but the farmer stays in the middle, still working. The Guide is not in this shot.
+- **On-screen text:** NOT REPLACED, JUST TAXED / PHARAOHS AGAIN
+- **Camera / animation:** Crowns pop; tax bags
+- **SFX / music:** crown pops, coin clinks
+- **Length:** 19 spoken words · 7.4 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: The conqueror icons each put on a pharaoh crown and pick up a tax bag, but the farmer stays in the middle, still working. Text in frame: NOT REPLACED, JUST TAXED / PHARAOHS AGAIN.`
+- **AI motion prompt:** `Crowns pop; tax bags. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 242 · 30:05.4–30:12.1 (6.7 s) · C · Illustrated world
+
+**VO:** "Rulers, gods and even the language changed. But the people of the valley stayed, the river kept feeding them,"
+
+- **Visual:** A timeline across the valley: icons for rulers, gods and scripts (hieroglyphs → Greek → Coptic → Arabic) swap above the fields, while the farmers and the river below stay the same. The Guide is not in this shot.
+- **On-screen text:** RULERS · GODS · LANGUAGE CHANGED / THE PEOPLE STAYED
+- **Camera / animation:** Icons swap above; scene below stays still
+- **SFX / music:** soft strings
+- **Length:** 19 spoken words · 6.7 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: A timeline across the valley: icons for rulers, gods and scripts (hieroglyphs → Greek → Coptic → Arabic) swap above the fields, while the farmers and the river below stay the same. Text in frame: RULERS · GODS · LANGUAGE CHANGED / THE PEOPLE STAYED.`
+- **AI motion prompt:** `Icons swap above; scene below stays still. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+#### Scene 243 · 30:12.1–30:20.0 (7.9 s) · C · Illustrated world
+
+**VO:** "and a sense of being Egyptian, tied to one river and one valley, outlasted every ruler. That's why Egypt stayed Egypt."
+
+- **Visual:** Wide sunset over the Nile valley: farmers in green fields, pyramids in the distance, boats on the river. The Guide sits on the riverbank with his spear across his knees.
+- **On-screen text:** ONE RIVER · ONE VALLEY / EGYPT STAYED EGYPT
+- **Camera / animation:** Slow pull-back
+- **SFX / music:** warm strings, river
+- **Length:** 21 spoken words · 7.9 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: flat 2D cartoon landscape, simple layered desert/river background, soft blue sky with puffy white cartoon clouds (or orange-to-purple sunset gradient with pink clouds for dramatic beats), dry-grass ground texture; small stick-limbed characters. Scene: Wide sunset over the Nile valley: farmers in green fields, pyramids in the distance, boats on the river. The Guide sits on the riverbank with his spear across his knees. Include the Guide exactly as in the character reference. Text in frame: ONE RIVER · ONE VALLEY / EGYPT STAYED EGYPT.`
+- **AI motion prompt:** `Slow pull-back. Gentle cartoon motion, elements pop in with a small bounce, 8 seconds.`
+
+#### Scene 244 · 30:20.0–30:27.2 (7.2 s) · B · Grey studio
+
+**VO:** "Which era should get its own full video: the pyramid builders, Cleopatra, or the Mamluks? Tell me in the comments."
+
+- **Visual:** Three cards pop in: PYRAMID BUILDERS, CLEOPATRA, MAMLUKS. The Guide points at each, then at a big comment icon that bounces.
+- **On-screen text:** WHICH ERA NEXT? / TELL ME IN THE COMMENTS
+- **Camera / animation:** Cards pop; comment icon bounces
+- **SFX / music:** three pops, end sting
+- **Length:** 20 spoken words · 7.2 s at the locked voice speed
+- **AI image prompt:** `Flat 2D vector cartoon, educational history YouTube explainer style, clean thin dark-brown outlines, simple flat colours with very light soft shading, characters with round heads, dot eyes and thin stick arms and legs, 16:9, 1920x1080, no photorealism, no 3D. Setting: plain flat light-grey background (#C9C9C9), no floor line; the Guide character standing full-body in the left third; flat icons, cards and stick figures on the right two-thirds. Scene: Three cards pop in: PYRAMID BUILDERS, CLEOPATRA, MAMLUKS. The Guide points at each, then at a big comment icon that bounces. Include the Guide exactly as in the character reference. Text in frame: WHICH ERA NEXT? / TELL ME IN THE COMMENTS.`
+- **AI motion prompt:** `Cards pop; comment icon bounces. Gentle cartoon motion, elements pop in with a small bounce, 7 seconds.`
+
+**Batch 19 consistency check:** same voice + settings · the Guide matches the reference (hat, red feather, yellow tunic, spear) · labels white hand-lettered, punch words yellow comic · music bed continuous across the batch boundary.

@@ -48,7 +48,7 @@ for d in DUR:
 def tc(t):
     return f'{int(t // 60):02d}:{t % 60:04.1f}'
 
-BOUNDS = [1, 16, 28, 38, 52, 66, 79, 91, 109, 122, 135, 148, 158, N + 1]
+BOUNDS = [1, 16, 28, 38, 52, 66, 79, 91, 109, 122, 135, 148, 158, 176, 189, 200, 212, 223, 233, N + 1]
 batches = [list(range(BOUNDS[i], BOUNDS[i + 1])) for i in range(len(BOUNDS) - 1)]
 
 # ---------------- Markdown ----------------
@@ -57,8 +57,7 @@ w = md.append
 w('# Why Egypt Never Died: Scene-by-Scene Production Script\n')
 w('**Format:** 16:9, 1920×1080, 24 fps · **Scenes:** ' + str(N) + ' (about 7–8 s each, average 7.5 s) · **Runtime:** ≈ ' + str(round(START[-1] / 60, 1)) + ' min · '
   '**Narration pace:** locked at ≈ 155–160 words per minute (the same pace as the reference video)\n')
-w('> The script you sent stops mid-sentence (*"Octavian, now Emperor Augustus, kept Egypt as his personal…"*). '
-  'Scene ' + str(N) + ' ends on that line. Send the rest and the next batch continues from Scene ' + str(N + 1) + ' in the same format.\n')
+w('> Covers the full voice-over script, from the hook to the closing question. Scenes 1–175 are unchanged from the earlier version; scenes 176–' + str(N) + ' cover the rest of the script.\n')
 
 w('## 1. Visual style bible (from the reference video)\n')
 w('What the reference video does, and what every scene below follows:\n')
@@ -106,7 +105,7 @@ w('| Speed | **≈ 155–160 words per minute**, about 4 syllables per second. N
 w('| Pauses | Comma ≈ 0.25 s · full stop ≈ 0.5 s · `...` (new paragraph) ≈ 0.9 s · before a big reveal ≈ 0.7 s |')
 w('| Emphasis | Lean slightly on numbers, dates and the key word of each line (shown in the on-screen text column). Questions go up at the end. |')
 w('| Energy | Keep it level across all batches. The hook (Scenes 1–3) can be 5% brighter; collapse and death beats 5% softer, same speed. |')
-w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 10–19 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
+w('| TTS settings (e.g. ElevenLabs) | Same voice and model for every batch · Stability 50% · Similarity 75% · Style 10% · Speaker boost on · Speed 1.0. Generate one batch (one chapter, 10–18 scenes) per take, and paste the last sentence of the previous batch as "previous text" so the tone carries on. |')
 w('| Recording yourself | Same mic, room and distance every session; read a whole batch in one take; do a 10-second "warm-up" read of the previous batch\'s last line first. |')
 w('| Mix | Voice peaks around −6 dB, music −22 dB under the voice, SFX −14 dB. |')
 w('')
@@ -124,7 +123,7 @@ pron = [('Kemet', 'KEH-met'), ('Deshret', 'DESH-ret'), ('Nilometer', 'ny-LOM-eh-
         ('Hittite', 'HIT-ite'), ('Piye', 'PEE-yeh'), ('Psamtik', 'SAM-tik'), ('Necho', 'NEE-koe'), ('Nebuchadnezzar', 'neb-yoo-kud-NEZ-er'),
         ('Carchemish', 'KAR-keh-mish'), ('Cambyses', 'kam-BY-seez'), ('Pelusium', 'peh-LOO-see-um'), ('Darius', 'duh-RY-us'), ('Nectanebo', 'nek-tuh-NEE-boe'),
         ('Siwa', 'SEE-wah'), ('Ptolemy', 'TOL-eh-mee'), ('Edfu', 'ED-foo'), ('Dendera', 'den-DEH-ruh'), ('Demotic', 'deh-MOT-ik'),
-        ('Plutarch', 'PLOO-tark'), ('Caesarion', 'see-ZAIR-ee-on'), ('Actium', 'AK-tee-um'), ('Octavian', 'ok-TAY-vee-un')]
+        ('Plutarch', 'PLOO-tark'), ('Caesarion', 'see-ZAIR-ee-on'), ('Actium', 'AK-tee-um'), ('Octavian', 'ok-TAY-vee-un'), ('Philae', 'FY-lee'), ('Copts', 'KOPTS'), ('Constantinople', 'kon-stan-tih-NOH-pul'), ('Amr ibn al-As', 'AHM-r ib-un al-AHS'), ('Fustat', 'foos-TAHT'), ('Fatimids', 'FAT-ih-midz'), ('al-Qahira', 'al-KAH-hee-ruh'), ('al-Azhar', 'al-AZ-har'), ('Saladin', 'SAL-uh-din'), ('Mamluks', 'MAM-looks'), ('Ain Jalut', 'AYN juh-LOOT'), ('Selim', 'seh-LEEM'), ('Rosetta', 'roh-ZET-uh'), ('Champollion', 'shahm-pol-YON'), ('Ismail', 'is-mah-EEL'), ('Saad Zaghloul', 'SAHD zag-LOOL'), ('Gamal Abdel Nasser', 'guh-MAHL AB-del NAS-er'), ('Mubarak', 'moo-BAR-ak')]
 w('| Word | Say | Word | Say | Word | Say |')
 w('|---|---|---|---|---|---|')
 for i in range(0, len(pron), 3):
@@ -139,7 +138,9 @@ w('|---|---|---|---|')
 chapters = ['The hook and the Nile', 'Unification, gods and the god-king', 'The first pyramids', 'Building the pyramids',
             'Collapse and the Middle Kingdom', 'The Hyksos and the fight back', 'The New Kingdom and Hatshepsut',
             'Thutmose III and Akhenaten', 'Tutankhamun', 'Ramesses II and the Bronze Age collapse',
-            'Strikes, outsiders and Assyria', 'Persia and Alexander', 'The Ptolemies and Cleopatra']
+            'Strikes, outsiders and Assyria', 'Persia and Alexander', 'The Ptolemies and Cleopatra',
+            'Rome, Christianity and Byzantium', 'The Arab conquest, Cairo and Saladin', 'The Mamluks and the Ottomans',
+            'Napoleon, the Rosetta Stone and Muhammad Ali', 'Suez, Britain and Nasser', 'The dam, Egypt today and the answer']
 for bi, b in enumerate(batches):
     w(f'| {bi + 1} | {b[0]}–{b[-1]} | {tc(START[b[0] - 1])}–{tc(START[b[-1]])} | {chapters[bi]} |')
 w('')

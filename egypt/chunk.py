@@ -6,7 +6,7 @@ import os
 BAND = float(os.environ.get("BAND", 80)); CONJC = float(os.environ.get("CONJC", 25))
 CONJ = {'and','but','so','while','because','which','when','who','where','after','until','including'}
 GLUE = {'the','a','an','of','for','to','in','on','at','by','from','with','into','his','her','its','their','these','this','that','every','outer','inscribed','later','most','many','more','great','last','first','old','royal','was','were','is','had','has','have','be','been','could','would','will','built','took','called','named','than','as','who','which','and','or','but','so','while','because','when','where','after','until','including','about','around','like','nearly','almost','far','very','our','one','two','three','six','new','own','its','king','prince','general','emperor','lord','queen','god','great','Bronze','Middle','New','Old','Red','Black','Valley','Pyramid','Great','Seven','Mark','Julius','Howard','eastern','western','northern','southern','short-lived','powerful','huge','giant','massive','fine','white','black','single','largest','oldest','earliest','still','them','him','up','back','out','off','down','early','staged','recorded','strike','crushed','rebelled','again','gathered','hid','raised','brought','pyramid','king\'s','make','formal','across','land','see','walls','images','found','reigned','ruled','stood','changes','adopted','squeezed','way','sand','harvests','everything','archaeologists','afterlife','governors','trade','mines','soldiers','ptolemies','dynasty','horemheb','equals','rich','thebes','kings','taxes'}
-text = open('script.txt').read().strip()
+text = open(os.environ.get('SRC', 'script.txt')).read().strip()
 paras = [p.strip() for p in text.split('\n\n') if p.strip()]
 words = []   # (word, break_cost_after, para_end)
 for p in paras:
@@ -43,6 +43,6 @@ for i, j in cuts:
     for k in range(i, j):
         t += words[k][0] + (' // ' if words[k][2] and k < j - 1 else ' ')
     out.append(t.strip())
-json.dump(out, open('chunks.json', 'w'), indent=0)
+json.dump(out, open(os.environ.get('OUT', 'chunks.json'), 'w'), indent=0)
 for i, s in enumerate(out, 1): print(i, spoken.stats(s)[1], s)
 print(len(out), 'scenes', file=sys.stderr)

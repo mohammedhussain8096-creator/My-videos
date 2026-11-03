@@ -699,5 +699,277 @@ Octavian. When Antony and Cleopatra lost the naval battle of Actium to Octavian 
 it was over. Antony killed himself, and in 30 BC Cleopatra died too, by tradition from a snake bite.
 
 176
-00:21:49,300 --> 00:21:56,500
-Egypt became part of the Roman Empire. Octavian, now Emperor Augustus, kept Egypt as his personal
+00:21:49,300 --> 00:21:57,000
+Egypt became part of the Roman Empire. Octavian, now Emperor Augustus, kept Egypt as his personal province,
+
+177
+00:21:57,000 --> 00:22:05,400
+run by a governor he appointed himself. Roman senators weren't allowed to enter without the emperor's permission.
+
+178
+00:22:05,400 --> 00:22:09,900
+Egypt was too valuable to risk. The reason was grain. Every year,
+
+179
+00:22:09,900 --> 00:22:16,400
+ships carried Nile wheat across the Mediterranean, and much of Rome's bread grew in Egyptian mud.
+
+180
+00:22:16,400 --> 00:22:23,300
+And on temple walls, Roman emperors were carved dressed as pharaohs, making offerings to Egyptian gods.
+
+181
+00:22:23,300 --> 00:22:30,700
+Under Rome, Christianity spread through Egypt, and Alexandria became one of its great centres. By the late 300s,
+
+182
+00:22:30,700 --> 00:22:38,900
+the old temples were closing. The last known hieroglyphic inscription was carved at Philae in AD 394.
+
+183
+00:22:38,900 --> 00:22:46,800
+After that, no one could read hieroglyphs for about 1,400 years. But the language survived in another form.
+
+184
+00:22:46,800 --> 00:22:54,200
+Egyptian Christians, the Copts, wrote it in an alphabet based on Greek. Coptic is the last stage of ancient Egyptian,
+
+185
+00:22:54,200 --> 00:23:01,100
+and it is still used in Coptic church services today. Egypt also produced Christianity's first monks,
+
+186
+00:23:01,100 --> 00:23:07,600
+who went to live in its deserts. When the Roman Empire split, Egypt was ruled from Constantinople,
+
+187
+00:23:07,600 --> 00:23:15,000
+by the Byzantine Empire. In 451, Egypt's church broke with the emperor's church over theology,
+
+188
+00:23:15,000 --> 00:23:24,400
+and many Egyptian Christians came to see their Byzantine rulers as oppressors. Between 639 and 642,
+
+189
+00:23:24,400 --> 00:23:32,300
+Arab armies under Amr ibn al-As took Egypt from the Byzantines. They besieged the Roman fortress of Babylon,
+
+190
+00:23:32,300 --> 00:23:38,000
+beside today's Cairo, then took Alexandria by treaty. Amr founded a new capital,
+
+191
+00:23:38,000 --> 00:23:45,200
+Fustat, beside the Nile, and reopened an old canal to the Red Sea to ship Egyptian grain to Arabia.
+
+192
+00:23:45,200 --> 00:23:52,900
+Once again, the river was feeding someone else's empire. The new rulers left farming and village life largely in place
+
+193
+00:23:52,900 --> 00:24:00,600
+and collected taxes, with Christians paying a special tax. Over the following centuries, most Egyptians became Muslim,
+
+194
+00:24:00,600 --> 00:24:09,300
+and Arabic gradually replaced Coptic as the everyday language. It was the biggest cultural change in Egypt's history.
+
+195
+00:24:09,300 --> 00:24:15,800
+In 969, the Fatimids, a dynasty that challenged the caliphs in Baghdad,
+
+196
+00:24:15,800 --> 00:24:23,700
+conquered Egypt and founded a new royal city beside Fustat: al-Qahira, "the Victorious." We call it Cairo. Its mosque,
+
+197
+00:24:23,700 --> 00:24:31,600
+al-Azhar, became one of the oldest universities in the world. The Fatimids were Shia, but most Egyptians stayed Sunni.
+
+198
+00:24:31,600 --> 00:24:38,800
+In the 1170s, Saladin ended the Fatimid dynasty, built the Citadel above Cairo,
+
+199
+00:24:38,800 --> 00:24:47,000
+and used Egypt's wealth as his base to retake Jerusalem from the Crusaders in 1187.
+
+200
+00:24:47,000 --> 00:24:54,400
+Saladin's heirs relied on Mamluks, soldiers bought as slaves when they were boys, mostly from the steppes north of the Black Sea,
+
+201
+00:24:54,400 --> 00:25:02,600
+and trained as elite cavalry. In 1249, the French king Louis IX invaded Egypt on crusade.
+
+202
+00:25:02,600 --> 00:25:11,800
+His army was defeated and he was captured. The Mamluk officers who won that war then killed the last sultan of Saladin's family,
+
+203
+00:25:11,800 --> 00:25:18,700
+and in 1250 they seized power for themselves. Ten years later, at Ain Jalut,
+
+204
+00:25:18,700 --> 00:25:25,900
+they defeated the Mongols, who had just destroyed Baghdad. Egypt became the leading power of the Islamic world,
+
+205
+00:25:25,900 --> 00:25:33,300
+and Cairo one of the largest cities on Earth. Mamluk sultans filled it with mosques, schools and hospitals that still stand.
+
+206
+00:25:33,300 --> 00:25:41,000
+Two blows weakened them. The Black Death, from 1347, killed a huge share of Egypt's people.
+
+207
+00:25:41,000 --> 00:25:48,200
+Then, in 1498, Portuguese ships reached India by sailing around Africa,
+
+208
+00:25:48,200 --> 00:25:54,700
+cutting into the spice trade that had made Mamluk Egypt rich. In 1517,
+
+209
+00:25:54,700 --> 00:26:03,600
+the Ottoman sultan Selim I defeated the Mamluks, and Egypt became a province ruled from Istanbul for nearly three centuries,
+
+210
+00:26:03,600 --> 00:26:12,000
+though Mamluk families still held much of the local power. Egypt's grain and taxes now flowed to Istanbul, as they once had to Rome.
+
+211
+00:26:12,000 --> 00:26:20,700
+By the 1700s, Mamluk households were so strong again that Ottoman governors were often little more than figureheads.
+
+212
+00:26:20,700 --> 00:26:28,100
+In 1798, Napoleon invaded, aiming to threaten Britain's route to India.
+
+213
+00:26:28,100 --> 00:26:37,000
+He defeated the Mamluks near the pyramids, but days later the British destroyed his fleet, trapping his army. The French left in 1801.
+
+214
+00:26:37,000 --> 00:26:43,700
+Napoleon's scholars recorded Egypt's monuments and set off Europe's obsession with ancient Egypt.
+
+215
+00:26:43,700 --> 00:26:50,600
+In 1799, his soldiers found that three-script stone near the town of Rosetta.
+
+216
+00:26:50,600 --> 00:26:58,300
+Using its Greek text as a key, the French scholar Jean-François Champollion deciphered hieroglyphs in 1822.
+
+217
+00:26:58,300 --> 00:27:06,200
+After 1,400 years, Egypt's ancient writing could be read again. After the French left, an Albanian officer
+
+218
+00:27:06,200 --> 00:27:12,700
+in the Ottoman army, Muhammad Ali, took power in 1805. In 1811,
+
+219
+00:27:12,700 --> 00:27:21,100
+he invited the Mamluk leaders to a ceremony at the Cairo Citadel and had them killed, ending their power for good.
+
+220
+00:27:21,100 --> 00:27:28,300
+He then forced Egypt into the modern world: a conscripted army, factories, schools, and cotton grown for export.
+
+221
+00:27:28,300 --> 00:27:36,200
+His armies conquered Sudan and even threatened the Ottoman sultan himself, until European powers stepped in.
+
+222
+00:27:36,200 --> 00:27:43,600
+His family would rule Egypt until 1952. In 1869, under his grandson Ismail,
+
+223
+00:27:43,600 --> 00:27:52,300
+the Suez Canal opened, dug in large part by conscripted Egyptian labourers. Ismail also rebuilt Cairo in European style.
+
+224
+00:27:52,300 --> 00:27:57,500
+The cost buried Egypt in debt. For Britain, the canal was the shortcut to India.
+
+225
+00:27:57,500 --> 00:28:05,900
+Ismail sold Egypt's canal shares to Britain in 1875, and European creditors took control of its finances.
+
+226
+00:28:05,900 --> 00:28:12,800
+When Egyptian officers led a revolt against foreign control, Britain invaded in 1882
+
+227
+00:28:12,800 --> 00:28:21,500
+and occupied the country. In 1919, Egyptians, led by the nationalist Saad Zaghloul, rose up against British rule.
+
+228
+00:28:21,500 --> 00:28:28,200
+Britain declared Egypt independent in 1922, but kept its troops along the canal
+
+229
+00:28:28,200 --> 00:28:35,100
+and its influence over the king. In 1952, Egyptian army officers overthrew the king.
+
+230
+00:28:35,100 --> 00:28:42,500
+For many Egyptians, it meant Egyptians were ruling Egypt for the first time in about 2,300 years.
+
+231
+00:28:42,500 --> 00:28:49,700
+Their leader, Gamal Abdel Nasser, broke up the great estates and gave land to farmers. In 1956,
+
+232
+00:28:49,700 --> 00:28:57,600
+he nationalised the Suez Canal, and when Britain, France and Israel invaded, international pressure forced them out.
+
+233
+00:28:57,600 --> 00:29:05,800
+Then Egypt did what no pharaoh could. The Aswan High Dam, completed in 1970, finally controlled the Nile.
+
+234
+00:29:05,800 --> 00:29:13,700
+The yearly flood that had shaped Egypt for thousands of years stopped. The dam brought electricity and year-round irrigation,
+
+235
+00:29:13,700 --> 00:29:20,600
+but the fertile silt that built Kemet now settles behind it, and farmers rely on fertiliser instead.
+
+236
+00:29:20,600 --> 00:29:27,500
+The rising lake would have drowned Abu Simbel, so the whole temple was cut into blocks and moved uphill.
+
+237
+00:29:27,500 --> 00:29:36,700
+Wars with Israel followed in 1967 and 1973, and then a peace treaty in 1979.
+
+238
+00:29:36,700 --> 00:29:41,900
+In 2011, mass protests ended Hosni Mubarak's 30-year rule.
+
+239
+00:29:41,900 --> 00:29:49,600
+Today, more than 100 million people live in Egypt, almost all of them on that same narrow strip along the river.
+
+240
+00:29:49,600 --> 00:29:58,000
+So why did Egypt never die? Because every conqueror needed the same thing: the river, and the farmers who knew how to work it.
+
+241
+00:29:58,000 --> 00:30:05,400
+Persians, Greeks and Romans didn't replace Egypt. They taxed it, and many of them presented themselves as its pharaohs.
+
+242
+00:30:05,400 --> 00:30:12,100
+Rulers, gods and even the language changed. But the people of the valley stayed, the river kept feeding them,
+
+243
+00:30:12,100 --> 00:30:20,000
+and a sense of being Egyptian, tied to one river and one valley, outlasted every ruler. That's why Egypt stayed Egypt.
+
+244
+00:30:20,000 --> 00:30:27,200
+Which era should get its own full video: the pyramid builders, Cleopatra, or the Mamluks? Tell me in the comments.

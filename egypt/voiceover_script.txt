@@ -182,7 +182,7 @@ One voice, same settings for every batch. Speed about 155-160 words per minute. 
 [156 | 19:22.4] and was hailed as the god's son. Egypt accepted him as pharaoh. He founded a new city on the coast: Alexandria.
 [157 | 19:30.1] He left after a few months and never returned alive, but his body was later brought back and buried there.
 
-===== BATCH 13: The Ptolemies and Cleopatra (Scenes 158-176) =====
+===== BATCH 13: The Ptolemies and Cleopatra (Scenes 158-175) =====
 [158 | 19:37.0] After Alexander's death in 323 BC, his general Ptolemy took Egypt,
 [159 | 19:43.7] and Ptolemy's family ruled it for nearly 300 years. The system was simple: Greek-speaking officials at the top,
 [160 | 19:51.6] Egyptian farmers at the bottom, and the Nile's harvest taxed to fund the court. ... To Egyptians, the Ptolemies presented
@@ -201,4 +201,84 @@ One voice, same settings for every batch. Speed about 155-160 words per minute. 
 [173 | 21:27.3] she allied with Mark Antony, who controlled Rome's eastern provinces. That made them enemies of Caesar's heir,
 [174 | 21:34.5] Octavian. When Antony and Cleopatra lost the naval battle of Actium to Octavian in 31 BC,
 [175 | 21:41.9] it was over. Antony killed himself, and in 30 BC Cleopatra died too, by tradition from a snake bite.
-[176 | 21:49.3] Egypt became part of the Roman Empire. ... Octavian, now Emperor Augustus, kept Egypt as his personal
+
+===== BATCH 14: Rome, Christianity and Byzantium (Scenes 176-188) =====
+[176 | 21:49.3] Egypt became part of the Roman Empire. ... Octavian, now Emperor Augustus, kept Egypt as his personal province,
+[177 | 21:57.0] run by a governor he appointed himself. Roman senators weren't allowed to enter without the emperor's permission.
+[178 | 22:05.4] Egypt was too valuable to risk. ... The reason was grain. Every year,
+[179 | 22:09.9] ships carried Nile wheat across the Mediterranean, and much of Rome's bread grew in Egyptian mud.
+[180 | 22:16.4] And on temple walls, Roman emperors were carved dressed as pharaohs, making offerings to Egyptian gods.
+[181 | 22:23.3] Under Rome, Christianity spread through Egypt, and Alexandria became one of its great centres. By the late 300s,
+[182 | 22:30.7] the old temples were closing. The last known hieroglyphic inscription was carved at Philae in AD 394.
+[183 | 22:38.9] After that, no one could read hieroglyphs for about 1,400 years. ... But the language survived in another form.
+[184 | 22:46.8] Egyptian Christians, the Copts, wrote it in an alphabet based on Greek. Coptic is the last stage of ancient Egyptian,
+[185 | 22:54.2] and it is still used in Coptic church services today. Egypt also produced Christianity's first monks,
+[186 | 23:01.1] who went to live in its deserts. ... When the Roman Empire split, Egypt was ruled from Constantinople,
+[187 | 23:07.6] by the Byzantine Empire. In 451, Egypt's church broke with the emperor's church over theology,
+[188 | 23:15.0] and many Egyptian Christians came to see their Byzantine rulers as oppressors. ... Between 639 and 642,
+
+===== BATCH 15: The Arab conquest, Cairo and Saladin (Scenes 189-199) =====
+[189 | 23:24.4] Arab armies under Amr ibn al-As took Egypt from the Byzantines. They besieged the Roman fortress of Babylon,
+[190 | 23:32.3] beside today's Cairo, then took Alexandria by treaty. Amr founded a new capital,
+[191 | 23:38.0] Fustat, beside the Nile, and reopened an old canal to the Red Sea to ship Egyptian grain to Arabia.
+[192 | 23:45.2] Once again, the river was feeding someone else's empire. ... The new rulers left farming and village life largely in place
+[193 | 23:52.9] and collected taxes, with Christians paying a special tax. Over the following centuries, most Egyptians became Muslim,
+[194 | 24:00.6] and Arabic gradually replaced Coptic as the everyday language. It was the biggest cultural change in Egypt's history.
+[195 | 24:09.3] In 969, the Fatimids, a dynasty that challenged the caliphs in Baghdad,
+[196 | 24:15.8] conquered Egypt and founded a new royal city beside Fustat: al-Qahira, "the Victorious." We call it Cairo. Its mosque,
+[197 | 24:23.7] al-Azhar, became one of the oldest universities in the world. The Fatimids were Shia, but most Egyptians stayed Sunni.
+[198 | 24:31.6] In the 1170s, Saladin ended the Fatimid dynasty, built the Citadel above Cairo,
+[199 | 24:38.8] and used Egypt's wealth as his base to retake Jerusalem from the Crusaders in 1187.
+
+===== BATCH 16: The Mamluks and the Ottomans (Scenes 200-211) =====
+[200 | 24:47.0] Saladin's heirs relied on Mamluks, soldiers bought as slaves when they were boys, mostly from the steppes north of the Black Sea,
+[201 | 24:54.4] and trained as elite cavalry. ... In 1249, the French king Louis IX invaded Egypt on crusade.
+[202 | 25:02.6] His army was defeated and he was captured. The Mamluk officers who won that war then killed the last sultan of Saladin's family,
+[203 | 25:11.8] and in 1250 they seized power for themselves. ... Ten years later, at Ain Jalut,
+[204 | 25:18.7] they defeated the Mongols, who had just destroyed Baghdad. Egypt became the leading power of the Islamic world,
+[205 | 25:25.9] and Cairo one of the largest cities on Earth. Mamluk sultans filled it with mosques, schools and hospitals that still stand.
+[206 | 25:33.3] Two blows weakened them. The Black Death, from 1347, killed a huge share of Egypt's people.
+[207 | 25:41.0] Then, in 1498, Portuguese ships reached India by sailing around Africa,
+[208 | 25:48.2] cutting into the spice trade that had made Mamluk Egypt rich. ... In 1517,
+[209 | 25:54.7] the Ottoman sultan Selim I defeated the Mamluks, and Egypt became a province ruled from Istanbul for nearly three centuries,
+[210 | 26:03.6] though Mamluk families still held much of the local power. Egypt's grain and taxes now flowed to Istanbul, as they once had to Rome.
+[211 | 26:12.0] By the 1700s, Mamluk households were so strong again that Ottoman governors were often little more than figureheads.
+
+===== BATCH 17: Napoleon, the Rosetta Stone and Muhammad Ali (Scenes 212-222) =====
+[212 | 26:20.7] In 1798, Napoleon invaded, aiming to threaten Britain's route to India.
+[213 | 26:28.1] He defeated the Mamluks near the pyramids, but days later the British destroyed his fleet, trapping his army. The French left in 1801.
+[214 | 26:37.0] Napoleon's scholars recorded Egypt's monuments and set off Europe's obsession with ancient Egypt.
+[215 | 26:43.7] In 1799, his soldiers found that three-script stone near the town of Rosetta.
+[216 | 26:50.6] Using its Greek text as a key, the French scholar Jean-François Champollion deciphered hieroglyphs in 1822.
+[217 | 26:58.3] After 1,400 years, Egypt's ancient writing could be read again. ... After the French left, an Albanian officer
+[218 | 27:06.2] in the Ottoman army, Muhammad Ali, took power in 1805. In 1811,
+[219 | 27:12.7] he invited the Mamluk leaders to a ceremony at the Cairo Citadel and had them killed, ending their power for good.
+[220 | 27:21.1] He then forced Egypt into the modern world: a conscripted army, factories, schools, and cotton grown for export.
+[221 | 27:28.3] His armies conquered Sudan and even threatened the Ottoman sultan himself, until European powers stepped in.
+[222 | 27:36.2] His family would rule Egypt until 1952. ... In 1869, under his grandson Ismail,
+
+===== BATCH 18: Suez, Britain and Nasser (Scenes 223-232) =====
+[223 | 27:43.6] the Suez Canal opened, dug in large part by conscripted Egyptian labourers. Ismail also rebuilt Cairo in European style.
+[224 | 27:52.3] The cost buried Egypt in debt. ... For Britain, the canal was the shortcut to India.
+[225 | 27:57.5] Ismail sold Egypt's canal shares to Britain in 1875, and European creditors took control of its finances.
+[226 | 28:05.9] When Egyptian officers led a revolt against foreign control, Britain invaded in 1882
+[227 | 28:12.8] and occupied the country. ... In 1919, Egyptians, led by the nationalist Saad Zaghloul, rose up against British rule.
+[228 | 28:21.5] Britain declared Egypt independent in 1922, but kept its troops along the canal
+[229 | 28:28.2] and its influence over the king. ... In 1952, Egyptian army officers overthrew the king.
+[230 | 28:35.1] For many Egyptians, it meant Egyptians were ruling Egypt for the first time in about 2,300 years.
+[231 | 28:42.5] Their leader, Gamal Abdel Nasser, broke up the great estates and gave land to farmers. In 1956,
+[232 | 28:49.7] he nationalised the Suez Canal, and when Britain, France and Israel invaded, international pressure forced them out.
+
+===== BATCH 19: The dam, Egypt today and the answer (Scenes 233-244) =====
+[233 | 28:57.6] Then Egypt did what no pharaoh could. The Aswan High Dam, completed in 1970, finally controlled the Nile.
+[234 | 29:05.8] The yearly flood that had shaped Egypt for thousands of years stopped. The dam brought electricity and year-round irrigation,
+[235 | 29:13.7] but the fertile silt that built Kemet now settles behind it, and farmers rely on fertiliser instead.
+[236 | 29:20.6] The rising lake would have drowned Abu Simbel, so the whole temple was cut into blocks and moved uphill.
+[237 | 29:27.5] Wars with Israel followed in 1967 and 1973, and then a peace treaty in 1979.
+[238 | 29:36.7] In 2011, mass protests ended Hosni Mubarak's 30-year rule.
+[239 | 29:41.9] Today, more than 100 million people live in Egypt, almost all of them on that same narrow strip along the river.
+[240 | 29:49.6] So why did Egypt never die? Because every conqueror needed the same thing: the river, and the farmers who knew how to work it.
+[241 | 29:58.0] Persians, Greeks and Romans didn't replace Egypt. They taxed it, and many of them presented themselves as its pharaohs.
+[242 | 30:05.4] Rulers, gods and even the language changed. But the people of the valley stayed, the river kept feeding them,
+[243 | 30:12.1] and a sense of being Egyptian, tied to one river and one valley, outlasted every ruler. That's why Egypt stayed Egypt.
+[244 | 30:20.0] Which era should get its own full video: the pyramid builders, Cleopatra, or the Mamluks? Tell me in the comments.
