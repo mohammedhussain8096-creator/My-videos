@@ -1,9 +1,9 @@
 """Downloads and prepares everything render.py and tts.py need, into ./assets (or $EGYPT_ASSETS):
 - Natural Earth I shaded-relief raster (public domain), cropped to Europe/Africa/Middle East and colour-graded
 - fonts: Bangers (yellow punch text), Patrick Hand (hand-lettered labels)  [SIL Open Font License]
-- Piper voice en_US-ryan-high (offline narrator voice)
+- Kokoro voice model (natural narrator voice, Apache-2.0) and the Piper voice en_US-ryan-high as a fallback
 - guide.png: the user's character cut out from character_reference.png
-Needs: pip install piper-tts fonttools brotli scipy numpy pillow"""
+Needs: pip install kokoro-onnx soundfile piper-tts fonttools brotli scipy numpy pillow"""
 import io, os, subprocess, sys, urllib.request, zipfile
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
@@ -54,6 +54,13 @@ def guide():
     alpha = Image.fromarray(np.where(keep[lab], 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.2))
     im = im.convert('RGBA'); im.putalpha(alpha); im.crop(alpha.getbbox()).save(out)
 
+def kokoro():
+    kd = os.path.join(A, 'kokoro'); os.makedirs(kd, exist_ok=True)
+    base = 'https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/'
+    for f in ('kokoro-v1.0.onnx', 'voices-v1.0.bin'):
+        if not os.path.exists(os.path.join(kd, f)):
+            open(os.path.join(kd, f), 'wb').write(get(base + f))
+
 def voice():
     vd = os.path.join(A, 'voices')
     if os.path.exists(os.path.join(vd, 'en_US-ryan-high.onnx')): return
@@ -61,4 +68,4 @@ def voice():
     subprocess.run([sys.executable, '-m', 'piper.download_voices', '--download-dir', vd, 'en_US-ryan-high'], check=True)
 
 if __name__ == '__main__':
-    fonts(); guide(); voice(); world(); print('assets ready in', A)
+    fonts(); guide(); kokoro(); voice(); world(); print('assets ready in', A)

@@ -4,7 +4,7 @@ Turns the production script (`../chunks.json` voice lines + `../visuals.txt` sce
 animatic MP4 in the reference video's style.
 
 ```bash
-pip install piper-tts fonttools brotli scipy numpy pillow   # plus ffmpeg on the PATH
+pip install kokoro-onnx soundfile piper-tts fonttools brotli scipy numpy pillow   # plus ffmpeg on the PATH
 python3 setup_assets.py          # map imagery, fonts, narrator voice, character cut-out -> ./assets
 python3 tts.py                   # narration.wav + timing.json in ./build (about 30 min of audio)
 python3 music.py                 # original background music (composed in code), ducked under the voice

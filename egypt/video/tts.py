@@ -6,16 +6,20 @@ import json, os, re, subprocess, sys, wave
 import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 import spoken
-from piper import PiperVoice, SynthesisConfig
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.environ.get('EGYPT_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
 VOICE = os.environ.get('VOICE', os.path.join(ASSETS, 'voices', 'en_US-ryan-high.onnx'))
 LENGTH_SCALE = float(os.environ.get('LENGTH_SCALE', 1.2))   # ~155 words per minute
-VOICE_FX = os.environ.get('VOICE_FX', 'rubberband=pitch=0.88:formant=preserved:pitchq=quality,highpass=f=70,'
-                          'equalizer=f=160:t=q:w=1:g=2.5,equalizer=f=3500:t=q:w=1.2:g=1.5,'
-                          'acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
+ENGINE = os.environ.get('ENGINE', 'kokoro')            # 'kokoro' (natural, default) or 'piper' (basic)
+KVOICE = os.environ.get('KVOICE', 'am_puck')            # Kokoro voice
+KSPEED = float(os.environ.get('KSPEED', 0.95))
+_FX_PIPER = ('rubberband=pitch=0.88:formant=preserved:pitchq=quality,highpass=f=70,'
+             'equalizer=f=160:t=q:w=1:g=2.5,equalizer=f=3500:t=q:w=1.2:g=1.5,'
+             'acompressor=threshold=-20dB:ratio=3:attack=8:release=120:makeup=2')
+_FX_KOKORO = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
+VOICE_FX = os.environ.get('VOICE_FX', _FX_KOKORO if ENGINE == 'kokoro' else _FX_PIPER)
 GAP_SENT, GAP_PARA, LEAD_IN, TAIL = 0.25, 0.7, 0.5, 2.0
 FPS = 24
 LIMIT = int(os.environ.get('LIMIT_SCENES', 0))               # render only the first N scenes (sample)
@@ -62,15 +66,27 @@ def main():
         if re.search(r'[.?!]["”]?$', w[0]) or w[2]:
             sents.append(cur); cur = []
     if cur: sents.append(cur)
-    voice = PiperVoice.load(VOICE)
-    cfg = SynthesisConfig(length_scale=LENGTH_SCALE)
-    sr = voice.config.sample_rate
+    if ENGINE == 'kokoro':
+        from kokoro_onnx import Kokoro
+        kk = Kokoro(os.path.join(ASSETS, 'kokoro', 'kokoro-v1.0.onnx'), os.path.join(ASSETS, 'kokoro', 'voices-v1.0.bin'))
+        sr = 24000
+        lang = 'en-gb' if KVOICE.startswith('b') else 'en-us'
+        def synth(text):
+            a, _ = kk.create(spoken.expand(text).replace(' B C', ' BC'), voice=KVOICE, speed=KSPEED, lang=lang)
+            return (np.clip(a, -1, 1) * 32767).astype(np.int16)
+    else:
+        from piper import PiperVoice, SynthesisConfig
+        voice = PiperVoice.load(VOICE)
+        cfg = SynthesisConfig(length_scale=LENGTH_SCALE)
+        sr = voice.config.sample_rate
+        def synth(text):
+            return np.concatenate([np.frombuffer(ch.audio_int16_bytes, np.int16) for ch in voice.synthesize(say(text), syn_config=cfg)])
     audio = [np.zeros(int(LEAD_IN * sr), np.int16)]
     t = LEAD_IN
     scene_start = {}
     for n, s in enumerate(sents):
         text = ' '.join(w[0] for w in s)
-        pcm = np.concatenate([np.frombuffer(ch.audio_int16_bytes, np.int16) for ch in voice.synthesize(say(text), syn_config=cfg)])
+        pcm = synth(text)
         # trim silence the model adds at the edges
         nz = np.nonzero(np.abs(pcm) > 300)[0]
         if len(nz): pcm = pcm[max(0, nz[0] - int(0.03 * sr)): nz[-1] + int(0.06 * sr)]
