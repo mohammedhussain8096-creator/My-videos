@@ -491,7 +491,9 @@ class Scene:
         if self.tint == 'night' or self.spec.get('stars') or self.bg == 'space':
             self.stars(fr, gt)
         for it in self.items:
-            if it['k'] != 'arrow': self.draw_item(fr, it, t, cam, gt)
+            if it['k'] not in ('arrow', 'photo'): self.draw_item(fr, it, t, cam, gt)
+        for it in self.items:
+            if it['k'] == 'photo': self.draw_item(fr, it, t, cam, gt)
         if self.spec.get('snow') and t >= self.snow_t: self.snow(fr, gt, self.spec['snow'] * clamp((t - self.snow_t) / 1.0))
         draw_clouds(fr, gt, self.clouds)
         yr = self.year
@@ -568,8 +570,10 @@ class Scene:
                 s = int(56 * U * sc * it.get('size', 1.0))
                 im = icons.flame(s, (gt * 2.5 + j * 0.37) % 1)
                 paste_center(fr, im, x + ox * U * it.get('size', 1.0), y + oy * U - s * 0.4, ease_back((age - j * 0.15) / 0.4) * (1 + 0.07 * math.sin(gt * 11 + j)), a)
-        elif k == 'counter':
-            pass
+        elif k == 'photo':
+            card = photo_card(it['name'], int(it.get('h', 560) * U), it.get('title'))
+            k2 = (0.6 + 0.4 * ease_back(age / 0.5)) * (1 + 0.03 * clamp(age / 8))
+            paste_center(fr, card, x, y, k2, a * clamp(age / 0.2))
 
     def stars(self, fr, gt):
         if 'stars' not in _STATIC:
@@ -657,6 +661,7 @@ def plan_guide(scenes):
         st = s.sc['start']
         cand = [st + it['t0'] for it in s.items if it['t0'] >= 0 and it['k'] in ('arrow', 'move')]
         cand += [st + c['t0'] for c in s.caps]
+        cand += [st + it['t0'] for it in s.items if it['k'] == 'photo' and it['t0'] >= 0]
         for c in s.caps:
             if c['big'] and (c['big'].endswith('?') or c['big'].endswith('!')): hops.append(st + c['t0'])
         if s.title: hops.append(st + s.T(s.title.get('at', 0.05)))
@@ -691,6 +696,30 @@ def space_bg(gt):
         img = base * (1 - earth) + ec * earth + glow
         _STATIC['space'] = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
     return _STATIC['space'].copy()
+
+_PHOTO = {}
+def photo_card(name, h, title):
+    key = (name, h, title)
+    if key not in _PHOTO:
+        im = Image.open(os.path.join(ASSETS, 'photos', name + '.jpg')).convert('RGB')
+        ph = int(h); pw = int(im.width * ph / im.height)
+        if pw > W * 0.62: pw = int(W * 0.62); ph = int(im.height * pw / im.width)
+        im = im.resize((pw, ph), Image.LANCZOS)
+        b = int(12 * U); cap_h = int(54 * U) if title else 0
+        card = Image.new('RGBA', (pw + 2 * b, ph + 2 * b + cap_h), (250, 247, 240, 255))
+        card.paste(im, (b, b))
+        if title:
+            fs = 28
+            while fs > 14 and font('nunito', int(fs * U)).getlength(title) > pw - 10: fs -= 1
+            f = font('nunito', int(fs * U)); d = ImageDraw.Draw(card)
+            l, t, r, bt = f.getbbox(title)
+            d.text(((card.width - (r - l)) / 2 - l, ph + 2 * b + (cap_h - (bt - t)) / 2 - t - 6 * U), title, font=f, fill=(40, 32, 28))
+        card = card.rotate(-2.0, resample=Image.BICUBIC, expand=True)
+        sh = Image.new('RGBA', (card.width + 60, card.height + 60), (0, 0, 0, 0))
+        sh.paste((0, 0, 0, 150), (36, 44), card.getchannel('A'))
+        sh = sh.filter(ImageFilter.GaussianBlur(14 * U)); sh.alpha_composite(card, (20, 20))
+        _PHOTO[key] = sh
+    return _PHOTO[key]
 
 _BLUR = {}
 def scaled_blur(im, r=30):

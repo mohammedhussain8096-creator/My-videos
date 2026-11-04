@@ -62,6 +62,27 @@ def row(kinds, at_words, y=0.42, s=110, labels=None, ids='row'):
                         f'{ids}{i}', s=s, pill=False, ls=34))
     return out
 
+def photo(name, title, at, off=None, x=0.42, y=0.42, h=560):
+    d = dict(k='photo', name=name, title=title, xy=(x, y), at=at, h=h)
+    if off is not None: d['off'] = off
+    return d
+
+PHOTOS = {   # scene: real public-domain image card (see ../CREDITS.md)
+    3: photo('napoleon_alps', 'Napoleon Crossing the Alps - J.-L. David, 1801', 'story', 'country'),
+    24: photo('borodino', 'The Battle of Borodino, 1812', 'bloodiest', h=520),
+    27: photo('kutuzov', 'Mikhail Kutuzov - George Dawe, 1829', 'Mikhail', 'shocks'),
+    33: photo('moscow_fire', 'The Fire of Moscow, 1812', 'Fires', h=520),
+    37: photo('napoleon_study', 'Napoleon - J.-L. David, 1812', 'powerful', 'trapped'),
+    41: photo('retreat', "Napoleon's Retreat from Moscow - A. Northen", 'retreat', h=540),
+    44: photo('minard', "Charles Minard's chart, 1869", 'famous', h=470, x=0.45),
+    66: photo('ivan', 'Ivan the Terrible - V. Vasnetsov, 1897', 'Ivan', 'road'),
+    72: photo('peter', 'Peter the Great - P. Delaroche, 1838', 'Peter', 'defeated'),
+    79: photo('charles', 'Charles XII of Sweden - D. von Krafft', 'Charles', h=540),
+    171: photo('sputnik', 'Sputnik 1 (replica)', 'Sputnik', 'first', x=0.5, y=0.40, h=480),
+    177: photo('mir', 'The Mir space station (NASA)', 'Mir', x=0.5, y=0.42, h=520),
+    180: photo('soyuz', 'A Soyuz launch from Baikonur (NASA)', 'Soyuz', x=0.4, y=0.42, h=560),
+}
+
 S = SCENES.update
 S({
     # ---------------- Borodino
@@ -866,3 +887,6 @@ S({
               title=dict(small='NEXT VIDEO', big='THE MONGOLS', at='here', size=130, y=0.42),
               cap=[('', 'HOW THEY DID IT', 'how')]),
 })
+
+for _n, _p in PHOTOS.items():
+    SCENES[_n].setdefault('items', []).append(_p)
