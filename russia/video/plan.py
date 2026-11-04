@@ -15,7 +15,7 @@ PLACES = {
 }
 
 VIEWS = {   # (lat, lon, width in degrees of longitude)
-    'moscow': (55.6, 37.0, 17), 'europe': (51.6, 17.0, 64), 'europe_east': (53.0, 24.0, 46),
+    'moscow': (55.6, 37.0, 22), 'europe': (51.6, 17.0, 64), 'europe_east': (53.0, 24.0, 46),
     'neman': (54.9, 25.5, 20), 'road': (55.0, 29.8, 22), 'road_east': (55.0, 33.6, 14), 'smolensk': (55.0, 32.6, 16),
     'russia': (61.0, 103.0, 170), 'west_russia': (56.5, 31.0, 30), 'europe_russia': (55.0, 30.0, 80),
 }

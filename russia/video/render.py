@@ -595,19 +595,56 @@ class Scene:
             paste_center(fr, sm, W / 2, y, sc, a)
 
     def draw_guide(self, fr, gt, t):
-        g = guide_img()
+        import guide
+        h = int(400 * U)
         e = ENV[min(len(ENV) - 1, int(gt * FPS))] if ENV else 0
-        bob = math.sin(gt * 2.1) * 5 * U + e * -7 * U
-        intro = 0
-        if self.sc['scene'] == 1:
-            intro = (1 - ease_out((t - 0.4) / 0.8)) * (g.height + 40 * U)
-        x = W - g.width - int(40 * U)
-        y = H - g.height - int(18 * U) + bob + intro
-        # soft contact shadow on the map
-        sh = Image.new('RGBA', (int(g.width * 0.9), int(34 * U)), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).ellipse([0, 0, sh.width, sh.height], fill=(0, 0, 0, 110))
-        fr.alpha_composite(scaled_blur(sh, 6), (int(x + g.width * 0.08), int(H - 30 * U - sh.height / 2 + intro)))
-        fr.alpha_composite(g, (int(x), int(y)))
+        sp, lean, hop = guide_motion(gt)
+        lean += 1.0 * math.sin(gt * 2 * math.pi / 3.4)               # idle sway
+        talk = -e * 7 * U
+        x_off = 0.0
+        if gt < 1.9:                                                  # walk in from the right
+            k = ease_out(clamp((gt - 0.3) / 1.5))
+            x_off = (1 - k) * 520 * U
+            step = abs(math.sin(gt * math.pi * 3.2)) * (1 - k)
+            talk -= step * 16 * U; lean += math.sin(gt * math.pi * 3.2) * 3 * (1 - k)
+        sp, lean = round(sp * 2) / 2, round(lean * 4) / 4
+        im, (fx, fy) = guide.pose(h, sp, lean)
+        gx = W - int(190 * U) + x_off
+        gy = H - int(26 * U)
+        lift = hop * 34 * U
+        sh = Image.new('RGBA', (int(h * 0.42 * (1 - 0.35 * hop)), int(30 * U)), (0, 0, 0, 0))
+        ImageDraw.Draw(sh).ellipse([0, 0, sh.width, sh.height], fill=(0, 0, 0, int(110 * (1 - 0.5 * hop))))
+        fr.alpha_composite(scaled_blur(sh, 6), (int(gx - sh.width / 2), int(gy - sh.height / 2 - 4 * U)))
+        fr.alpha_composite(im, (int(gx - fx), int(gy - fy - lift + talk + math.sin(gt * 2.1) * 3 * U)))
+
+GUIDE_EVENTS = {'point': [], 'hop': []}
+
+def plan_guide(scenes):
+    """when the guide points his spear at the map (new arrows / captions) and when he hops (big moments)"""
+    pts, hops = [], []
+    for s in scenes:
+        st = s.sc['start']
+        cand = [st + it['t0'] for it in s.items if it['t0'] >= 0 and it['k'] in ('arrow', 'move')]
+        cand += [st + c['t0'] for c in s.caps]
+        for c in s.caps:
+            if c['big'] and (c['big'].endswith('?') or c['big'].endswith('!')): hops.append(st + c['t0'])
+        if s.title: hops.append(st + s.T(s.title.get('at', 0.05)))
+        for tt in sorted(cand):
+            if not pts or tt - pts[-1] > 3.2: pts.append(tt)
+    GUIDE_EVENTS['point'] = pts; GUIDE_EVENTS['hop'] = hops
+
+def guide_motion(gt):
+    sp = lean = hop = 0.0
+    for i, te in enumerate(GUIDE_EVENTS['point']):
+        d = gt - te
+        if -0.1 < d < 2.2:
+            k = ease(d / 0.35) * (1 - ease((d - 1.4) / 0.6))
+            amp = (13, 9, 16)[i % 3]
+            sp = max(sp, amp * k); lean = max(lean, 2.5 * k)
+    for te in GUIDE_EVENTS['hop']:
+        d = gt - te
+        if 0 <= d < 0.5: hop = max(hop, math.sin(math.pi * d / 0.5))
+    return sp, lean, hop
 
 _BLUR = {}
 def scaled_blur(im, r=30):
@@ -623,6 +660,7 @@ def build_scenes(last=None):
         if last and r['scene'] > last: break
         spec = SCENES.get(r['scene'], {})
         s = Scene(r, spec, prev); out.append(s); prev = s
+    plan_guide(out)
     return out
 
 def render_scene(args):
