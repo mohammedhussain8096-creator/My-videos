@@ -89,9 +89,15 @@ def cities(*names, at=0.0):
 # ------------------------------------------------------------------ scenes
 SCENES = {
     # 0:00 The Hook ---------------------------------------------------------
-    1: dict(bg='black', year='1812', clouds=0,
-            title=dict(big='1812', at=0.02, size=230, y=0.40),
-            cap=[('', '600,000 MEN', '600,000', {'count': 1.0, 'y': 0.72})]),
+    1: dict(view='europe_russia', year='1812', zoom=0.10,
+            fill=[('FRANCE', 'blue', 0.0), ('RUSSIAN_EMPIRE', 'red', 'Russia')],
+            items=[NAP(0.02),
+                   arrow(['Paris', 'Berlin', 'Kovno', 'Smolensk', 'Moscow'], 'march', 'Russia', id='a_open', w=30),
+                   icon('army-fr', (50.3, 8.5), '600,000', None, 'o1', s=50), icon('army-fr', (52.6, 15.5), 'men', None, 'o2', s=50),
+                   icon('army-fr', (54.0, 22.0), 'into', None, 'o3', s=50),
+                   icon('castle', 'Moscow', 'Russia', None, 'o_m', s=56), label('MOSCOW', 'Moscow', 'Russia', 'o_ml', s=30, dy=26)],
+            title=dict(big='1812', at='1812', size=200, y=0.24),
+            cap=[('MORE THAN', '600,000 MEN', '600,000', {'count': 1.0})]),
     2: dict(view='moscow', year='1812',
             items=[MOSCOW(0.02), MOSCOW_LBL(0.05), NAP('take', place='Moscow', dx=-150, dy=-70),
                    xmark('Moscow', 'lose', dx=60, dy=-40, s=80)],
