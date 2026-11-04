@@ -43,3 +43,9 @@ make("amu",58,77,32,43,highlight=(),rivers=("Amu  Darya","Panj"),
 make("kabul",50,84,24,44,highlight=("Afghanistan",),rivers=("Amu  Darya","Panj"),
      labels=[(65.3,33.2,"AFGHANISTAN"),(62.5,40.5,"USSR"),(70.0,28.0,"PAKISTAN"),(56.0,32.0,"IRAN")],
      pins=[(69.17,34.53,"KABUL")])
+AF=[(65.3,33.2,"AFGHANISTAN")]
+make("peshawar",57,79,26,40,highlight=("Pakistan",),rivers=("Amu  Darya","Panj"),labels=[(65.3,33.4,"AFGHANISTAN"),(70.5,28.5,"PAKISTAN")],pins=[(71.57,34.01,"PESHAWAR")])
+make("panjshir",62,76,31,38.5,highlight=("Afghanistan",),rivers=("Amu  Darya","Panj"),labels=[(65.0,33.0,"AFGHANISTAN")],pins=[(69.75,35.4,"PANJSHIR VALLEY")])
+make("jalalabad",62,76,31,38.5,highlight=("Afghanistan",),rivers=("Amu  Darya","Panj"),labels=[(65.0,33.0,"AFGHANISTAN")],pins=[(70.45,34.43,"JALALABAD")])
+make("salang",62,76,31,38.5,highlight=("Afghanistan",),rivers=("Amu  Darya","Panj"),labels=[(65.0,33.0,"AFGHANISTAN"),(66.0,37.9,"USSR")],pins=[(69.07,35.32,"SALANG TUNNEL")])
+make("geneva",-8,24,38,55,highlight=("Switzerland",),labels=[(2.5,47.0,"FRANCE"),(10.3,51.0,"GERMANY"),(12.5,43.2,"ITALY")],pins=[(6.14,46.2,"GENEVA")])

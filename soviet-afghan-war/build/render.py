@@ -1,4 +1,4 @@
-import json, math, subprocess, sys
+import json, math, subprocess, sys, os, re
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance, ImageOps
 
@@ -6,7 +6,8 @@ W, H, FPS = 1920, 1080, 30
 S = sys.argv[1] if len(sys.argv) > 1 else "."
 OUT = sys.argv[2]
 ONLY = [int(x) for x in sys.argv[3].split(",")] if len(sys.argv) > 3 else None
-TOTAL = json.load(open(f"{S}/timeline.json"))["total"]
+TLD = json.load(open(f"{S}/" + os.environ.get("TL", "timeline.json")))
+TOTAL = TLD["total"]
 
 MARK = f"{S}/fonts/PermanentMarker.ttf"
 BANG = f"{S}/fonts/Bangers-Regular.ttf"
@@ -40,6 +41,26 @@ SHOTS = [
     (125.10, "img/karmal.jpg", "zoom_face", "bw", [(0.6, "BABRAK KARMAL · PUPPET"), (2.7, "THE 40TH ARMY")], [], None),
     (130.30, "img/tanks_heli.jpg", "pan_down", "dusk", [(0.4, "THE JOB IS DONE?")], [(2.5, "IT HAS JUST BEGUN", None)], None),
 ]
+
+if os.environ.get("FULL"):
+    sys.path.insert(0, S)
+    from shots_rest import R
+    LINES = {L["k"]: L for L in TLD["lines"]}
+    def norm(w): return re.sub(r"[^a-z0-9]", "", w.lower())
+    def at(a):
+        if ":" not in a: return LINES[a]["start"]
+        k, w = a.split(":", 1); n = 1
+        if "#" in w: w, n = w.split("#"); n = int(n)
+        hits = [ws for ws, we, ww in LINES[k]["words"] if norm(ww).startswith(norm(w))]
+        if len(hits) < n: raise SystemExit(f"anchor not found: {a} in {[x[2] for x in LINES[k]['words']]}")
+        return hits[n - 1]
+    for st, path, mo, gk, caps, titles, extra in R:
+        t0 = at(st)
+        rel = lambda x: x if isinstance(x, (int, float)) else round(at(x) - t0, 3)
+        caps = [(rel(t), x) for t, x in caps]
+        titles = [(rel(t), x, sub) for t, x, sub in titles]
+        if extra and "pin_t" in extra: extra = {"pin": 0, "pin_t": max(0.3, rel(extra["pin_t"]) - 0.2)}
+        SHOTS.append((round(t0, 3), path, mo, gk, caps, titles, extra))
 
 # ---------------------------------------------------------------- helpers
 def grade(im, kind):
@@ -99,7 +120,10 @@ def text_layer(text, font, size, fill, stroke, stroke_fill, shadow=True):
 
 def caption_layer(text):
     size = 74 if len(text) < 22 else 62
-    t = text_layer(text, MARK, size, (28, 24, 22, 255), 7, (255, 255, 255, 255))
+    while True:
+        t = text_layer(text, MARK, size, (28, 24, 22, 255), 7, (255, 255, 255, 255))
+        if t.width < 1750 or size < 40: break
+        size -= 6
     # hand drawn red underline
     w = t.width - 70
     ul = Image.new("RGBA", (t.width, 40), (0, 0, 0, 0))
@@ -110,7 +134,11 @@ def caption_layer(text):
     return t, ul
 
 def title_layer(text, sub):
-    t = text_layer(text, BANG, 190 if len(text) < 14 else 150, (255, 212, 30, 255), 12, (20, 14, 10, 255))
+    sz = 190 if len(text) < 14 else 150
+    while True:
+        t = text_layer(text, BANG, sz, (255, 212, 30, 255), 12, (20, 14, 10, 255))
+        if t.width < 1780 or sz < 80: break
+        sz -= 10
     if sub:
         s = text_layer(sub, MARK, 70, (255, 255, 255, 255), 6, (20, 14, 10, 255))
         im = Image.new("RGBA", (max(t.width, s.width), t.height + s.height - 60), (0, 0, 0, 0))
@@ -251,7 +279,7 @@ RANGE=os.environ.get('RANGE')
 nf = int(TOTAL * FPS)
 r0,r1=(0,nf) if not RANGE else (int(float(RANGE.split(',')[0])*FPS), int(float(RANGE.split(',')[1])*FPS))
 ff = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-                       "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+                       "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-preset", "fast", "-crf", "17",
                        "-pix_fmt", "yuv420p", OUT], stdin=subprocess.PIPE)
 si = 0
 for n in range(r0, r1):

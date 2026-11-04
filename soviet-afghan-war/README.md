@@ -1,5 +1,6 @@
 # Soviet-Afghan War: documentary video
 
+- **Full video (9:51, 1080p):** too large for git (GitHub's 100 MB limit), so it was delivered directly in the chat. Rebuild it with `build/render.py`, using `TL=timeline_full.json FULL=1`.
 - `Soviet_Afghan_War_Preview.mp4`: **2:16 preview** (1920x1080, 30 fps), covering the script from the opening up to "It has just begun."
 - `CREDITS.md`: image licenses (paste into the YouTube description).
 - `build/`: the scripts that made the video (TTS, maps, music, renderer, scene list).
@@ -11,7 +12,10 @@
 - Big yellow comic-style title cards on the key beats, with an impact hit and a flash.
 - Slow Ken Burns zoom and pan on every image, a vintage grade, film grain and a vignette.
 
-## Shot list
+## Full video
+95 shots of 4.9 to 8.2 seconds, with 24 title cards and 7 map scenes. Shots 24 to 95 are defined in `build/shots_rest.py`, with captions anchored to the narration's word timings.
+
+## Shot list (preview)
 | # | Time | Visual | On-screen text |
 |---|---|---|---|
 | 1 | 0:00 | Friendship Bridge, 1989 | 15 FEBRUARY 1989 |
