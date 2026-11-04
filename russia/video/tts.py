@@ -14,7 +14,7 @@ import spoken
 
 ASSETS = os.environ.get('RU_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
-KVOICE = os.environ.get('KVOICE', 'am_puck')
+KVOICE = os.environ.get('KVOICE', 'am_fenrir')   # voice locked by the user for all videos
 KSPEED = float(os.environ.get('KSPEED', 0.85))
 VOICE_FX = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
 GAP_CLAUSE, GAP_SENT, GAP_PARA = 0.22, 0.38, 0.85
