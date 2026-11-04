@@ -20,6 +20,29 @@ VIEWS = {   # (lat, lon, width in degrees of longitude)
     'russia': (61.0, 103.0, 170), 'west_russia': (56.5, 31.0, 30), 'europe_russia': (55.0, 30.0, 80),
 }
 
+def _alaska(P):
+    return [[[x + 360, y] for x, y in r] for r in P['United States of America'] if min(x for x, _ in r) < -140 and min(y for _, y in r) > 50]
+
+def _organic(pts, seed, amp=0.35, n=14):
+    """smooth a rough outline and give it a natural, wavy border"""
+    import math, random
+    rnd = random.Random(seed); out = []
+    for i in range(len(pts)):
+        (x0, y0), (x1, y1) = pts[i], pts[(i + 1) % len(pts)]
+        for k in range(n):
+            t = k / n
+            x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
+            w = amp * (math.sin(t * math.pi * 2 + i * 1.7) * 0.8 + rnd.uniform(-0.08, 0.08))
+            out.append((x + w, y + w * 0.6))
+    return [out]
+
+CUSTOM = {   # hand-made historical shapes, rings of (lon, lat)
+    'MUSCOVY_1300': _organic([(34.8, 56.9), (37.0, 57.4), (39.6, 56.6), (40.0, 55.4), (38.6, 54.6), (36.0, 54.8), (34.6, 55.6)], 1, 0.12),
+    'MUSCOVY_1500': _organic([(28.0, 59.5), (31.0, 64.5), (40.0, 67.5), (52.0, 66.5), (58.0, 62.0), (52.0, 58.0), (46.0, 55.0),
+                              (42.0, 51.5), (37.0, 51.0), (33.0, 53.0), (30.0, 55.5), (27.8, 57.5)], 2, 0.5),
+    'ALASKA': _alaska,
+}
+
 GROUPS = {
     'RUSSIAN_EMPIRE': ['Russia', 'Belarus', 'Ukraine', 'Lithuania', 'Latvia', 'Estonia', 'Finland', 'Moldova'],
     'FRANCE': ['France', 'Belgium', 'Netherlands', 'Luxembourg', 'Switzerland'],
@@ -82,9 +105,7 @@ MOSCOW_LBL = lambda at=None, **kw: label('MOSCOW', 'Moscow', at, 'moscowlbl', s=
 EUROPE_FILLS = [('FRANCE', 'blue'), ('Germany', 'blue'), ('Italy', 'blue'), ('Poland', 'blue')]
 
 def cities(*names, at=0.0):
-    pos = {'Vilnius': 'Vilnius', 'Vitebsk': 'Vitebsk', 'Smolensk': 'Smolensk', 'Moscow': 'Moscow', 'Minsk': 'Minsk',
-           'Polotsk': 'Polotsk', 'Kovno': 'Kovno', 'Vyazma': 'Vyazma', 'Orsha': 'Orsha'}
-    return [city(n, pos[n], at, 'c_' + n, s=24) for n in names]
+    return [city(n, n, at, 'c_' + n, s=24) for n in names]
 
 # ------------------------------------------------------------------ scenes
 SCENES = {
@@ -250,3 +271,5 @@ SCENES = {
                     icon('badge-tsar', 'Moscow', 'Tsar', 'Tsar Alexander I', 'tsar2', s=90, drop=False, dx=200, dy=-60)],
              cap=[('', 'THE PRIZE', 'prize'), ('THE TSAR MUST', 'SURRENDER', 'surrender')]),
 }
+
+from plan2 import *   # scenes 22-200

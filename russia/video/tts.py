@@ -42,7 +42,8 @@ def phrases(paras):
     """-> list of (text, para_index, gap_after)"""
     out = []
     for pi, p in enumerate(paras):
-        sents = re.findall(r'[^.?!]+[.?!]+["”]?|[^.?!]+$', p['text'])
+        txt = p['text'].replace('St. Petersburg', 'Saint Petersburg')
+        sents = re.findall(r'[^.?!]+[.?!]+["”]?|[^.?!]+$', txt)
         sents = [s.strip() for s in sents if s.strip()]
         for si, s in enumerate(sents):
             parts = [s]

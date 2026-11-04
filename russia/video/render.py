@@ -14,7 +14,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import icons
 from render_text import text_img, font
-from plan import SCENES, PLACES, VIEWS, GROUPS
+from plan import SCENES, PLACES, VIEWS, GROUPS, CUSTOM
 
 ASSETS = os.environ.get('RU_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
@@ -24,7 +24,9 @@ FPS = 24
 Image.MAX_IMAGE_PIXELS = None
 
 COLORS = {'red': (226, 74, 30), 'blue': (40, 112, 232), 'grey': (160, 160, 165), 'green': (60, 170, 80),
-          'yellow': (240, 190, 40), 'dark': (50, 50, 55), 'purple': (140, 80, 190), 'white': (235, 235, 235)}
+          'yellow': (240, 190, 40), 'dark': (50, 50, 55), 'purple': (140, 80, 190), 'white': (235, 235, 235),
+          'tan': (222, 180, 120), 'black': (25, 25, 28), 'teal': (40, 180, 170), 'pink': (230, 90, 150),
+          'orange': (245, 140, 30), 'lime': (150, 200, 60), 'sky': (90, 170, 240), 'brown': (150, 100, 60)}
 YELLOW_TOP, YELLOW_BOT = (255, 232, 92), (250, 168, 28)
 CAP_STROKE = (74, 38, 8)
 
@@ -108,6 +110,7 @@ def resolve_t(at, sc, wt):
     """at: None | float (0..1 = fraction, >1 = seconds) | 'word' (first word starting with it)"""
     dur = sc['end'] - sc['start']
     if at is None: return 0.25
+    if isinstance(at, tuple): return resolve_t(at[0], sc, wt) + at[1]
     if isinstance(at, (int, float)): return at * dur if at <= 1 else float(at)
     key = at.lower()
     nth = 1
@@ -213,6 +216,10 @@ def polys(name):
     if _POLY is None: _POLY = json.load(open(os.path.join(ASSETS, 'countries.json')))
     out = []
     for n in GROUPS.get(name, [name]):
+        if n in CUSTOM:
+            for ring in CUSTOM[n](_POLY) if callable(CUSTOM[n]) else CUSTOM[n]:
+                out.append([ll2m(lat, lon) for lon, lat in ring])
+            continue
         if n not in _POLY: print('  ! unknown country', n); continue
         for ring in _POLY[n]:
             out.append([ll2m(lat, lon) for lon, lat in ring])
@@ -228,6 +235,7 @@ def to_screen_arr(a, cam):
     return (a[:, 0] - cx) * s + W / 2, (a[:, 1] - cy) * s + H / 2
 
 def to_screen(p, cam):
+    if isinstance(p, tuple) and len(p) == 3 and p[0] == 's': return p[1] * W, p[2] * H
     mx, my = ll2m(*place(p))
     cx, cy, w = cam; s = W / w
     return (mx - cx) * s + W / 2, (my - cy) * s + H / 2
@@ -240,13 +248,17 @@ def draw_fills(fr, cam, fills):
     arr = np.asarray(fr).astype(np.float32)
     lum = arr.mean(axis=2, keepdims=True) / 255.0
     bycol = {}
-    for name, col, a in fills:
+    for f in fills:
+        name, col, a = f[:3]
+        clip = f[3] if len(f) > 3 else None
         if a <= 0.001: continue
         m = Image.new('L', (hw, hh), 0); d = ImageDraw.Draw(m)
         for r in proj_rings(name):
             x, y = to_screen_arr(r, cam)
             if x.max() < -50 or x.min() > W + 50 or y.max() < -50 or y.min() > H + 50: continue
             if len(x) > 3: d.polygon(list(zip((x / 2).tolist(), (y / 2).tolist())), fill=255)
+        if clip is not None:
+            if clip < W: d.rectangle([clip / 2, 0, hw, hh], fill=0)
         bycol.setdefault((col, round(a, 3)), []).append(m)
     for (col, a), ms in bycol.items():
         m = ms[0]
@@ -377,6 +389,11 @@ class Scene:
             at = f[2] if len(f) > 2 else None
             t0 = -9 if (name in prev_f and prev_f[name][1] == col and at is None) else T(at if at is not None else 0.05)
             self.fills.append((name, col, t0))
+        self.reveal = {}
+        for f in spec.get('fill', []):
+            if len(f) > 3 and 'reveal' in f[3]:
+                lon0, lon1, to = f[3]['reveal']
+                self.reveal[f[0]] = (lon0, lon1, T(f[2]), T(to))
         for f in spec.get('unfill', []):     # fade out a carried fill
             self.fills = [(x[0], x[1], x[2], T(f[1])) if x[0] == f[0] else x for x in self.fills]
         prev_items = {it.get('id') for it in (prev.items if prev else []) if it.get('id')}
@@ -431,13 +448,22 @@ class Scene:
         cam = self.cam(t)
         if self.bg == 'black':
             fr = Image.new('RGB', (W, H), (8, 8, 10))
+        elif self.bg == 'space':
+            fr = space_bg(t + self.sc['start'])
         else:
             fr = crop_map(*cam)
             fills = []
             for f in self.fills:
                 name, col, t0 = f[:3]
                 a = ease((t - t0) / 0.6)
-                if len(f) > 3: a *= 1 - ease((t - f[3]) / 0.6)
+                if len(f) > 3 and f[3] is not None: a *= 1 - ease((t - f[3]) / 0.6)
+                rv = self.reveal.get(name)
+                if rv:
+                    lon0, lon1, ta, tb = rv
+                    if t < ta: continue
+                    a = 1.0 if len(f) <= 3 or f[3] is None else a
+                    lon = lon0 + (lon1 - lon0) * ease((t - ta) / max(0.1, tb - ta))
+                    fills.append((name, col, a, to_screen((60.0, lon), cam)[0])); continue
                 fills.append((name, col, a))
             fr = draw_fills(fr, cam, fills)
             arr = np.asarray(fr).astype(np.float32)
@@ -445,6 +471,8 @@ class Scene:
                 arr *= np.array([0.42, 0.48, 0.7])
             elif self.tint == 'fire':
                 arr = arr * np.array([0.65, 0.5, 0.42]) + np.array([40, 12, 0])
+            elif self.tint == 'gloom':
+                g = arr.mean(axis=2, keepdims=True); arr = (arr * 0.45 + g * 0.55) * 0.72
             elif self.tint == 'winter':
                 g = arr.mean(axis=2, keepdims=True); arr = (arr * 0.35 + g * 0.65) * np.array([0.95, 1.0, 1.1]) + 18
             arr *= vignette()
@@ -460,7 +488,7 @@ class Scene:
                 if 'toff' in it: a = 1 - ease((t - it['toff']) / 0.5)
                 if a > 0: draw_arrow(layer, path, p, it.get('color', 'blue'), it.get('w', 26), int(215 * a))
         fr.alpha_composite(layer)
-        if self.tint == 'night' or self.spec.get('stars'):
+        if self.tint == 'night' or self.spec.get('stars') or self.bg == 'space':
             self.stars(fr, gt)
         for it in self.items:
             if it['k'] != 'arrow': self.draw_item(fr, it, t, cam, gt)
@@ -469,7 +497,7 @@ class Scene:
         yr = self.year
         for ty, y in self.years:
             if t >= ty: yr = y
-        if yr and self.bg == 'map':
+        if yr and self.bg in ('map', 'space'):
             fr.alpha_composite(year_tag(yr), (int(48 * U), int(34 * U)))
         if self.title: self.draw_title(fr, t)
         for c in self.caps: self.draw_cap(fr, c, t)
@@ -567,6 +595,9 @@ class Scene:
         t0 = self.T(ti.get('at', 0.05))
         if t < t0: return
         k = ease_out((t - t0) / 0.5)
+        if 'off' in ti:
+            k *= 1 - ease((t - self.T(ti['off'])) / 0.4)
+            if k <= 0.01: return
         dim = Image.new('RGBA', (W, H), (0, 0, 0, int(110 * k)))
         fr.alpha_composite(dim)
         sm = text_img(ti.get('small', ''), 'nunito', int(30 * U), (235, 235, 235), (20, 20, 20), max(2, int(4 * U))) if ti.get('small') else None
@@ -645,6 +676,21 @@ def guide_motion(gt):
         d = gt - te
         if 0 <= d < 0.5: hop = max(hop, math.sin(math.pi * d / 0.5))
     return sp, lean, hop
+
+def space_bg(gt):
+    if 'space' not in _STATIC:
+        y, x = np.mgrid[0:H, 0:W].astype(np.float32)
+        base = np.zeros((H, W, 3), np.float32)
+        base[..., 0] = 6 + 14 * y / H; base[..., 1] = 10 + 22 * y / H; base[..., 2] = 26 + 50 * y / H
+        cx, cy, R = W * 0.5, H * 2.25, H * 1.55          # Earth's limb at the bottom
+        r = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+        earth = np.clip((R - r) / 3, 0, 1)[..., None]
+        shade = np.clip((y - (cy - R)) / (H * 0.5), 0, 1)[..., None]
+        ec = np.array([30, 90, 190], np.float32) * (1 - 0.5 * shade) + np.array([30, 120, 60], np.float32) * 0.15
+        glow = np.exp(-np.clip(r - R, 0, None) / (24 * U))[..., None] * np.array([90, 160, 255], np.float32) * (r > R)[..., None]
+        img = base * (1 - earth) + ec * earth + glow
+        _STATIC['space'] = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+    return _STATIC['space'].copy()
 
 _BLUR = {}
 def scaled_blur(im, r=30):
