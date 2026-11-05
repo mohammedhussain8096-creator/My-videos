@@ -1032,7 +1032,7 @@ def main():
         mix += '[m]'; n = 3
     fc += f';{mix}amix=inputs={n}:normalize=0:duration=first,afade=t=out:st={total - 1.5}:d=1.5,alimiter=limit=0.95[a]'
     subprocess.run(['ffmpeg', '-v', 'error', '-y', *inputs, '-filter_complex', fc, '-map', '0:v', '-map', '[a]',
-                    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', str(total), '-movflags', '+faststart', out], check=True)
+                    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-t', str(total), '-movflags', '+faststart', out], check=True)
     print('wrote', out, round(total, 1), 's')
 
 if __name__ == '__main__':
