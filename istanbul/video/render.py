@@ -23,7 +23,10 @@ ASSETS = os.environ.get('RU_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
 W, H = map(int, os.environ.get('RES', '1920x1080').split('x'))
 U = W / 1920.0
-FPS = 24
+FPS = int(os.environ.get('FPS', 24))
+FILL_K = 0.5          # softer country fills on the warm map (reference look)
+ENV_FPS = 24          # the voice loudness track (timing.json) is sampled at 24 per second
+CRF, PRESET = os.environ.get('CRF', '19'), os.environ.get('PRESET', 'medium')
 Image.MAX_IMAGE_PIXELS = None
 
 COLORS = {'red': (226, 74, 30), 'blue': (40, 112, 232), 'grey': (160, 160, 165), 'green': (60, 170, 80),
@@ -274,7 +277,7 @@ def draw_fills(fr, cam, fills):
         gf = np.asarray(glow.resize((W, H), Image.BILINEAR), np.float32)[..., None] / 255.0 * a
         c = np.array(COLORS[col], np.float32)
         tinted = c * (0.62 + 0.75 * lum)
-        arr = arr * (1 - 0.82 * mf) + tinted * 0.82 * mf
+        arr = arr * (1 - FILL_K * mf) + tinted * FILL_K * mf
         light = np.minimum(c * 0.5 + 150, 255)
         arr = arr * (1 - 0.9 * ef) + light * 0.9 * ef
         arr = arr + gf * c * 0.9
@@ -460,6 +463,8 @@ class Scene:
             fr = space_bg(t + self.sc['start'])
         elif self.bg == 'studio':
             fr = studio_bg()
+        elif self.bg == 'clock':
+            fr = clock_bg(gt)
         elif self.bg == 'spot':
             fr = spot_bg(gt)
         elif self.bg == 'scene':
@@ -655,6 +660,22 @@ class Scene:
                     gl = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(gl).line(pp, fill=col + (int(170 * a),), width=int(it.get('w', 10) * 3 * U), joint='curve')
                     fr.alpha_composite(gl.filter(ImageFilter.GaussianBlur(10 * U)))
                 ImageDraw.Draw(fr).line(pp, fill=col + (int(220 * a),), width=int(it.get('w', 10) * U), joint='curve')
+        elif k == 'clock':
+            r = it.get('s', 150) * U
+            dd = ImageDraw.Draw(fr)
+            dd.ellipse([x - r - 8 * U, y - r - 8 * U, x + r + 8 * U, y + r + 8 * U], fill=(40, 34, 30, 255))
+            dd.ellipse([x - r, y - r, x + r, y + r], fill=(250, 248, 240, 255))
+            for i in range(12):
+                aa = math.radians(i * 30)
+                dd.line([(x + math.cos(aa) * r * 0.82, y + math.sin(aa) * r * 0.82), (x + math.cos(aa) * r * 0.94, y + math.sin(aa) * r * 0.94)], fill=(40, 34, 30), width=max(2, int(5 * U)))
+            sp = it.get('speed', -2.5)          # negative = spinning backwards
+            for L, wdt, f in ((0.55, 9, 1.0), (0.8, 5, 12.0)):
+                aa = -math.pi / 2 + sp * f * age
+                dd.line([(x, y), (x + math.cos(aa) * r * L, y + math.sin(aa) * r * L)], fill=(40, 34, 30), width=max(2, int(wdt * U)))
+            dd.arc([x - r - 34 * U, y - r - 34 * U, x + r + 34 * U, y + r + 34 * U], 200, 320, fill=(250, 248, 240), width=max(2, int(6 * U)))
+            dd.polygon([(x + math.cos(math.radians(200)) * (r + 34 * U) - 16 * U, y + math.sin(math.radians(200)) * (r + 34 * U) + 4 * U),
+                        (x + math.cos(math.radians(200)) * (r + 34 * U) + 10 * U, y + math.sin(math.radians(200)) * (r + 34 * U) - 18 * U),
+                        (x + math.cos(math.radians(200)) * (r + 34 * U) + 14 * U, y + math.sin(math.radians(200)) * (r + 34 * U) + 12 * U)], fill=(250, 248, 240))
         elif k == 'photo':
             card = photo_card(it['name'], int(it.get('h', 560) * U), it.get('title'))
             k2 = (0.6 + 0.4 * ease_back(age / 0.5)) * (1 + 0.03 * clamp(age / 8))
@@ -721,7 +742,7 @@ class Scene:
     def draw_guide(self, fr, gt, t):
         import guide
         h = int(400 * U)
-        e = ENV[min(len(ENV) - 1, int(gt * FPS))] if ENV else 0
+        e = ENV[min(len(ENV) - 1, int(gt * ENV_FPS))] if ENV else 0
         sp, lean, hop = guide_motion(gt)
         lean += 1.0 * math.sin(gt * 2 * math.pi / 3.4)               # idle sway
         talk = -e * 7 * U
@@ -803,8 +824,8 @@ def photo_card(name, h, title):
         card.paste(im, (b, b))
         if title:
             fs = 28
-            while fs > 14 and font('nunito', int(fs * U)).getlength(title) > pw - 10: fs -= 1
-            f = font('nunito', int(fs * U)); d = ImageDraw.Draw(card)
+            while fs > 14 and font('patrick', int(fs * U)).getlength(title) > pw - 10: fs -= 1
+            f = font('patrick', int(fs * U)); d = ImageDraw.Draw(card)
             l, t, r, bt = f.getbbox(title)
             d.text(((card.width - (r - l)) / 2 - l, ph + 2 * b + (cap_h - (bt - t)) / 2 - t - 6 * U), title, font=f, fill=(40, 32, 28))
         card = card.rotate(-2.0, resample=Image.BICUBIC, expand=True)
@@ -892,6 +913,18 @@ def draw_sky_clouds(fr, gt, amount=1.0):
         x = (ph * U + spd * U * gt) % span - 400 * U
         fr.alpha_composite(im, (int(x), int(yf * H - im.height / 2)))
 
+def clock_bg(gt):
+    if 'clockbg' not in _STATIC:
+        y = np.arange(H, dtype=np.float32)[:, None, None] / H
+        img = np.array([28, 36, 74], np.float32) + (np.array([44, 54, 104], np.float32) - np.array([28, 36, 74], np.float32)) * y
+        _STATIC['clockbg'] = Image.fromarray(np.clip(np.repeat(img, W, axis=1), 0, 255).astype(np.uint8))
+    fr = _STATIC['clockbg'].copy(); d = ImageDraw.Draw(fr)
+    for i in range(26):       # speed streaks rushing past
+        yy = (i * 97) % H; ln = (120 + (i * 53) % 260) * U
+        xx = W - ((gt * (900 + (i % 5) * 220) * U + i * 311) % (W + ln))
+        d.line([(xx, yy), (xx + ln, yy)], fill=(110, 130, 190), width=max(1, int((1 + i % 3) * U)))
+    return fr
+
 _BLUR = {}
 def scaled_blur(im, r=30):
     key = (im.size, r)
@@ -918,7 +951,7 @@ def render_scene(args):
     if os.path.exists(path) and os.environ.get('KEEP'): return path
     os.makedirs(os.path.dirname(path), exist_ok=True)
     p = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS),
-                          '-i', '-', '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p', path], stdin=subprocess.PIPE)
+                          '-i', '-', '-c:v', 'libx264', '-preset', PRESET, '-crf', CRF, '-profile:v', 'high', '-pix_fmt', 'yuv420p', path], stdin=subprocess.PIPE)
     for f in range(f0, f1):
         p.stdin.write(s.frame(f / FPS - s.sc['start']).tobytes())
     p.stdin.close(); p.wait()

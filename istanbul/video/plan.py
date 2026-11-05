@@ -158,3 +158,5 @@ SCENES = {
                     prop('fig-barbarian', 0.86, 0.88, 'barbarians', 'cl4', h=400, say='Mine!!', ss=44)],
              cap=[('just to fly their flag above its towers', None, 'flag')]),
 }
+
+from plan2 import *   # scenes 23-161

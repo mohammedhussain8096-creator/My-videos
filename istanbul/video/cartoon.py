@@ -303,12 +303,19 @@ def flask(h=120):
     return _out(im, w, h)
 
 def cannon(h=120):
+    """bronze siege bombard on a wooden sledge: tapered barrel, reinforcing rings, dark bore at the muzzle"""
     w = h * 2.4
     im, d = _cv(w, h); k = SS * h / 100.0
-    d.polygon(P([(10, 30), (220, 14), (226, 54), (14, 70)], k), fill=(190, 140, 60, 255), outline=INK, width=int(1.4 * k))
-    for x in (60, 120, 180): d.line(P([(x, 26 - x / 22), (x + 2, 64 - x / 18)], k), fill=(150, 100, 40, 255), width=int(2 * k))
-    d.rectangle(P([(20, 70), (200, 84)], k), fill=(120, 85, 50, 255), outline=INK)
-    for x in (40, 100, 160): d.ellipse(P([(x - 14, 70), (x + 14, 98)], k), fill=(110, 75, 45, 255), outline=INK)
+    bronze, dark = (196, 146, 64, 255), (150, 104, 38, 255)
+    d.rectangle(P([(14, 72), (214, 86)], k), fill=(120, 85, 50, 255), outline=INK, width=int(1 * k))
+    for x in (40, 110, 180): d.ellipse(P([(x - 13, 72), (x + 13, 98)], k), fill=(110, 75, 45, 255), outline=INK)
+    d.polygon(P([(12, 30), (196, 18), (196, 70), (12, 66)], k), fill=bronze, outline=INK, width=int(1.4 * k))
+    d.ellipse(P([(4, 30), (22, 66)], k), fill=dark, outline=INK, width=int(1 * k))
+    for x in (60, 110, 160):
+        top = 30 - (x - 12) * 12 / 184; bot = 66 + (x - 12) * 4 / 184
+        d.rectangle(P([(x - 3, top - 2), (x + 3, bot + 2)], k), fill=dark, outline=INK, width=int(0.6 * k))
+    d.ellipse(P([(186, 12), (216, 76)], k), fill=bronze, outline=INK, width=int(1.4 * k))
+    d.ellipse(P([(193, 24), (209, 64)], k), fill=(40, 30, 24, 255))
     return _out(im, w, h)
 
 def chain(h=40, length=600):
@@ -333,3 +340,168 @@ def _get(kind, h, kw):
     kw = dict(kw)
     if kind.startswith('fig-'): return figure(kind[4:], int(h), **kw)
     return KINDS[kind](int(h), **kw)
+
+
+# ------------------------------------------------------------------ more props (scenes 23-161)
+SEA = (70, 130, 190, 255); LAND = (232, 210, 160, 255); PARCH = (238, 222, 186, 255)
+
+def cityplan(h=560, chain=False, route=False, walls=True, cannons=False, ships=False, gate=False, galata=True, fleet_in=False):
+    """parchment card with an illustrated plan of Constantinople (reference's 'old city' card)"""
+    w = h * 1.35
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.rounded_rectangle(P([(1, 1), (134, 99)], k), radius=int(3 * k), fill=PARCH, outline=(150, 120, 80, 255), width=int(0.8 * k))
+    d.rectangle(P([(6, 6), (129, 94)], k), fill=SEA)
+    # Thrace (west) + the triangular peninsula
+    d.polygon(P([(6, 6), (78, 6), (74, 26), (68, 34), (96, 40), (104, 50), (92, 66), (72, 80), (40, 86), (6, 88)], k), fill=LAND, outline=(120, 95, 60, 255), width=int(0.6 * k))
+    # Golden Horn (inlet north of the peninsula)
+    d.polygon(P([(96, 40), (68, 34), (40, 28), (24, 22), (42, 33), (70, 41), (92, 46)], k), fill=SEA)
+    if galata:   # Galata / Pera hills north of the Horn
+        d.polygon(P([(78, 6), (129, 6), (129, 30), (110, 36), (96, 38), (74, 26)], k), fill=(214, 196, 150, 255), outline=(120, 95, 60, 255), width=int(0.6 * k))
+        for x, y in ((92, 18), (104, 22), (116, 16)):
+            d.chord(P([(x - 8, y - 4), (x + 8, y + 6)], k), 180, 360, fill=(190, 170, 120, 255))
+    # Asia across the Bosphorus
+    d.polygon(P([(118, 44), (129, 40), (129, 94), (108, 94), (112, 70)], k), fill=(214, 196, 150, 255), outline=(120, 95, 60, 255), width=int(0.6 * k))
+    # city: roofs
+    import random
+    rnd = random.Random(5)
+    for _ in range(70):
+        x, y = rnd.uniform(48, 92), rnd.uniform(44, 76)
+        if y > 44 + (x - 48) * 0.1 and not (x > 88 and y > 64):
+            d.rectangle(P([(x, y), (x + 2.6, y + 2)], k), fill=(196, 92, 60, 255))
+    d.ellipse(P([(80, 52), (88, 58)], k), fill=(150, 160, 170, 255), outline=INK)    # Hagia Sophia
+    if walls:   # Theodosian land walls across the peninsula
+        d.line(P([(46, 30), (44, 52), (40, 70), (38, 86)], k), fill=(110, 90, 70, 255), width=int(2.2 * k))
+        for t in range(6):
+            yy = 32 + t * 10; xx = 46 - t * 1.4
+            d.rectangle(P([(xx - 1.6, yy - 1.6), (xx + 1.6, yy + 1.6)], k), fill=(110, 90, 70, 255))
+    if chain:
+        d.line(P([(92, 46), (98, 38)], k), fill=(60, 60, 64, 255), width=int(1.6 * k))
+        for t in range(6):
+            x, y = 92 + t * 1.2, 46 - t * 1.6
+            d.ellipse(P([(x - 0.9, y - 0.9), (x + 0.9, y + 0.9)], k), outline=(230, 230, 235, 255), width=int(0.4 * k))
+    if route:
+        pts = [(112, 12), (100, 14), (86, 20), (72, 26), (58, 30)]
+        for i in range(len(pts) - 1):
+            (x0, y0), (x1, y1) = pts[i], pts[i + 1]
+            for j in range(4):
+                if j % 2 == 0:
+                    d.line(P([(x0 + (x1 - x0) * j / 4, y0 + (y1 - y0) * j / 4), (x0 + (x1 - x0) * (j + 1) / 4, y0 + (y1 - y0) * (j + 1) / 4)], k), fill=RED, width=int(1.4 * k))
+    if fleet_in or ships:
+        for x, y in ((50, 30), (58, 32), (66, 35)) if fleet_in else ((112, 12), (116, 20)):
+            d.polygon(P([(x - 3, y), (x + 3, y), (x + 2, y + 1.6), (x - 2, y + 1.6)], k), fill=(150, 90, 50, 255))
+            d.polygon(P([(x, y - 4), (x + 2.5, y - 0.5), (x, y - 0.5)], k), fill=WHITE)
+    if cannons:
+        for y in (40, 56, 72):
+            d.ellipse(P([(30, y - 2), (36, y + 2)], k), fill=(60, 60, 64, 255))
+            d.line(P([(36, y), (41, y - 1)], k), fill=RED, width=int(0.8 * k))
+    if gate:
+        d.ellipse(P([(40, 40), (50, 50)], k), outline=RED, width=int(1.2 * k))
+    return _out(im, w, h)
+
+def walls_section(h=420, stage=4):
+    """cross-section of the Theodosian walls: moat, outer wall, peribolos, inner wall (stage = how many shown)"""
+    w = h * 2.3
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.rectangle(P([(0, 86), (230, 100)], k), fill=(190, 160, 110, 255))
+    if stage >= 1:   # moat
+        d.polygon(P([(10, 86), (14, 98), (54, 98), (58, 86)], k), fill=(214, 196, 150, 255), outline=INK)
+        d.rectangle(P([(15, 90), (53, 97)], k), fill=(80, 140, 200, 255))
+    if stage >= 2:   # outer wall
+        d.rectangle(P([(70, 50), (84, 86)], k), fill=STONE, outline=INK, width=int(0.8 * k))
+        for x in range(70, 84, 4): d.rectangle(P([(x, 46), (x + 2.5, 50)], k), fill=STONE, outline=INK)
+    if stage >= 3:   # peribolos
+        d.rectangle(P([(84, 82), (130, 86)], k), fill=(205, 180, 130, 255))
+    if stage >= 4:   # inner wall (taller, thicker)
+        d.rectangle(P([(130, 18), (156, 86)], k), fill=(228, 212, 178, 255), outline=INK, width=int(0.9 * k))
+        for x in range(130, 156, 5): d.rectangle(P([(x, 12), (x + 3, 18)], k), fill=(228, 212, 178, 255), outline=INK)
+        d.rectangle(P([(160, 4), (190, 86)], k), fill=(232, 218, 186, 255), outline=INK, width=int(0.9 * k))
+        for x in range(160, 190, 6): d.rectangle(P([(x, -2), (x + 3.5, 4)], k), fill=(232, 218, 186, 255), outline=INK)
+    return _out(im, w, h)
+
+def ox(h=120):
+    w = h * 1.5
+    im, d = _cv(w, h); k = SS * h / 100.0
+    c = (150, 110, 80, 255)
+    d.ellipse(P([(20, 30), (110, 74)], k), fill=c, outline=INK, width=int(1 * k))
+    for x in (30, 48, 86, 100): d.rectangle(P([(x, 64), (x + 6, 96)], k), fill=c, outline=INK)
+    d.ellipse(P([(104, 24), (138, 56)], k), fill=c, outline=INK, width=int(1 * k))
+    d.arc(P([(100, 8), (122, 34)], k), 180, 300, fill=WHITE, width=int(3 * k)); d.arc(P([(122, 8), (144, 34)], k), 240, 360, fill=WHITE, width=int(3 * k))
+    d.ellipse(P([(118, 34), (122, 38)], k), fill=INK)
+    return _out(im, w, h)
+
+def hippodrome(h=200):
+    w = h * 2.2
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.rounded_rectangle(P([(4, 20), (216, 96)], k), radius=int(36 * k), fill=(226, 206, 166, 255), outline=INK, width=int(1.2 * k))
+    d.rounded_rectangle(P([(24, 36), (196, 82)], k), radius=int(22 * k), fill=(210, 180, 120, 255), outline=INK)
+    d.line(P([(50, 59), (170, 59)], k), fill=(160, 140, 110, 255), width=int(4 * k))
+    d.polygon(P([(108, 59), (110, 30), (112, 59)], k), fill=(200, 190, 170, 255), outline=INK)
+    import random
+    rnd = random.Random(2)
+    for _ in range(90):
+        x, y = rnd.uniform(10, 210), rnd.uniform(22, 34) if rnd.random() < 0.5 else rnd.uniform(84, 94)
+        d.ellipse(P([(x - 1.4, y - 1.4), (x + 1.4, y + 1.4)], k), fill=rnd.choice([(200, 60, 50, 255), (60, 90, 170, 255), (240, 200, 60, 255), (240, 240, 240, 255)]))
+    return _out(im, w, h)
+
+def candle(h=120):
+    w = h * 0.35
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.rectangle(P([(10, 40), (25, 100)], k), fill=(245, 236, 210, 255), outline=INK)
+    d.polygon(P([(17.5, 14), (24, 32), (17.5, 40), (11, 32)], k), fill=(255, 200, 60, 255))
+    d.ellipse(P([(14, 26), (21, 36)], k), fill=(255, 245, 180, 255))
+    return _out(im, w, h)
+
+def banner(h=200, side='ottoman'):
+    w = h * 0.7
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.line(P([(6, 2), (6, 100)], k), fill=(110, 75, 45, 255), width=int(2.4 * k))
+    col = (200, 40, 40, 255) if side == 'ottoman' else (130, 40, 120, 255)
+    d.polygon(P([(7, 6), (66, 10), (60, 26), (66, 42), (7, 40)], k), fill=col, outline=INK)
+    if side == 'ottoman':
+        d.ellipse(P([(22, 12), (44, 34)], k), fill=WHITE); d.ellipse(P([(28, 12), (48, 32)], k), fill=col)
+    else:
+        d.text((20 * k, 14 * k), '', fill=GOLD)
+        d.line(P([(28, 12), (28, 36)], k), fill=GOLD, width=int(2 * k)); d.line(P([(18, 22), (38, 22)], k), fill=GOLD, width=int(2 * k))
+    return _out(im, w, h)
+
+def cannonball(h=80):
+    im, d = _cv(h, h); k = SS * h / 100.0
+    d.ellipse(P([(4, 4), (96, 96)], k), fill=(130, 126, 120, 255), outline=INK, width=int(2 * k))
+    d.ellipse(P([(22, 18), (44, 38)], k), fill=(180, 176, 170, 255))
+    return _out(im, h, h)
+
+def subscribe(h=110):
+    w = h * 3.4
+    im, d = _cv(w, h); k = SS * h / 100.0
+    d.rounded_rectangle(P([(2, 8), (338, 92)], k), radius=int(16 * k), fill=(220, 30, 30, 255))
+    from PIL import ImageFont
+    import os
+    f = ImageFont.truetype(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets', 'fredoka.ttf'), int(46 * k))
+    d.text((170 * k, 50 * k), 'SUBSCRIBE', font=f, fill=WHITE, anchor='mm')
+    return _out(im, w, h)
+
+def logs(h=60, length=6):
+    w = h * length * 0.6
+    im, d = _cv(w, h); k = SS * h / 100.0
+    for i in range(length):
+        x = i * 60
+        d.ellipse(P([(x, 30), (x + 56, 96)], k), fill=(150, 105, 60, 255), outline=INK)
+        d.ellipse(P([(x + 14, 46), (x + 42, 80)], k), outline=(110, 75, 45, 255), width=int(2 * k))
+    return _out(im, w, h)
+
+def skyline_modern(h=300):
+    """modern Istanbul: domes, minarets, towers"""
+    w = h * 3
+    im, d = _cv(w, h); k = SS * h / 100.0
+    import random
+    rnd = random.Random(8)
+    for i in range(26):
+        x = i * 11.5; bh = rnd.uniform(30, 70)
+        d.rectangle(P([(x, 100 - bh), (x + 10, 100)], k), fill=(rnd.randint(150, 200), rnd.randint(140, 180), rnd.randint(150, 200), 255), outline=INK, width=int(0.5 * k))
+        for wy in range(int(100 - bh + 4), 98, 7): d.rectangle(P([(x + 2, wy), (x + 4, wy + 3)], k), fill=(250, 230, 150, 255))
+    d.chord(P([(120, 40), (180, 96)], k), 180, 360, fill=(150, 160, 170, 255), outline=INK)
+    for mx in (110, 190): d.rectangle(P([(mx, 10), (mx + 4, 100)], k), fill=(236, 226, 206, 255), outline=INK); d.polygon(P([(mx - 1, 10), (mx + 2, 0), (mx + 5, 10)], k), fill=(150, 160, 170, 255))
+    return _out(im, w, h)
+
+KINDS.update({'cityplan': cityplan, 'walls_section': walls_section, 'ox': ox, 'hippodrome': hippodrome, 'candle': candle,
+              'banner': banner, 'cannonball': cannonball, 'subscribe': subscribe, 'logs': logs, 'skyline_modern': skyline_modern})
