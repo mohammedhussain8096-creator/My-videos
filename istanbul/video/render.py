@@ -422,6 +422,15 @@ class Scene:
             self.caps.append({'small': small, 'big': big, 't0': T(at if at is not None else 0.12), 'opt': opt})
         for i, c in enumerate(self.caps):
             c['t1'] = self.caps[i + 1]['t0'] if i + 1 < len(self.caps) else self.dur + 1
+        # never leave a studio / cartoon scene empty: bring the first element in at the start
+        if self.bg in ('studio', 'scene', 'spot', 'clock'):
+            firsts = [it for it in self.items if it['k'] not in ('line',)] or self.items
+            ts = [it['t0'] for it in firsts] + [c['t0'] for c in self.caps]
+            if ts and min(ts) > 0.8:
+                if firsts:
+                    first = min(firsts, key=lambda it: it['t0']); first['t0'] = 0.15
+                else:
+                    min(self.caps, key=lambda c: c['t0'])['t0'] = 0.15
         self.title = spec.get('title')
         self.tint = spec.get('tint')
         self.guide = spec.get('guide', True)
@@ -1013,7 +1022,7 @@ def main():
     with Pool(int(os.environ.get('WORKERS', 4))) as pool:
         paths = pool.map(render_scene, [(i, last) for i in range(len(scenes))], chunksize=1)
     lst = os.path.join(OUT, 'concat.txt')
-    open(lst, 'w').write(''.join(f"file '{p}'\n" for p in paths))
+    open(lst, 'w').write(''.join(f"file '{os.path.abspath(p)}'\n" for p in paths))
     # audio: narration + music (ducked) + sfx
     sfx = sfx_track(scenes, total)
     with wave.open(os.path.join(OUT, 'sfx.wav'), 'wb') as wf:
