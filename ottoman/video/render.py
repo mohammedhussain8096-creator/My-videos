@@ -630,7 +630,7 @@ class Scene:
                     side = min(ph.size); ph = ph.crop(((ph.width - side) // 2, (ph.height - side) // 2, (ph.width + side) // 2, (ph.height + side) // 2)).resize((2 * r - 10, 2 * r - 10), Image.LANCZOS)
                     m = Image.new('L', ph.size, 0); ImageDraw.Draw(m).ellipse([0, 0, ph.width, ph.height], fill=255); bd.paste(ph, (9, 9), m)
                 else:
-                    ic = icons.get(it['icon'], int(r * 1.0)) if not it['icon'].startswith('cart:') else cartoon.get(it['icon'][5:], int(r * 1.2))
+                    ic = icons.get(it['icon'], int(r * 1.0)) if not it['icon'].startswith('cart:') else cartoon.get(it['icon'][5:], int(r * (1.75 if it['icon'].startswith('cart:fig-') else 1.2)))
                     if it['icon'] in ('snow', 'drop'):      # white icons need colour on the white badge
                         tint = Image.new('RGBA', ic.size, (70, 140, 220, 255)); tint.putalpha(ic.getchannel('A')); ic = tint
                     if ic.width > 1.5 * r: ic = ic.resize((int(1.5 * r), int(ic.height * 1.5 * r / ic.width)), Image.LANCZOS)
@@ -1009,14 +1009,14 @@ def main():
         lim = float(sys.argv[2]) if len(sys.argv) > 2 else 125
         last = max(s.sc['scene'] for s in scenes_all if s.sc['start'] < lim)
         # end on a full sentence: drop the last scene if it would run far past the limit
-        name = 'Istanbul_Preview.mp4'
+        name = 'Ottoman_Preview.mp4'
     elif mode == 'scene':
         a, b = int(sys.argv[2]), int(sys.argv[3]) if len(sys.argv) > 3 else int(sys.argv[2])
         with Pool(int(os.environ.get('WORKERS', 4))) as pool:
             pool.map(render_scene, [(i, b) for i in range(a - 1, b)])
         return
     else:
-        last = len(scenes_all); name = 'Istanbul_Golden_City.mp4'
+        last = len(scenes_all); name = 'Ottoman_Empire.mp4'
     scenes = scenes_all[:last]
     total = scenes[-1].sc['end']
     with Pool(int(os.environ.get('WORKERS', 4))) as pool:
