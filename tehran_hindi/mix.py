@@ -130,7 +130,9 @@ def main(timings, clips, work, out, *only):
             fh.write(f"file '{clips}/{s['id']}.mp4'\n")
     subprocess.check_call(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", lst,
                            "-f", "f32le", "-ar", str(SR), "-ac", "1", "-i", wav,
-                           "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+                           "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium",
+                           "-b:v", "70M", "-maxrate", "90M", "-bufsize", "140M", "-pix_fmt", "yuv420p",
+                           "-profile:v", "high", "-level", "5.2", "-x264-params", "aq-mode=3",
                            "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-ar", str(SR),
                            "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", out])
     print("wrote", out, total)

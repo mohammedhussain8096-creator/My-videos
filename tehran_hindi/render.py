@@ -290,18 +290,19 @@ def city_tex(size=None, seed=5):
     for rr in (320, 700):
         cv2.circle(img, (cx, cy), int(rr * k), road, int(12 * k), cv2.LINE_AA)
     if k > 1:  # cars on the boulevards
-        for _ in range(3000):
+        for _ in range(1400):
             a = r.choice(np.linspace(0, math.pi, 4, endpoint=False))
             d = r.uniform(-size * 0.7, size * 0.7)
             off = r.choice([-3, 3]) * k
             px = cx + math.cos(a) * d - math.sin(a) * off
             py = cy + math.sin(a) * d + math.cos(a) * off
-            cc = tuple(int(v) for v in r.integers(40, 240, 3))
-            cv2.circle(img, (int(px), int(py)), int(1.6 * k), cc, -1, cv2.LINE_AA)
+            g_ = int(r.integers(50, 230))
+            cc = (g_, g_, g_) if r.random() < 0.75 else (int(r.integers(120, 200)), 60, 50)
+            cv2.rectangle(img, (int(px - k), int(py - 0.6 * k)), (int(px + k), int(py + 0.6 * k)), cc, -1)
     out = img.astype(np.float32) / 255
     sh = cv2.GaussianBlur(shadow, (0, 0), 1.5 * k).astype(np.float32)[..., None] / 255
     road_mask = (np.abs(out - np.array(road, np.float32) / 255).sum(2, keepdims=True) < 0.02)
-    out = out * (1 - 0.4 * sh * ~road_mask)
+    out = out * (1 - 0.28 * sh * ~road_mask)
     return out
 
 
@@ -355,6 +356,8 @@ def tilt_view(tex, cx, cy, span, hz=0.30, depth=2.2, haze=col(0.82, 0.78, 0.72),
     t = np.clip((_yy - hzy) / (H - hzy), 0, 1)[..., None]
     sky = lerp(SKY_TOP, SKY_HZ, np.clip(_yy / hzy, 0, 1)[..., None])
     img = np.where(_yy[..., None] < hzy, sky, lerp(haze, img, smooth(t * 1.6) ** 0.8))
+    if not mountains and hzy > 1:  # soft atmospheric horizon
+        img = lerp(img, SKY_HZ, np.exp(-((_yy - hzy) / u(70)) ** 2)[..., None] * 0.85)
     if mountains:
         my = hzy - u(10) - ridge(77, u(60))
         mask = (_yy > my[None, :]) & (_yy < hzy + 2)
@@ -566,16 +569,21 @@ def dead_tree(img, x, y, h, seed, color=(0.12, 0.11, 0.10)):
 
 
 # ---------------------------------------------------------------- scenes
+@lru_cache(maxsize=None)
+def cloud_layer():
+    return fbm(320, 360, 3, octaves=5, base=3)
+
+
 def sc_map_intro(t, T, f):
     tex = terrain_tex(None, 21, True)
     p = smooth(t / T)
-    span = lerp(1000, 300, p)
-    img, M = tilt_view(tex, 1100, 950, span, hz=lerp(0.04, 0.2, p), depth=1.35, mountains=False,
+    span = lerp(760, 300, p)
+    img, M = tilt_view(tex, 1100, 1180 - 230 * p, span, hz=lerp(0.0, 0.2, p), depth=1.3, mountains=False,
                        haze=col(0.70, 0.74, 0.80), rot=lerp(-0.12, 0.04, p))
     # drifting clouds
-    cl = fbm(H // 4, W // 4, 3, octaves=5, base=3)
-    cl = np.roll(cl, int(t * 12), axis=1)
-    cl = cv2.resize(cl, (W, H))[..., None]
+    cl = cloud_layer()
+    off = int(t * 3)  # slow drift, no wrap-around seam
+    cl = cv2.resize(cl[:, off:off + 180], (W, H))[..., None]
     img = lerp(img, col(0.95, 0.95, 0.97), smooth((cl - 0.55) * 3) * 0.55 * (1 - p * 0.6))
     (tx, ty), = project(M, [(1100, 950)])
     pulse = 0.5 + 0.5 * math.sin(t * 6)
