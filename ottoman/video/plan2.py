@@ -108,7 +108,7 @@ P = [
     ('But here is what is strange.', ST([badge('cart:fig-villager', S(0.5, 0.5), 0.0, 'a village boy', 'vb4', s=110), badge('crown', S(0.8, 0.5), 'elite', 'the elite', 'el', s=110)], [CAP('not ordinary slaves', 'ordinary', x=0.64)])),
     ('The strongest became the Janissaries', SC([J(0.2 + i * 0.12, ('Janissaries', 0.2 * i), f'jn{i}', h=340) for i in range(6)], [CAP('THE JANISSARIES', 'Janissaries'), CAP('the first standing army since Rome', 'standing')])),
     ('The smartest boys went to', ST([photo('janissary', 'A Janissary - Rålamb costume book, 1657', 0.05, x=0.66, h=520)], [CAP('the palace school', 'palace', x=0.64)])),
-    ('Think about that. A shepherd boy', ST([badge('sheep', S(0.5, 0.5), 'shepherd', 'a shepherd boy', 'shb', s=110), badge('question', S(0.66, 0.5), 'running', None, 'qq', s=60),
+    ('Think about that. A shepherd boy', ST([badge('cart:sheep', S(0.5, 0.5), 'shepherd', 'a shepherd boy', 'shb', s=110), badge('question', S(0.66, 0.5), 'running', None, 'qq', s=60),
         badge('cart:fig-sultan', S(0.82, 0.5), 'largest', 'grand vizier', 'gv', s=110)])),
     ('This is the Ottoman superpower in action.', ST([badge('cart:fig-villager', S(0.5, 0.5), 0.0, 'enemies', 'en', s=110), badge('cart:fig-janissary', S(0.8, 0.5), 0.3, 'loyal servants', 'ls', s=110)],
         [CAP('the superpower in action', 'superpower', x=0.64)])),
