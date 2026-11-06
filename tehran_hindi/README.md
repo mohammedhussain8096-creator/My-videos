@@ -6,8 +6,8 @@ the hook, the city, the flash, the fireball, the shockwave, radiation, the mushr
 The visuals are rendered procedurally in the same muted, hazy, cinematic 3D style.
 **No text is shown on screen**: there are no captions, counters, labels or watermarks.
 
-- Output: `tehran_nuclear_hindi_4k60.mp4`, **2160×3840 (4K, 9:16) at 60 fps**, H.264 high-bitrate with AAC audio, about 2 min 32 s
-- Voice: Microsoft neural Hindi voice `hi-IN-SwaraNeural` at +15% rate. Override it with `VOICE=...`, `RATE=...` and `PITCH=...`.
+- Output: `tehran_nuclear_hindi_4k60.mp4`, **2160×3840 (4K, 9:16) at 60 fps**, H.264 high-bitrate with AAC audio, about 2 min 14 s
+- Voice: Microsoft neural multilingual male voice `fr-FR-RemyMultilingualNeural` speaking Hindi, at +8% rate (chosen from a 6-voice comparison). Override it with `VOICE=...`, `RATE=...` and `PITCH=...`.
 - Sound: a synthesized cinematic drone and heartbeat, plus blast, rumble and wind SFX, with the music ducked under the voice and the mix loudness-normalized to -14 LUFS
 
 ## Scenes
