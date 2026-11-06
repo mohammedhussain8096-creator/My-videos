@@ -85,7 +85,7 @@ for n in ('Algeria', 'Tunisia', 'Libya'): CUSTOM['N_' + n] = _north(n, 29.5)
 GROUPS['EMPIRE'] = [c for c in GROUPS['PEAK'] if c not in ('Algeria', 'Tunisia', 'Libya')] + ['N_Algeria', 'N_Tunisia', 'N_Libya', 'HEJAZ']
 V = (36.5, 28.5, 70)
 def base():
-    im, cam = map_bg(V); pin(im, cam, 41.01, 28.98, 'ISTANBUL'); return im, cam
+    return map_bg(V)          # no city pin: the thumbnail is about the whole empire
 # 1. OTTOMAN EMPIRE / 1299 - 1922 + Suleiman
 im, cam = base(); figure(im)
 y = box(im, 'OTTOMAN EMPIRE', 24, 18, 84); box(im, '1299 - 1922', 24, y + 10, 62); save(im, 'ref_1_ottoman_1299_1922.jpg')
