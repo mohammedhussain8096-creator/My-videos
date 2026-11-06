@@ -6,8 +6,8 @@ the hook, the city, the flash, the fireball, the shockwave, radiation, the mushr
 The visuals are rendered procedurally in the same muted, hazy, cinematic 3D style.
 **No text is shown on screen**: there are no captions, counters, labels or watermarks.
 
-- Output: `tehran_nuclear_hindi.mp4`, 720×1280 at 30 fps with AAC audio, about 2 min 22 s
-- Voice: Microsoft neural Hindi voice `hi-IN-MadhurNeural` (male, deep), +18% rate
+- Output: `tehran_nuclear_hindi_4k60.mp4`, **2160×3840 (4K, 9:16) at 60 fps**, H.264 high-bitrate with AAC audio, about 2 min 32 s
+- Voice: Microsoft neural Hindi voice `hi-IN-SwaraNeural` at +15% rate. Override it with `VOICE=...`, `RATE=...` and `PITCH=...`.
 - Sound: a synthesized cinematic drone and heartbeat, plus blast, rumble and wind SFX, with the music ducked under the voice and the mix loudness-normalized to -14 LUFS
 
 ## Scenes
@@ -36,9 +36,10 @@ The visuals are rendered procedurally in the same muted, hazy, cinematic 3D styl
 
 ```bash
 pip install edge-tts opencv-python-headless numpy
-python voice.py script.json build/vo            # Hindi voice-over + timings.json
-python render.py build/vo/timings.json build/clips   # one clip per scene (no text)
-python mix.py build/vo/timings.json build/clips build tehran_nuclear_hindi.mp4
+python voice.py script.json build/vo /path/to/ca.crt   # Hindi voice-over + timings.json
+# 4K60, high detail (SCALE=1 gives a fast 720p30 draft)
+SCALE=3 TEX=4096 FPS=60 CRF=16 python render.py build/vo/timings.json build/clips [scene ids...]
+python mix.py build/vo/timings.json build/clips build tehran_nuclear_hindi_4k60.mp4 [scene ids for a partial preview]
 ```
 
 To change the narration, edit `script.json`. Scene lengths follow the voice automatically.

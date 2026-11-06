@@ -69,8 +69,15 @@ def drone(total, rng):
     return (x * fade * 0.12).astype(np.float32)
 
 
-def main(timings, clips, work, out):
+def _at(starts, k):
+    v = starts.get(k)
+    return v if v is not None else float("nan")
+
+
+def main(timings, clips, work, out, *only):
     T = json.load(open(timings))
+    if only:
+        T = [s for s in T if s["id"] in only]
     rng = np.random.default_rng(1)
     total = sum(s["dur"] for s in T)
     n = int(total * SR) + SR
@@ -86,21 +93,24 @@ def main(timings, clips, work, out):
         t0 += s["dur"]
 
     def put(sig, at, gain):
+        if at is None or at != at:  # missing scene (nan)
+            return
         i = int(at * SR)
         sfx[i:i + len(sig)] += gain * sig[: n - i]
 
-    d = {s["id"]: s["dur"] for s in T}
+    d = {s["id"]: s["dur"] for s in json.load(open(timings))}
+    starts = {k: starts.get(k) for k in d}
     put(rumble(d["s03_flash"], rng, 0.8), starts["s03_flash"], 0.25)
-    put(boom(6, rng, 140, 2.0), starts["s04_fireball"] + 0.1, 0.9)
+    put(boom(6, rng, 140, 2.0), _at(starts, "s04_fireball") + 0.1, 0.9)
     put(rumble(d["s05_vapor"], rng, 0.2), starts["s05_vapor"], 0.35)
-    put(boom(5, rng, 160, 1.4), starts["s06_wave"] + d["s06_wave"] * 0.55, 0.8)
+    put(boom(5, rng, 160, 1.4), _at(starts, "s06_wave") + d["s06_wave"] * 0.55, 0.8)
     put(rumble(d["s06_wave"], rng, 0.9), starts["s06_wave"], 0.45)
     put(wind(d["s08_wind"], rng), starts["s08_wind"], 0.5)
     put(rumble(d["s08_wind"], rng, 0.1), starts["s08_wind"], 0.25)
     put(boom(6, rng, 90, 2.5), starts["s10_rings"], 0.6)
     put(rumble(d["s11_cloud"], rng, 0.5), starts["s11_cloud"], 0.3)
     put(wind(d["s12_fallout"] + d["s13_plume"], rng), starts["s12_fallout"], 0.25)
-    put(boom(7, rng, 70, 3.0), starts["s16_history"] + 0.2, 0.45)
+    put(boom(7, rng, 70, 3.0), _at(starts, "s16_history") + 0.2, 0.45)
 
     bed = drone(total + 1, rng)[:n]
     # duck the bed under the voice
@@ -127,4 +137,4 @@ def main(timings, clips, work, out):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:5])
+    main(*sys.argv[1:])

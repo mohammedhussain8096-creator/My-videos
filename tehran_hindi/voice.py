@@ -11,7 +11,10 @@ import sys
 import edge_tts
 import edge_tts.communicate as comm
 
-VOICE, RATE, PITCH = "hi-IN-MadhurNeural", "+18%", "-4Hz"
+import os
+VOICE = os.environ.get("VOICE", "hi-IN-SwaraNeural")
+RATE = os.environ.get("RATE", "+15%")
+PITCH = os.environ.get("PITCH", "-2Hz")
 GAP = 0.3  # breathing room after each line (s)
 
 
