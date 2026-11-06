@@ -112,7 +112,7 @@ def word_times(sc):
             acc += s
     return out
 
-def resolve_t(at, sc, wt):
+def resolve_t(at, sc, wt, late=False):
     """at: None | float (0..1 = fraction, >1 = seconds) | 'word' (first word starting with it)"""
     dur = sc['end'] - sc['start']
     if at is None: return 0.25
@@ -125,7 +125,7 @@ def resolve_t(at, sc, wt):
         if w.lower().strip('.,;:!?"\'').startswith(key.strip('.,;:!?"\'')):
             nth -= 1
             if nth == 0: return max(0.0, t - 0.05)
-    print('  ! word not found:', at, 'in scene', sc['scene']); return 0.3 * dur
+    return 0.6 * dur if late else 0.1      # cue word not in this scene
 
 # ---------------------------------------------------------------- static layers
 _STATIC = {}
@@ -411,7 +411,7 @@ class Scene:
         for it in spec.get('items', []):
             it = dict(it)
             it['t0'] = -9 if (it.get('id') in prev_items and 'at' not in it) else T(it.get('at'))
-            if 'to' in it: it['t1'] = T(it['to'])
+            if 'to' in it: it['t1'] = resolve_t(it['to'], sc, self.wt, late=True) if not isinstance(it['to'], (int, float)) else T(it['to'])
             if 'off' in it: it['toff'] = T(it['off'])
             self.items.append(it)
         self.caps = []

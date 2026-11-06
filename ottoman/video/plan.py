@@ -158,18 +158,62 @@ def resolve(timing_path):
         if hit is None: print('  ! phrase not found:', key); continue
         if hit in SCENES:
             m = SCENES[hit]
+            look = lambda d: (d.get('bg', 'map'), d.get('view') if d.get('bg', 'map') == 'map' else None)
+            if look(m) != look(spec) and hit + 1 not in SCENES:     # two different backgrounds: start the later one in the next scene
+                SCENES[hit + 1] = dict(spec); continue
             for k in ('items', 'cap', 'fill', 'unfill'):
                 if k in spec: m[k] = m.get(k, []) + spec[k]
         else:
             SCENES[hit] = dict(spec)
-    # scenes with no entry continue the previous one (without re-popping its items or captions)
+    # an item/caption/fill whose cue word is spoken in a later scene moves to that scene
+    text = {r['scene']: norm(r['text']).lower() for r in rows}
+    def says(n, word):
+        w = word.lower().strip('.,;:!?"\'')
+        return any(t.strip('.,;:!?"\'\u2019').startswith(w) for t in text.get(n, '').split())
+    def cue(x, idx):
+        at = x.get('at') if isinstance(x, dict) else (x[idx] if len(x) > idx else None)
+        if isinstance(at, tuple): at = at[0]
+        return at.split('#')[0] if isinstance(at, str) else None
+    for n in sorted(SCENES):
+        spec = SCENES[n]
+        for key, idx in (('items', None), ('cap', 2), ('fill', 2)):
+            keep = []
+            for x in spec.get(key, []):
+                w = cue(x, idx)
+                if w and not says(n, w):
+                    dest = next((m for m in range(n + 1, n + 7) if says(m, w)), None)
+                    if dest and dest in SCENES and not SCENES[dest].get('_partial') and \
+                            (SCENES[dest].get('bg', 'map'), SCENES[dest].get('view')) != (spec.get('bg', 'map'), spec.get('view')):
+                        dest = None      # never move a visual onto a different background
+                    if dest:
+                        d = SCENES.setdefault(dest, {'_partial': True})
+                        d.setdefault(key, []).append(x)
+                        if key == 'items': keep.append(dict({k: v for k, v in x.items() if k not in ('at', 'to', 'off')}, _hide=True))
+                        continue
+                keep.append(x)
+            spec[key] = keep
+        spec['items'] = [x for x in spec.get('items', []) if not x.get('_hide')]
+    # scenes with no entry continue the previous one (without re-popping its items, captions or fills)
     last = None
     for r in rows:
         n = r['scene']
-        if n in SCENES: last = SCENES[n]; continue
-        if last is not None and r['start'] < 200:
+        if n in SCENES and SCENES[n].get('_partial') and last is not None:
+            extra = SCENES[n]
+            cont = {k: v for k, v in last.items() if k not in ('cap', 'title', 'unfill', 'moves', 'shake', '_partial')}
+            cont['items'] = [dict({kk: vv for kk, vv in it.items() if kk not in ('at', 'to', 'off')}) for it in last.get('items', [])]
+            cont['fill'] = [(f[0], f[1]) for f in last.get('fill', [])]
+            for k in ('items', 'cap', 'fill'): cont[k] = cont.get(k, []) + extra.get(k, [])
+            SCENES[n] = cont; last = cont; continue
+        if n in SCENES:
+            if last is not None:
+                for k in ('bg', 'view', 'sky', 'ground', 'horizon', 'clouds', 'tint'):
+                    if k in last and k not in SCENES[n] and not any(kk in SCENES[n] for kk in ('bg', 'view')): SCENES[n][k] = last[k]
+            last = SCENES[n]; continue
+        if last is not None:
             cont = {k: v for k, v in last.items() if k not in ('cap', 'title', 'unfill', 'moves', 'shake')}
             cont['items'] = [dict({kk: vv for kk, vv in it.items() if kk not in ('at', 'to', 'off')}) for it in last.get('items', [])]
+            cont['fill'] = [(f[0], f[1]) for f in last.get('fill', [])]
             SCENES[n] = cont
 
+import plan2   # adds the phrase entries for paragraphs 13-208
 resolve(os.path.join(os.environ.get('OUT_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')), 'timing.json'))
