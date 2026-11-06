@@ -993,12 +993,15 @@ def sfx_track(scenes, total, sr=48000):
     S = {'whoosh': whoosh(), 'pop': pop(), 'hit': hit(), 'swish': swish()}
     POP_GAP = float(os.environ.get('POP_GAP', 1.2))   # at most one pop per 1.2 s: about half as many pops (user request)
     last_pop = -9.0
+    pop_n = 0
     for s in scenes:
         for kind, t in sorted(s.sfx, key=lambda e: e[1]):
             tt = s.sc['start'] + max(0, t)
             if kind == 'pop':
                 if tt - last_pop < POP_GAP: continue
                 last_pop = tt
+                pop_n += 1
+                if pop_n % 5 not in (1, 3): continue      # keep 2 of every 5: 60% fewer pops (user request)
             put(S[kind], tt)
     return out
 

@@ -15,8 +15,8 @@ import spoken
 ASSETS = os.environ.get('RU_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
 KVOICE = os.environ.get('KVOICE', 'am_fenrir')   # voice locked by the user for all videos
-KSPEED = float(os.environ.get('KSPEED', 0.9))   # faster, matching Ziro History's ~146 words/min
-VOICE_FX = 'rubberband=pitch=0.917:formant=preserved:pitchq=quality,highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
+KSPEED = float(os.environ.get('KSPEED', 0.85))   # locked voice setting
+VOICE_FX = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
 GAP_CLAUSE, GAP_SENT, GAP_PARA = 0.22, 0.38, 0.85
 LEAD_IN, TAIL = 0.6, 2.5
 MIN_S, MAX_S = 4.0, 8.0
