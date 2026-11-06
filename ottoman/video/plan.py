@@ -98,10 +98,13 @@ BY_PHRASE = [
                                    enumerate(('priest', 'mehmed', 'merchant', 'colonist', 'arab', 'genoese', 'villager'))], cap=[(None, 'THE CRAZY PART', 'crazy', {'x': 0.64, 'color': 'yellow', 'size': 120})])),
     ('The Roman Empire in the west', dict(bg='studio', items=[badge('cart:fig-emperor', S(0.44, 0.52), 0.05, 'Romans', 'cr0', s=80)])),
     ('The Mongol Empire split apart', dict(bg='studio', items=[badge('cart:fig-emperor', S(0.44, 0.52), None, 'Romans', 'cr0', s=80),
-                                   badge('horseman', S(0.57, 0.52), 'Mongol', 'Mongols', 'cr1', s=80), badge('cart:fig-king', S(0.70, 0.52), 'British', 'British', 'cr2', s=80)])),
-    ('The Ottomans outlasted almost all of them.', dict(bg='studio', items=[badge(ic, S(0.44 + i * 0.13, 0.52), 0.0, lbl, f'cx{i}', s=80, x=True, off='So')
+                                   badge('horseman', S(0.57, 0.52), 'Mongol', 'Mongols', 'cr1', s=80)])),
+    ('The British Empire rose', dict(bg='studio', items=[badge('cart:fig-emperor', S(0.44, 0.52), None, 'Romans', 'cr0', s=80, off='outlasted'),
+                                   badge('horseman', S(0.57, 0.52), None, 'Mongols', 'cr1', s=80, off='outlasted'),
+                                   badge('cart:fig-king', S(0.70, 0.52), 'British', 'British', 'cr2', s=80, off='outlasted')])),
+    ('The Ottomans outlasted almost all of them.', dict(bg='studio', items=[badge(ic, S(0.44 + i * 0.13, 0.52), 'outlasted', lbl, f'cx{i}', s=80, x=True)
                                    for i, (ic, lbl) in enumerate((('cart:fig-emperor', 'Romans'), ('horseman', 'Mongols'), ('cart:fig-king', 'British')))]
-                                   + [badge('cart:fig-sultan', S(0.84, 0.52), 'outlasted', 'Ottomans', 'ot', s=95, off='So')])),
+                                   + [badge('cart:fig-sultan', S(0.84, 0.52), ('outlasted', 0.4), 'Ottomans', 'ot', s=95)])),
     ('So how did a tribe', dict(bg='studio', items=[badge('horseman', S(0.5, 0.5), 'tribe', 'a few hundred horsemen', 'q0', s=100),
                                    badge('question', S(0.66, 0.5), 'become', None, 'qm', s=70), badge('crown', S(0.82, 0.5), 'superpower', 'a superpower', 'q1', s=100)])),
     ('that ruled the world end up', dict(bg='studio', items=[prop('fig-sultan', 0.66, 0.82, 'cage', 'cgp', h=300), prop('cage', 0.66, 0.86, 'cage', 'cg', h=470)],
