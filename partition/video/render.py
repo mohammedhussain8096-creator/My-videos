@@ -81,10 +81,14 @@ def finish(arr, t, amt=1.0):
     return a.clip(0, 255).astype(np.uint8)
 
 # ------------------------------------------------------------------ photos
+CROP = {'amritsar': (0.05, 0.08, 0.98, 0.875)}
+
 @lru_cache(8)
 def photo(name, grade):
     im = Image.open(os.path.join(ASSETS, 'photos', name + '.jpg'))
     im = ImageOps.exif_transpose(im).convert('RGB')
+    if name in CROP:                                      # keep only the photograph (no printed captions)
+        l, t, r, bt = CROP[name]; im = im.crop((int(l * im.width), int(t * im.height), int(r * im.width), int(bt * im.height)))
     g = np.asarray(im.convert('L'), np.float32)          # trim black scan borders
     rows = np.where(g.mean(axis=1) > 28)[0]; cols = np.where(g.mean(axis=0) > 28)[0]
     if len(rows) > g.shape[0] * 0.5 and len(cols) > g.shape[1] * 0.5:
