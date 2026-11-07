@@ -7,8 +7,10 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, 'assets', 'photos'); DST = os.path.join(HERE, 'assets', 'photos_hd')
 
-def run(sess, img, scale, tile=192, pad=12):
+def run(sess, img, scale, tile=192, pad=12):   # tile and pad are even
     a = np.asarray(img.convert('RGB'), np.float32) / 255.0
+    H0, W0, _ = a.shape
+    a = np.pad(a, ((0, H0 % 2), (0, W0 % 2), (0, 0)), mode='edge')   # the x2 model needs even sizes
     h, w, _ = a.shape; out = np.zeros((h * scale, w * scale, 3), np.float32)
     for y in range(0, h, tile):
         for x in range(0, w, tile):
@@ -18,6 +20,7 @@ def run(sess, img, scale, tile=192, pad=12):
             yy, xx = (y - y0) * scale, (x - x0) * scale
             th, tw = min(tile, h - y) * scale, min(tile, w - x) * scale
             out[y * scale:y * scale + th, x * scale:x * scale + tw] = r[yy:yy + th, xx:xx + tw]
+    out = out[:H0 * scale, :W0 * scale]
     return Image.fromarray((out.clip(0, 1) * 255).round().astype(np.uint8))
 
 def main():
