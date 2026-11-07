@@ -81,6 +81,8 @@ def finish(arr, t, amt=1.0):
     return a.clip(0, 255).astype(np.uint8)
 
 # ------------------------------------------------------------------ photos
+FALLBACK = {'calcutta1946': 'dad_rally', 'liaquat': 'league1940', 'nehru_arc': 'pledge_none', 'rawalpindi_men': 'another_photo'}
+FALLBACK['nehru_arc'] = 'nehru_jinnah'
 CROP = {'gandhi_noakhali': (0.02, 0.02, 0.98, 0.8), 'gandhi_noakhali2': (0.02, 0.02, 0.98, 0.84), 'mb_riot': (0.0, 0.0, 0.87, 1.0),
         'mb_jinnah': (0.0, 0.0, 0.93, 0.92), 'iqbal': (0.03, 0.02, 0.97, 0.86), 'map1946': (0.0, 0.0, 1.0, 0.8),
         'another1': (0.02, 0.15, 0.98, 0.98), 'to_pakistan': (0.02, 0.02, 0.91, 0.98),
@@ -88,7 +90,10 @@ CROP = {'gandhi_noakhali': (0.02, 0.02, 0.98, 0.8), 'gandhi_noakhali2': (0.02, 0
 
 @lru_cache(8)
 def photo(name, grade):
-    im = Image.open(os.path.join(ASSETS, 'photos', name + '.jpg'))
+    p = os.path.join(ASSETS, 'photos', name + '.jpg')
+    if not os.path.exists(p) and name in FALLBACK:
+        print('  (fallback photo for', name, ')', flush=True); p = os.path.join(ASSETS, 'photos', FALLBACK[name] + '.jpg')
+    im = Image.open(p)
     im = ImageOps.exif_transpose(im).convert('RGB')
     if name in CROP:                                      # keep only the photograph (no printed captions)
         l, t, r, bt = CROP[name]; im = im.crop((int(l * im.width), int(t * im.height), int(r * im.width), int(bt * im.height)))
