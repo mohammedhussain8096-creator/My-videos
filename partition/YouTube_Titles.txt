@@ -1,0 +1,7 @@
+Titles (Hindi), modelled on the reference "1947: किसी को आज़ादी मिली, किसी को मौत | भारत के बँटवारे की पूरी कहानी | Full Documentary"
+
+1. 1947: एक लकीर ने बाँट दिया देश, डेढ़ करोड़ लोग बेघर | भारत के बँटवारे की पूरी कहानी | Full Documentary   (recommended, with ref_1)
+2. 1947: आधी रात को आज़ादी, सुबह तक बँटवारा | भारत-पाकिस्तान बँटवारे की पूरी कहानी | Hindi Documentary   (with ref_2)
+3. सिर्फ़ 72 दिन और एक लकीर: कैसे बँटा भारत? | 1947 बँटवारे की पूरी कहानी | Full Documentary
+
+Thumbnails (partition/thumbnails): ref_1_train_1947_ka_batwara.jpg, ref_2_train_1947_ki_azadi.jpg
