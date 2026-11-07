@@ -67,13 +67,13 @@ def lerp(a, b, k): return a + (b - a) * k
 def vignette():
     y, x = np.mgrid[0:H, 0:W].astype(np.float32)
     r = np.sqrt(((x - W / 2) / (W / 2)) ** 2 + ((y - H / 2) / (H / 2)) ** 2)
-    return (1 - 0.42 * np.clip(r - 0.55, 0, 1) ** 1.5 * 1.6).clip(0.45, 1)[..., None]
+    return (1 - 0.3 * np.clip(r - 0.6, 0, 1) ** 1.5 * 1.6).clip(0.6, 1)[..., None]
 
 @lru_cache(None)
 def grain(i):
     g = np.random.default_rng(i).normal(0, 1, (H // 2 + 1, W // 2 + 1)).astype(np.float32)
     g = np.asarray(Image.fromarray(((g * 40) + 128).clip(0, 255).astype(np.uint8)).resize((W, H), Image.BILINEAR), np.float32) - 128
-    return (g / 40 * 3.0)[..., None]
+    return (g / 40 * 1.6)[..., None]
 
 def finish(arr, t, amt=1.0):
     a = arr.astype(np.float32) * vignette()
@@ -81,7 +81,7 @@ def finish(arr, t, amt=1.0):
     return a.clip(0, 255).astype(np.uint8)
 
 # ------------------------------------------------------------------ photos
-FALLBACK = {'calcutta1946': 'dad_rally', 'liaquat': 'league1940', 'nehru_arc': 'pledge_none', 'rawalpindi_men': 'another_photo'}
+FALLBACK = {'liaquat': 'league1940', 'nehru_arc': 'pledge_none', 'rawalpindi_men': 'another_photo'}
 FALLBACK['nehru_arc'] = 'nehru_jinnah'
 CROP = {'gandhi_noakhali': (0.02, 0.02, 0.98, 0.8), 'gandhi_noakhali2': (0.02, 0.02, 0.98, 0.84), 'mb_riot': (0.0, 0.0, 0.87, 1.0),
         'mb_jinnah': (0.0, 0.0, 0.93, 0.92), 'iqbal': (0.03, 0.02, 0.97, 0.86), 'map1946': (0.0, 0.0, 1.0, 0.8),
@@ -91,6 +91,8 @@ CROP = {'gandhi_noakhali': (0.02, 0.02, 0.98, 0.8), 'gandhi_noakhali2': (0.02, 0
 @lru_cache(8)
 def photo(name, grade):
     p = os.path.join(ASSETS, 'photos', name + '.jpg')
+    hd = os.path.join(ASSETS, 'photos_hd', name + '.jpg')
+    if os.path.exists(hd): p = hd                       # AI-upscaled copy (Real-ESRGAN) of a small original
     if not os.path.exists(p) and name in FALLBACK:
         print('  (fallback photo for', name, ')', flush=True); p = os.path.join(ASSETS, 'photos', FALLBACK[name] + '.jpg')
     im = Image.open(p)
@@ -111,6 +113,7 @@ def photo(name, grade):
     # pre-scale so per-frame crops stay cheap
     k = min(1.0, (1.45 * max(W, H)) / max(im.size))
     if k < 1: im = im.resize((int(im.width * k), int(im.height * k)), Image.LANCZOS)
+    im = im.filter(ImageFilter.UnsharpMask(radius=1.6, percent=70, threshold=2))   # crisper detail
     return im
 
 @lru_cache(8)
@@ -145,9 +148,9 @@ def draw_photo(sp, t, dur):
     # framed: the whole photo on a blurred copy, slowly scaling
     bg = blur_bg(name, grade).copy()
     hmax = sp.get('h', 0.84) * H; wmax = sp.get('w', 0.84) * W
-    s = min(hmax / im.height, wmax / im.width) * lerp(1.0, z / sp.get('z0', 1.0), 1) ** 0.35
+    s = min(hmax / im.height, wmax / im.width, 1.8) * lerp(1.0, z / sp.get('z0', 1.0), 1) ** 0.35   # never blow a small photo up past 1.8x
     pw, ph = int(im.width * s), int(im.height * s)
-    p = im.resize((pw, ph), Image.BILINEAR)
+    p = im.resize((pw, ph), Image.LANCZOS)
     px = int(W * sp.get('px', 0.5) - pw / 2); py = int(H * sp.get('py', 0.5) - ph / 2)
     sh = Image.new('L', (pw + 80, ph + 80), 0); ImageDraw.Draw(sh).rectangle([40, 40, 40 + pw, 40 + ph], fill=200)
     sh = sh.filter(ImageFilter.GaussianBlur(18 * U))

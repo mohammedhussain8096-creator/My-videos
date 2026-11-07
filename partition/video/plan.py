@@ -104,7 +104,7 @@ SC = {
     62: P('nehru_jinnah', z0=1.25, z1=1.4, fx0=0.5, fy0=0.3),
     63: CARD(tone='red', ov=[date('16 अगस्त 1946'), big('सीधी कार्रवाई का दिन', '')], boom=0.2),
     64: P('dad_rally', z0=1.0, z1=1.15, fx0=0.5, fy0=0.5, ov=[cap('कलकत्ता, 16 अगस्त 1946')]),
-    65: P('calcutta1946', z0=1.05, z1=1.2, fx0=0.5, fy0=0.5),
+    65: P('dad_rally', z0=1.35, z1=1.55, fx0=0.4, fy0=0.55, grain=1.0),
     66: CARD(tone='red', ov=[big('4,000+ मौतें', '1 लाख लोग बेघर')]),
     67: MAP(view=V_EAST, fill=RAJ, cities=[city('calcutta', 0.2), city('noakhali', 0.6), city('bihar', 3.2)]),
     68: MAP(view=(31.5, 73.5, 12.0), fill=RAJ, cities=[city('rawalpindi', 0.4), city('lahore', 0.9)]),
