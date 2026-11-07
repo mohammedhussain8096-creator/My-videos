@@ -13,10 +13,11 @@ sys.path.insert(0, os.path.join(HERE, '..'))
 
 ASSETS = os.environ.get('RU_ASSETS', os.path.join(HERE, 'assets'))
 OUT = os.environ.get('OUT_DIR', os.path.join(HERE, 'build'))
-KVOICE = os.environ.get('KVOICE', 'hm_omega')    # Hindi male voice (the locked English voice cannot speak Hindi)
-KSPEED = float(os.environ.get('KSPEED', 0.92))   # ~140 wpm: not slow, not fast (user)
-VOICE_FX = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5'
-GAP_CLAUSE, GAP_SENT, GAP_PARA = 0.22, 0.38, 0.85
+# Hindi voice locked by the user (sample #10): Piper hi_IN-pratham-medium, expressive settings
+PIPER_MODEL = os.path.join(ASSETS, 'piper', 'hi_IN-pratham-medium.onnx')
+PIPER_CFG = dict(length_scale=1.05, noise_scale=0.8, noise_w_scale=1.0)
+VOICE_FX = 'highpass=f=60,equalizer=f=150:t=q:w=1:g=1.5,acompressor=threshold=-20dB:ratio=2.5:attack=10:release=150:makeup=1.5,equalizer=f=110:t=q:w=1:g=2.5'
+GAP_CLAUSE, GAP_SENT, GAP_PARA = 0.28, 0.5, 1.05
 LEAD_IN, TAIL = 0.6, 2.5
 MIN_S, MAX_S = 4.0, 8.0
 LIMIT_SEC = float(os.environ.get('LIMIT_SEC', 0))
@@ -50,14 +51,14 @@ def split_long(s):
 def main():
     paras = json.load(open(os.path.join(HERE, '..', 'narration.json')))
     phs = phrases(paras)
-    from kokoro_onnx import Kokoro
-    kk = Kokoro(os.path.join(ASSETS, 'kokoro', 'kokoro-v1.0.onnx'), os.path.join(ASSETS, 'kokoro', 'voices-v1.0.bin'))
-    sr = 24000
+    from piper import PiperVoice, SynthesisConfig
+    pv = PiperVoice.load(PIPER_MODEL); cfg = SynthesisConfig(**PIPER_CFG)
+    sr = pv.config.sample_rate
     audio = [np.zeros(int(LEAD_IN * sr), np.int16)]
     t = LEAD_IN
     timed = []
     for n, (text, pi, gap) in enumerate(phs):
-        a, _ = kk.create(say(text), voice=KVOICE, speed=KSPEED, lang='hi')
+        a = np.concatenate([np.frombuffer(c.audio_int16_bytes, np.int16) for c in pv.synthesize(say(text), syn_config=cfg)]).astype(np.float32) / 32768
         pcm = (np.clip(a, -1, 1) * 32767).astype(np.int16)
         nz = np.nonzero(np.abs(pcm) > 300)[0]
         if len(nz): pcm = pcm[max(0, nz[0] - int(0.03 * sr)): nz[-1] + int(0.08 * sr)]

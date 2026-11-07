@@ -43,7 +43,8 @@ PROG_B = [[50, 57, 62, 65], [41, 57, 60, 65], [48, 55, 60, 64], [45, 57, 61, 64]
 MEL_A = [[(0, 74), (2, 72), (3, 69)], [(0, 70), (2, 69)], [(0, 67), (1, 70), (2, 74)], [(0, 73), (2, 76)]]
 MEL_B = [[(0, 77), (2, 76), (3, 74)], [(0, 72), (2, 69)], [(0, 72), (1, 71), (2, 67)], [(0, 69), (2, 73)]]
 
-def section(prog, mel, bars_per_chord=2, melody=True):
+def section(prog, mel, bars_per_chord=2, melody=True, tr=0):
+    prog = [[m + tr for m in ch] for ch in prog]; mel = [[(b, m + tr) for b, m in bar] for bar in mel]
     L = int(len(prog) * bars_per_chord * BAR * SR) + SR * 6
     out = np.zeros(L, np.float32)
     for i, ch in enumerate(prog):
@@ -58,11 +59,17 @@ def section(prog, mel, bars_per_chord=2, melody=True):
 
 def main():
     need = float(os.environ.get('MUSIC_SECONDS', 1200))
-    parts = [section(PROG_A, MEL_A, melody=False), section(PROG_A, MEL_A), section(PROG_B, MEL_B), section(PROG_A, MEL_A), section(PROG_B, MEL_B, melody=False)]
+    def parts_for(tr):
+        return [section(PROG_A, MEL_A, melody=False, tr=tr), section(PROG_A, MEL_A, tr=tr), section(PROG_B, MEL_B, tr=tr),
+                section(PROG_A, MEL_A, tr=tr), section(PROG_B, MEL_B, melody=False, tr=tr)]
+    parts = parts_for(0)
     piece_len = sum(p[1] for p in parts)
     L = int((need + 8) * SR) + parts[-1][0].shape[0]
     out = np.zeros(L, np.float32); pos = 0
+    cycle = 0
     while pos < need * SR:
+        if cycle: parts = parts_for([0, -2, 3, -4, 1, -1, 2][cycle % 7])     # each pass in a new key
+        cycle += 1
         for buf, adv in parts:
             e = min(L, pos + len(buf)); out[pos:e] += buf[:e - pos]; pos += adv
             if pos >= need * SR: break

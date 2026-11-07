@@ -81,7 +81,10 @@ def finish(arr, t, amt=1.0):
     return a.clip(0, 255).astype(np.uint8)
 
 # ------------------------------------------------------------------ photos
-CROP = {'amritsar': (0.05, 0.08, 0.98, 0.875), 'assembly': (0, 0, 1, 0.8), 'nehru_tryst': (0, 0, 1, 0.9), 'audience': (0, 0, 1, 0.88)}
+CROP = {'gandhi_noakhali': (0.02, 0.02, 0.98, 0.8), 'gandhi_noakhali2': (0.02, 0.02, 0.98, 0.84), 'mb_riot': (0.0, 0.0, 0.87, 1.0),
+        'mb_jinnah': (0.0, 0.0, 0.93, 0.92), 'iqbal': (0.03, 0.02, 0.97, 0.86), 'map1946': (0.0, 0.0, 1.0, 0.8),
+        'another1': (0.02, 0.15, 0.98, 0.98), 'to_pakistan': (0.02, 0.02, 0.91, 0.98),
+        'amritsar': (0.05, 0.08, 0.98, 0.875), 'assembly': (0, 0, 1, 0.8), 'nehru_tryst': (0, 0, 1, 0.9), 'audience': (0, 0, 1, 0.88)}
 
 @lru_cache(8)
 def photo(name, grade):
@@ -195,9 +198,9 @@ def map_base():
             d.line(pts + [pts[0]], fill=(150, 130, 100), width=2)
     return im
 
-FILL = {'raj': (186, 70, 70), 'india': (226, 128, 40), 'pak': (40, 120, 70), 'gray': (120, 110, 100)}
+FILL = {'raj': (186, 70, 70), 'india': (226, 128, 40), 'pak': (40, 120, 70), 'bd': (60, 150, 140), 'gray': (120, 110, 100), 'kash': (150, 120, 190)}
 GROUP = {'raj': ['India', 'Pakistan', 'Bangladesh'], 'india': ['India'], 'pak': ['Pakistan', 'Bangladesh'],
-         'wpak': ['Pakistan'], 'epak': ['Bangladesh']}
+         'wpak': ['Pakistan'], 'epak': ['Bangladesh'], 'nep': ['Nepal']}
 
 @lru_cache(None)
 def group_mask(g):
@@ -419,6 +422,7 @@ def render_scene(i):
         if prev_last is not None and t < XFADE:
             k = ease(t / XFADE); a = prev_last * (1 - k) + a * k
         if i == 0 and t < 1.0: a *= ease(t / 1.0)
+        if SCENES[i].get('fadeout'): a *= 1 - ease((t - (nf / FPS - 2.0)) / 1.8)
         p.stdin.write(finish(a, sc['start'] + t, SCENES[i].get('grain', 1.0)).tobytes())
     p.stdin.close(); p.wait()
     print(f'scene {i + 1} done ({nf} frames)', flush=True)
