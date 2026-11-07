@@ -73,7 +73,7 @@ def vignette():
 def grain(i):
     g = np.random.default_rng(i).normal(0, 1, (H // 2 + 1, W // 2 + 1)).astype(np.float32)
     g = np.asarray(Image.fromarray(((g * 40) + 128).clip(0, 255).astype(np.uint8)).resize((W, H), Image.BILINEAR), np.float32) - 128
-    return (g / 40 * 7.0)[..., None]
+    return (g / 40 * 3.0)[..., None]
 
 def finish(arr, t, amt=1.0):
     a = arr.astype(np.float32) * vignette()
@@ -81,7 +81,7 @@ def finish(arr, t, amt=1.0):
     return a.clip(0, 255).astype(np.uint8)
 
 # ------------------------------------------------------------------ photos
-CROP = {'amritsar': (0.05, 0.08, 0.98, 0.875)}
+CROP = {'amritsar': (0.05, 0.08, 0.98, 0.875), 'assembly': (0, 0, 1, 0.8), 'nehru_tryst': (0, 0, 1, 0.9), 'audience': (0, 0, 1, 0.88)}
 
 @lru_cache(8)
 def photo(name, grade):
@@ -130,7 +130,8 @@ def draw_photo(sp, t, dur):
         s = max(W / im.width, H / im.height)
         cw, ch = cw / s, ch / s
         x0 = fx * im.width - cw / 2; y0 = fy * im.height - ch / 2
-        x0 = min(max(0, x0), im.width - cw); y0 = min(max(0, y0), im.height - ch)
+        cw, ch = min(cw, im.width), min(ch, im.height)
+        x0 = max(0, min(x0, im.width - cw)); y0 = max(0, min(y0, im.height - ch))
         out = im.resize((W, H), Image.BILINEAR, box=(x0, y0, x0 + cw, y0 + ch))
         return out
     # framed: the whole photo on a blurred copy, slowly scaling
