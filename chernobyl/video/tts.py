@@ -66,7 +66,8 @@ def phrases(paras):
     out = []
     for pi, p in enumerate(paras):
         txt = p['text'].replace('St. Petersburg', 'Saint Petersburg').replace('\u2014', '\u2014 ')
-        sents = re.findall(r'[^.?!]+[.?!]+["”]?|[^.?!]+$', txt)
+        txt = re.sub(r'(\d)\.(\d)', '\\1<DOT>\\2', txt)            # keep decimals (3.6) inside one sentence
+        sents = [x.replace('<DOT>', '.') for x in re.findall(r'[^.?!]+[.?!]+["”]?|[^.?!]+$', txt)]
         sents = [s.strip() for s in sents if s.strip()]
         for si, s in enumerate(sents):
             parts = [s]

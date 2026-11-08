@@ -191,7 +191,7 @@ function attachFX(parent, pos, scale) {
   fire.grp.scale.setScalar(scale); smoke.grp.scale.setScalar(scale); debris.scale.setScalar(scale); blueGlow.scale.setScalar(scale);
 }
 function updateFX(tt, on, blue) {
-  const vis = on && tt >= 0; fire.grp.visible = smoke.grp.visible = debris.visible = vis; blueGlow.material.opacity = (vis && blue) ? 0.28 : 0;
+  const vis = on && tt >= 0; fire.grp.visible = smoke.grp.visible = vis; debris.visible = vis && tt < 3.4; blueGlow.material.opacity = (vis && blue) ? 0.28 : 0;
   if (!vis) return;
   fire.list.forEach((s, i) => { const u = ((tt * 0.55 + s.userData.d) % 1); const k = tt < 0.6 ? tt / 0.6 : 1;
     s.position.set(s.userData.v.x * 9 * u * k, 2 + s.userData.v.y * 30 * u, s.userData.v.z * 9 * u * k); const sc = (6 + 18 * u) * s.userData.s * (tt < 0.4 ? 1.6 : 1); s.scale.set(sc, sc, 1); s.material.opacity = (1 - u) * 0.9; });
@@ -220,6 +220,68 @@ function setCore(power, rodsIn, tipsHot, lidOff) {
   bloom.strength = 0.3 + 0.22 * Math.min(power, 2);
   elena.position.y = 31.5 + lidOff * 60; elena.rotation.z = lidOff * 1.2; elena.rotation.x = lidOff * 0.4;
 }
+
+// ================================================================ extra sets for the later chapters
+// ---- sarcophagus around unit 4 + New Safe Confinement arch (on the plant)
+const sarco = new THREE.Group(); units[3].add(sarco); sarco.visible = false;
+const sMat = M(0x6e7276, { roughness: 0.95 }), sDark = M(0x55595d, { roughness: 0.95 });
+box(32, 48, 34, sMat, 0, 24, 0, sarco); box(36, 6, 38, sDark, 0, 50, 0, sarco);
+for (let k = 0; k < 5; k++) box(6, 46 - k * 7, 10, sDark, -18 + k * 9, (46 - k * 7) / 2, -22, sarco);   // stepped buttress wall
+for (let k = 0; k < 4; k++) box(4, 40, 4, sDark, -16 + k * 11, 20, 19, sarco);
+const nsc = new THREE.Group(); units[3].add(nsc); nsc.visible = false;
+{ const sh = new THREE.Shape(); sh.absarc(0, 0, 46, 0, Math.PI, false); sh.absarc(0, 0, 42, Math.PI, 0, true);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 64, bevelEnabled: false, curveSegments: 64 });
+  const arch = new THREE.Mesh(g, M(0xc9ced2, { metalness: 0.65, roughness: 0.3 })); arch.position.set(0, 0, -32); arch.castShadow = arch.receiveShadow = true; nsc.add(arch);
+  for (let k = 0; k <= 8; k++) { const r = new THREE.Mesh(new THREE.TorusGeometry(46.3, 0.5, 6, 64, Math.PI), M(0x9aa1a7, { metalness: .7, roughness: .35 })); r.position.z = -32 + k * 8; nsc.add(r); }
+  box(4, 46, 64, M(0xbfc4c8), -47, 23, 0, nsc).visible = false;
+  for (const x of [-44, 44]) box(2, 1, 220, M(0x707070), x, 0.5, 60, units[3]).userData.rail = true; }
+// ---- helicopters
+function heli() {
+  const g = new THREE.Group(); const olive = M(0x5c6b3a, { roughness: 0.6 });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(1.4, 5, 8, 16), olive); body.rotation.z = Math.PI / 2; g.add(body);
+  const tail = cyl(0.35, 0.6, 8, olive, -6.5, 0.6, 0, g, 12); tail.rotation.z = Math.PI / 2;
+  const rotor = box(18, 0.12, 0.6, M(0x222222), 0, 2.1, 0, g); rotor.userData.rotor = true;
+  const rotor2 = box(0.6, 0.12, 18, M(0x222222), 0, 2.1, 0, g); rotor2.userData.rotor = true;
+  box(0.1, 2.6, 0.4, M(0x222222), -10.5, 1.2, 0.5, g).userData.trotor = true;
+  return g;
+}
+const helis = [heli(), heli(), heli()]; helis.forEach(h => { scene.add(h); h.visible = false; });
+const bags = new THREE.InstancedMesh(new THREE.BoxGeometry(1.2, 0.8, 1.2), M(0xb79a62), 60); bags.visible = false; scene.add(bags);
+// ---- roof with radioactive debris + biorobots
+const roof = new THREE.Group(); roof.position.set(1000, 0, 0); scene.add(roof); roof.visible = false;
+box(80, 2, 60, M(0x7c7a76, { roughness: 1 }), 0, -1, 0, roof); box(80, 6, 2, M(0x6a6864), 0, 2, -30, roof);
+for (let i = 0; i < 70; i++) { const c = box(0.6 + rnd() * 1.6, 0.4 + rnd() * 0.8, 0.6 + rnd() * 1.6, M(i % 4 ? 0x1f1f1f : 0x3a3a38, { roughness: 0.9 }), (rnd() - .5) * 60, 0.2, (rnd() - .5) * 40, roof); c.rotation.y = rnd() * 3; }
+const men = []; for (let i = 0; i < 4; i++) { const g = new THREE.Group(); const lead = M(0x8d9094, { metalness: .5, roughness: .5 });
+  const b = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.2, 6, 12), lead); b.position.y = 1.4; g.add(b);
+  const hd = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 12), M(0x2f3a2f)); hd.position.y = 2.6; g.add(hd);
+  const sh = box(0.12, 0.12, 2.2, M(0x5a4a33), 0.5, 1.4, 0.8, g); roof.add(g); g.castShadow = true; men.push(g); }
+// ---- flooded room under the reactor
+const water = new THREE.Group(); water.position.set(-1000, 0, 0); scene.add(water); water.visible = false;
+const roomMat = M(0x4b4f52, { roughness: 0.95, side: THREE.BackSide });
+const room = new THREE.Mesh(new THREE.BoxGeometry(60, 22, 90), roomMat); room.position.y = 11; water.add(room);
+const wsurf = new THREE.Mesh(new THREE.PlaneGeometry(60, 90, 60, 90), new THREE.MeshStandardMaterial({ color: 0x0c2230, metalness: 0.9, roughness: 0.12 })); wsurf.rotation.x = -Math.PI / 2; wsurf.position.y = 4; water.add(wsurf);
+for (let k = 0; k < 5; k++) { const p = cyl(1.0, 1.0, 88, M(0x6f7478, { metalness: .6, roughness: .4 }), -26 + (k % 2) * 3, 8 + k * 2.4, 0, water, 16); p.rotation.x = Math.PI / 2; }
+const valves = []; for (let k = 0; k < 3; k++) { const v = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.25, 8, 24), M(0xb5281f)); v.position.set(-23, 10, -20 + k * 18); v.rotation.y = Math.PI / 2; water.add(v); valves.push(v); }
+const torches = []; for (let k = 0; k < 3; k++) { const sl = new THREE.SpotLight(0xdfeeff, 900, 90, 0.3, 0.5, 1.0); sl.castShadow = false; water.add(sl); water.add(sl.target);
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(3.5, 26, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0x9fc6ff, transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  water.add(cone); torches.push([sl, cone]); }
+const drip = new THREE.PointLight(0xff6a20, 160, 70, 1.4); drip.position.set(10, 20, -30); water.add(drip);
+// ---- Elephant's Foot (corium) in a dark basement
+const foot = new THREE.Group(); foot.position.set(0, 0, -1000); scene.add(foot); foot.visible = false;
+const fr = new THREE.Mesh(new THREE.BoxGeometry(50, 26, 50), M(0x3c3f41, { roughness: 1, side: THREE.BackSide })); fr.position.y = 13; foot.add(fr);
+{ const g = new THREE.SphereGeometry(6, 160, 120); const pa = g.attributes.position; const v = new THREE.Vector3();
+  for (let i = 0; i < pa.count; i++) { v.fromBufferAttribute(pa, i); const n = v.clone().normalize();
+    const d = 1 + 0.18 * Math.sin(n.x * 9 + n.y * 4) * Math.cos(n.z * 7) + 0.08 * Math.sin(n.y * 23 + n.x * 11) + 0.05 * Math.sin(n.z * 41);
+    v.multiplyScalar(d); v.y *= v.y > 0 ? 1.15 : 0.35; pa.setXYZ(i, v.x, v.y, v.z); }
+  g.computeVertexNormals();
+  const cv = document.createElement('canvas'); cv.width = cv.height = 512; const c2 = cv.getContext('2d'); c2.fillStyle = '#000'; c2.fillRect(0, 0, 512, 512);
+  c2.strokeStyle = '#ff7a20'; for (let k = 0; k < 90; k++) { c2.lineWidth = 0.5 + rnd() * 2; c2.beginPath(); let x = rnd() * 512, y = rnd() * 512; c2.moveTo(x, y); for (let j = 0; j < 6; j++) { x += (rnd() - .5) * 60; y += (rnd() - .5) * 60; c2.lineTo(x, y); } c2.stroke(); }
+  const em = new THREE.CanvasTexture(cv); em.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.MeshStandardMaterial({ color: 0x2c2118, roughness: 0.92, metalness: 0.15, emissive: new THREE.Color(0xff6a20), emissiveMap: em, emissiveIntensity: 1.2 });
+  const m = new THREE.Mesh(g, mat); m.position.y = 3.2; m.castShadow = true; foot.add(m); }
+const footLight = new THREE.SpotLight(0xfff2dc, 300, 80, 0.5, 0.6, 1.2); footLight.position.set(14, 22, 18); footLight.target.position.set(0, 3, 0); foot.add(footLight); foot.add(footLight.target);
+const dust = makeParticles(80, spriteTex('rgba(255,250,240,0.6)', 'rgba(255,250,240,0)'), true); foot.add(dust.grp);
+
 const lerp = (a, b, k) => a + (b - a) * k, ease = k => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
 const V = (a) => new THREE.Vector3(...a);
 function camPath(t, D, from, to, lookFrom, lookTo) {
@@ -228,6 +290,33 @@ function camPath(t, D, from, to, lookFrom, lookTo) {
 const anim = (v, t) => Array.isArray(v) ? lerp(v[0], v[1], ease((t - v[2]) / Math.max(0.01, v[3] - v[2]))) : (v ?? 0);
 
 const SHOTS = {
+  // helicopters over the burning unit 4, dropping sand bags
+  heli: (t, D, p) => { const a = 0.6 + 0.12 * t / D; camera.position.set(52 + Math.cos(a) * 120, 70, Math.sin(a) * 120); camera.lookAt(52, 58, 0);
+    setUnits({ broken: true }, t); attachFX(units[3], new THREE.Vector3(0, 44, 0), 0.8); updateFX(t + 6, true, false);
+    helis.forEach((h, i) => { h.visible = true; const ph = t * 0.6 + i * 2.1; h.position.set(52 - 24 + i * 20 + Math.sin(ph) * 5, 70 + i * 5, -6 + Math.cos(ph) * 6); h.scale.setScalar(1.6); h.rotation.y = 0.4 + i * 0.3;
+      h.children.forEach(c => { if (c.userData.rotor) c.rotation.y = t * 40 + i; }); });
+    bags.visible = true; for (let i = 0; i < 60; i++) { const hi = i % 3, h = helis[hi]; const tt = ((t * 0.9 + i * 0.37) % 2.4);
+      dummy.position.set(h.position.x + ((i * 7) % 5 - 2), h.position.y - 2 - 14 * tt * tt, h.position.z + ((i * 3) % 4 - 2)); dummy.rotation.set(i, i * 2, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); bags.setMatrixAt(i, dummy.matrix); }
+    bags.instanceMatrix.needsUpdate = true; },
+  // the stepped sarcophagus around unit 4
+  sarco: (t, D, p) => { const a = (p.a0 ?? 0.5) + 0.25 * t / D; camera.position.set(52 + Math.cos(a) * 140, 70, Math.sin(a) * 140); camera.lookAt(52, 28, 0); setUnits({ broken: true }, t); sarco.visible = true; },
+  // the New Safe Confinement sliding over the sarcophagus
+  nsc: (t, D, p) => { const a = (p.a0 ?? 0.95) + 0.15 * t / D; camera.position.set(52 + Math.cos(a) * 190, 90, Math.sin(a) * 190); camera.lookAt(52, 30, 30);
+    setUnits({ broken: true }, t); sarco.visible = true; nsc.visible = true; const sl = anim(p.slide ?? [0, 1, 0, D], t); nsc.position.z = 150 * (1 - sl); },
+  // biorobots on the roof
+  roof: (t, D, p) => { camPath(t, D, [1000 + 20, 11, 24], [1000 + 14, 8, 17], [1000, 1.2, 0]);
+    men.forEach((m, i) => { const ph = (t * 0.45 + i * 0.27) % 1; const x = -30 + 50 * (ph < 0.5 ? ph * 2 : 2 - ph * 2); m.position.set(x, 0, -6 + i * 4); m.rotation.y = ph < 0.5 ? Math.PI / 2 : -Math.PI / 2; m.position.y = Math.abs(Math.sin(t * 9 + i)) * 0.4; }); },
+  // the flooded room under the reactor: three flashlights search the pipes
+  water: (t, D, p) => { camPath(t, D, [-1000 + 22, 9, 40], [-1000 + 16, 8, 28], [-1000 - 20, 9, -10], [-1000 - 22, 10, -16]);
+    const pa = wsurf.geometry.attributes.position; for (let i = 0; i < pa.count; i++) { const x = pa.getX(i), y = pa.getY(i); pa.setZ(i, 0.18 * Math.sin(x * 0.4 + t * 1.6) * Math.cos(y * 0.3 + t * 1.2)); } pa.needsUpdate = true; wsurf.geometry.computeVertexNormals();
+    torches.forEach(([sl, cone], i) => { const px = 6 + i * 6, pz = 8 + i * 5; sl.position.set(px, 7, pz);
+      const tx = -23, tz = -20 + i * 18 + Math.sin(t * 0.9 + i) * 8, ty = 9 + Math.sin(t * 1.3 + i * 2) * 3; sl.target.position.set(tx, ty, tz);
+      cone.position.set((px + tx) / 2, (7 + ty) / 2, (pz + tz) / 2); cone.lookAt(tx, ty, tz); cone.rotateX(Math.PI / 2); cone.scale.set(1, Math.hypot(tx - px, ty - 7, tz - pz) / 26, 1); });
+    if (p.open) valves.forEach((v, i) => v.rotation.x = t * 1.5); },
+  // the Elephant's Foot
+  foot: (t, D, p) => { camPath(t, D, [18, 9, 22], [11, 7, 14], [0, 3.5, 0], [0, 3, 0]); camera.position.z += -1000; camera.lookAt(0, 3, -1000);
+    dust.list.forEach((s, i) => { const u = (t * 0.05 + s.userData.d) % 1; s.position.set(s.userData.v.x * 12, 2 + u * 18, s.userData.v.z * 12); s.scale.setScalar(0.25); s.material.opacity = 0.5 * Math.sin(u * Math.PI); }); },
+
   // the whole plant, slow orbit (like the user's opening)
   plant: (t, D, p) => { const a = (p.a0 ?? 0.6) + (p.da ?? 0.25) * t / D; const r = p.r ?? 230, h = p.h ?? 120;
     camera.position.set(Math.cos(a) * r, h, Math.sin(a) * r); camera.lookAt(0, 20, 0); setUnits(p, t); },
@@ -260,8 +349,12 @@ const bgTex = (() => { const cv = document.createElement('canvas'); cv.width = 1
   const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; })();
 const skyCol = new THREE.Color(0xc9dcea);
 window.renderShot = (name, t, D, params) => {
-  const inside = (name === 'core' || name === 'hall' || name === 'rods' || name === 'boom');
-  plant.visible = trees.visible = pond.visible = ground.visible = !inside; core.visible = inside;
+  const inside = (name === 'core' || name === 'hall' || name === 'rods' || name === 'boom' || name === 'roof' || name === 'water' || name === 'foot');
+  plant.visible = trees.visible = pond.visible = ground.visible = !inside; core.visible = (name === 'core' || name === 'hall' || name === 'rods' || name === 'boom');
+  roof.visible = name === 'roof'; water.visible = name === 'water'; foot.visible = name === 'foot';
+  sarco.visible = nsc.visible = false; helis.forEach(h => h.visible = false); bags.visible = false;
+  units[3].children.forEach(c => { if (c.userData.rail) c.visible = (name === 'nsc'); });
+  sun.intensity = (name === 'water' || name === 'foot') ? 0.0 : 2.6; hemi.intensity = (name === 'water') ? 0.35 : (name === 'foot' ? 0.25 : 1.1);
   hallFloor.visible = crane.visible = (name === 'hall'); lidPipes.visible = (name !== 'hall');
   if (inside) { scene.fog.near = 300; scene.fog.far = 900; scene.background = bgTex; }
   else { scene.fog.near = 180; scene.fog.far = 700; scene.background = skyCol; }

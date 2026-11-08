@@ -144,7 +144,7 @@ def put_icon(img, icon, x, y, t, at):
 @lru_cache(None)
 def kw_font(size): return ImageFont.truetype(os.path.join(R.ASSETS, 'fonts', 'Inter-ExtraBold.ttf'), int(size * U))
 
-def kw(img, txt, t, at, y=0.84, size=86, col=(255, 255, 255), typing=True, x=0.5):
+def kw(img, txt, t, at, y=0.74, size=86, col=(255, 255, 255), typing=True, x=0.5):
     if t < at: return
     n = len(txt) if not typing else max(1, min(len(txt), int((t - at) / 0.035) + 1))
     s = txt[:n]; f = kw_font(size)

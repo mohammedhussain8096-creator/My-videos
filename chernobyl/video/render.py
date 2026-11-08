@@ -528,8 +528,8 @@ def overlays(img, sp, t, dur):
         kind, txt = o[0], o[1]; opt = o[2] if len(o) > 2 else {}
         at = opt.get('at', 0.25); a = ease((t - at) / 0.45)
         if kind == 'kw' and 'off' in opt and t > opt['off']: continue
-        if kind == 'kw' and opt.get('y', 0.84) > 0.5:    # only the newest bottom keyword is on screen (like the reference)
-            later = [o2 for o2 in sp.get('ov', []) if o2[0] == 'kw' and (o2[2] if len(o2) > 2 else {}).get('y', 0.84) > 0.5
+        if kind == 'kw' and opt.get('y', 0.74) > 0.5:    # only the newest bottom keyword is on screen (like the reference)
+            later = [o2 for o2 in sp.get('ov', []) if o2[0] == 'kw' and (o2[2] if len(o2) > 2 else {}).get('y', 0.74) > 0.5
                      and at < (o2[2] if len(o2) > 2 else {}).get('at', 0.25) <= t]
             if later: continue
         if 'off' in opt: a *= 1 - ease((t - opt['off']) / 0.4)
@@ -538,7 +538,7 @@ def overlays(img, sp, t, dur):
             img.alpha_composite(Image.new('RGBA', img.size, (0, 0, 0, int((150 if kind == 'quote' else 110) * a))))
         if kind == 'kw':            # reference-style keyword: bold white, black outline, pops/types in
             import style
-            img = img.convert('RGBA'); style.kw(img, txt, t, at, y=opt.get('y', 0.84), size=opt.get('size', 86), col=opt.get('col', (255, 255, 255)), x=opt.get('x', 0.5))
+            img = img.convert('RGBA'); style.kw(img, txt, t, at, y=opt.get('y', 0.74), size=opt.get('size', 86), col=opt.get('col', (255, 255, 255)), x=opt.get('x', 0.5))
             continue
         if kind == 'date':          # typewriter date stamp, top-left
             n = int(len(txt) * min(1, (t - at) / 0.8)); ti = text_img(txt[:max(1, n)], 'mono', 46, fill=(255, 230, 200))
@@ -587,7 +587,10 @@ def frame_of(i, t):
         img = DRAW[sp['kind']](sp, tt, D)
     if sp.get('film'):
         import style; img = Image.fromarray(style.film(np.asarray(img, np.float32), tt).astype(np.uint8))
-    return np.asarray(overlays(img, sp, t, dur))
+    out = overlays(img, sp, t, dur)
+    if os.environ.get('CAPTIONS', '1') == '1':                  # word-by-word captions, bottom centre
+        import captions; out = out.convert('RGBA'); captions.draw(out, sc['start'] + t); out = out.convert('RGB')
+    return np.asarray(out)
 
 def transition(i, t, a, prev):
     tr = SCENES[i].get('tr', 'fade')
