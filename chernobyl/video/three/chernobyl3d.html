@@ -1,0 +1,259 @@
+<!doctype html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;overflow:hidden">
+<canvas id="c" width="1920" height="1080"></canvas>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+// High-quality rebuild of the user's own 3D short ("How the Chernobyl nuclear power plant exploded"):
+// plant overview (turbine hall, four units, striped stacks, yellow tanks), reactor hall with the 'Elena' lid and crane,
+// RBMK cut-away (concrete shaft, steel vessel, red glowing graphite core, orange control rods, perforated bottom plate,
+// blue cooling pipes and pumps, steam pipes and separator drums) and the explosion.
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const W = 1920, H = 1080;
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H, false); renderer.setPixelRatio(1);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, W / H, 0.1, 2000);
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 0.4, 0.5, 0.88); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// ---------------------------------------------------------------- helpers
+const rnd = (() => { let s = 12345; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.75, metalness: 0.05 }, o));
+function box(w, h, d, mat, x, y, z, parent = scene) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; parent.add(m); return m;
+}
+function cyl(rt, rb, h, mat, x, y, z, parent = scene, seg = 48, open = false, ts = 0, tl = Math.PI * 2) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg, 1, open, ts, tl), mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; parent.add(m); return m;
+}
+function tube(points, r, mat, parent = scene) {
+  const c = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)), false, 'catmullrom', 0.2);
+  const m = new THREE.Mesh(new THREE.TubeGeometry(c, 64, r, 16, false), mat); m.castShadow = m.receiveShadow = true; parent.add(m); return m;
+}
+function windowTex(cols, rows, bg = '#e9e9e6', win = '#5d6a73') {
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 256; const g = cv.getContext('2d');
+  g.fillStyle = bg; g.fillRect(0, 0, 512, 256);
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { g.fillStyle = win; g.fillRect(8 + c * (496 / cols), 20 + r * (230 / rows), (496 / cols) - 10, (230 / rows) * 0.45); }
+  g.fillStyle = 'rgba(0,0,0,0.05)'; for (let i = 0; i < 400; i++) g.fillRect(Math.random() * 512, Math.random() * 256, 2, 2);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
+}
+
+// ---------------------------------------------------------------- lights, sky, ground
+scene.background = new THREE.Color(0xc9dcea); scene.fog = new THREE.Fog(0xc9dcea, 180, 700);
+const hemi = new THREE.HemisphereLight(0xeef6ff, 0x7a5a40, 1.1); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff1df, 2.6); sun.position.set(-90, 140, 70); sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -160, right: 160, top: 160, bottom: -160, near: 1, far: 500 }); sun.shadow.bias = -0.0005;
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), M(0xc8783f, { roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+
+// ---------------------------------------------------------------- plant (units 1-4 along x)
+const plant = new THREE.Group(); scene.add(plant);
+const trees = new THREE.Group(); scene.add(trees);
+const white = M(0xeeeeec), grey = M(0xb9bcbe), dark = M(0x55595d), stripeR = M(0xd2322a), stripeW = M(0xf2f2f0);
+const hallMat = M(0xffffff, { map: windowTex(18, 4) });
+box(150, 16, 22, hallMat, 0, 8, -26, plant);                         // turbine hall
+box(150, 3, 23, grey, 0, 17.5, -26, plant);
+const unitX = [-52, -18, 18, 52], units = [];
+for (let i = 0; i < 4; i++) {
+  const g = new THREE.Group(); g.position.set(unitX[i], 0, 0); plant.add(g); units.push(g);
+  box(28, 36, 30, M(0xffffff, { map: windowTex(6, 7) }), 0, 18, 0, g);   // reactor building
+  box(30, 3, 32, grey, 0, 37.5, 0, g);
+  box(16, 10, 18, white, 0, 44, 0, g);                                  // reactor hall top
+  box(34, 20, 12, M(0xffffff, { map: windowTex(8, 3) }), 0, 10, 20, g); // auxiliary block
+}
+function stack(x, z) {                                                  // red/white ventilation stack with lattice
+  const g = new THREE.Group(); g.position.set(x, 0, z); plant.add(g);
+  for (let k = 0; k < 10; k++) cyl(1.6 - k * 0.04, 1.65 - k * 0.04, 7.5, k % 2 ? stripeR : stripeW, 0, 46 + k * 7.5, 0, g, 32);
+  const lat = M(0xcfd2d4, { metalness: 0.6, roughness: 0.4 });
+  for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4; const leg = cyl(0.35, 0.35, 120, lat, Math.cos(a) * 4, 60, Math.sin(a) * 4, g, 8); }
+  for (let y = 44; y < 118; y += 8) { const r = new THREE.Mesh(new THREE.TorusGeometry(5.6 - (y - 44) * 0.01, 0.25, 6, 24), lat); r.rotation.x = Math.PI / 2; r.position.y = y; g.add(r); }
+  return g;
+}
+const stack12 = stack(-35, 2), stack34 = stack(35, 2);
+const yellow = M(0xf2c418, { roughness: 0.5 });
+for (let i = 0; i < 10; i++) cyl(4, 4, 2.2, yellow, -70 + (i % 5) * 10, 1.1, 48 + Math.floor(i / 5) * 10, plant, 40);      // yellow round tanks
+const road = M(0xf4efe6, { roughness: 1 });
+box(170, 0.2, 3, road, 0, 0.1, 36, plant); box(3, 0.2, 80, road, -82, 0.1, 70, plant); box(60, 0.2, 3, road, -52, 0.1, 96, plant);
+const pond = new THREE.Mesh(new THREE.PlaneGeometry(400, 160), M(0x4c8fb5, { roughness: 0.25, metalness: 0.2 })); pond.rotation.x = -Math.PI / 2; pond.position.set(40, 0.05, -150); scene.add(pond);
+for (let i = 0; i < 160; i++) {                                         // trees
+  const x = -260 + rnd() * 520, z = 90 + rnd() * 220; const h = 6 + rnd() * 6;
+  const tr = new THREE.Mesh(new THREE.ConeGeometry(2.4, h, 8), M(0x4d6b35)); tr.position.set(x, h / 2, z); tr.castShadow = true; trees.add(tr);
+}
+
+// ---------------------------------------------------------------- reactor cut-away (placed away from the plant, own camera)
+const core = new THREE.Group(); core.position.set(0, 0, 0); scene.add(core); core.visible = false;
+const concrete = M(0xbfc2c4, { roughness: 0.95 });
+const steel = M(0x8d969c, { metalness: 0.7, roughness: 0.35 });
+const cutStart = Math.PI * 0.25, cutLen = Math.PI * 1.5;              // a 90-degree wedge centred on +z (toward the camera) is removed
+const floorC = cyl(30, 30, 4, concrete, 0, -2, 0, core, 96);
+cyl(24, 24, 40, concrete, 0, 20, 0, core, 96, true, cutStart, cutLen).material = concrete;         // concrete shaft (outer)
+// shaft wall thickness: inner wall + rim
+const innerShaft = cyl(18.5, 18.5, 40, concrete, 0, 20, 0, core, 96, true, cutStart, cutLen); innerShaft.material = M(0x9fa3a5, { side: THREE.BackSide, roughness: 0.95 });
+const a0 = cutStart - Math.PI / 2, a1 = cutStart + cutLen - Math.PI / 2;   // shape angle = theta - 90deg after the -90deg x-rotation
+const rimShape = new THREE.Shape(); rimShape.absarc(0, 0, 24, a0, a1, false); rimShape.absarc(0, 0, 18.5, a1, a0, true);
+const rim = new THREE.Mesh(new THREE.ShapeGeometry(rimShape, 64), concrete); rim.rotation.x = -Math.PI / 2; rim.position.y = 40.01; core.add(rim);
+for (const a of [cutStart, cutStart + cutLen]) {                         // cut faces of the shaft and vessel
+  const f = box(0.4, 40, 5.5, concrete, 0, 20, 0, core); f.position.set(Math.sin(a) * 21.25, 20, Math.cos(a) * 21.25); f.rotation.y = a;
+  const g = box(0.4, 24, 15.6, M(0x4a1410, { emissive: new THREE.Color(0xff3a14), emissiveIntensity: 0.6 }), 0, 17, 0, core); g.position.set(Math.sin(a) * 7.8, 17, Math.cos(a) * 7.8); g.rotation.y = a; g.userData.cutface = true;
+}
+const vessel = cyl(16, 16, 26, steel, 0, 17, 0, core, 96, true, cutStart, cutLen); vessel.material = M(0x8d969c, { metalness: 0.75, roughness: 0.35, side: THREE.DoubleSide });
+// graphite core: columns of graphite with an emissive glow driven by 'power'
+const coreGlow = M(0x5a0d08, { emissive: new THREE.Color(0xff2a10), emissiveIntensity: 0.4, roughness: 0.6 });
+const colGeo = new THREE.BoxGeometry(1.25, 24, 1.25);
+const cols = new THREE.InstancedMesh(colGeo, coreGlow, 1400); let n = 0; const dummy = new THREE.Object3D();
+for (let x = -15; x <= 15; x += 1.42) for (let z = -15; z <= 15; z += 1.42) {
+  if (x * x + z * z > 15 * 15) continue; const th = Math.atan2(x, z);
+  if (Math.abs(th) < Math.PI / 4) continue;                                // inside the removed wedge: leave open
+  dummy.position.set(x, 17, z); dummy.updateMatrix(); cols.setMatrixAt(n++, dummy.matrix);
+}
+cols.count = n; cols.castShadow = cols.receiveShadow = true; core.add(cols);
+// fuel channels glowing inside the cut: vertical light strips on the cut face
+const chanMat = new THREE.MeshBasicMaterial({ color: 0xff6a30 });
+// bottom plate: white perforated disc
+const bp = cyl(16.5, 16.5, 1.4, M(0xf1eeea), 0, 3.6, 0, core, 96);
+for (let i = 0; i < 140; i++) { const r = Math.sqrt(rnd()) * 15, a = rnd() * Math.PI * 2; cyl(0.45, 0.45, 1.5, M(0x6a2a2a), Math.cos(a) * r, 3.65, Math.sin(a) * r, core, 10); }
+// control rods: orange cylinders, instanced so they can move
+const rodMat = M(0xf08a3c, { roughness: 0.45, metalness: 0.3, emissive: new THREE.Color(0x2a0a00) });
+const rodPos = []; for (let x = -13; x <= 13; x += 3.3) for (let z = -13; z <= 13; z += 3.3) { if (x * x + z * z > 13.5 * 13.5) continue; rodPos.push([x + 0.7, z + 0.7]); }
+const rods = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.42, 0.42, 22, 14), rodMat, rodPos.length); rods.castShadow = true; core.add(rods);
+const tips = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.44, 0.44, 4, 14), M(0x3c3c3c, { emissive: new THREE.Color(0x000000) }), rodPos.length); core.add(tips);
+// upper shield 'Elena': disc with a grid of channel caps on top (flies off in the explosion)
+const elena = new THREE.Group(); elena.position.set(0, 31.5, 0); core.add(elena);
+cyl(17.5, 17.5, 3, M(0x8a7d6e, { metalness: 0.5, roughness: 0.5 }), 0, 0, 0, elena, 96);
+const capGeo = new THREE.BoxGeometry(0.85, 0.5, 0.85); const caps = new THREE.InstancedMesh(capGeo, new THREE.MeshStandardMaterial({ roughness: 0.6 }), 1400); let cn = 0;
+for (let x = -16; x <= 16; x += 1.05) for (let z = -16; z <= 16; z += 1.05) {
+  if (x * x + z * z > 16.3 * 16.3) continue; dummy.position.set(x, 1.75, z); dummy.updateMatrix(); caps.setMatrixAt(cn, dummy.matrix);
+  const r = rnd(); caps.setColorAt(cn, new THREE.Color(r < 0.06 ? 0xd2442f : (r < 0.12 ? 0xe2b33a : (r < 0.55 ? 0xd9d9d4 : 0x9a9a95)))); cn++;
+}
+caps.count = cn; elena.add(caps);
+// steam-water pipes above the lid (bundle)
+const pipeMat = M(0x8b2320, { roughness: 0.5, metalness: 0.3 }); const lidPipes = new THREE.Group(); elena.add(lidPipes);
+for (let k = 0; k < 16; k++) { const a = k / 16 * Math.PI * 2; const r0 = 12; tube([[Math.cos(a) * r0, 2, Math.sin(a) * r0], [Math.cos(a) * r0 * 1.15, 7, Math.sin(a) * r0 * 1.15], [Math.cos(a) * 26, 9, Math.sin(a) * 26]], 0.45, pipeMat, lidPipes); }
+// separator drums (grey horizontal cylinders), pumps and blue cooling pipes around the shaft
+const blue = M(0x3d55c8, { roughness: 0.4, metalness: 0.4 });
+for (const s of [-1, 1]) {
+  const drum = cyl(2.6, 2.6, 26, M(0xa9adb1, { metalness: 0.6, roughness: 0.35 }), s * 33, 34, -6, core, 32); drum.rotation.x = Math.PI / 2;
+  for (let k = 0; k < 3; k++) { const p = cyl(2.2, 2.6, 7, blue, s * 36, 3.5, -12 + k * 9, core, 24); cyl(1.4, 1.4, 3, blue, s * 36, 8, -12 + k * 9, core, 20); }
+  tube([[s * 36, 2, -14], [s * 30, 1.5, -20], [s * 10, 1.5, -22], [0, 1.5, -20]], 1.1, blue, core);
+  tube([[s * 36, 2, 14], [s * 30, 1.5, 18], [s * 22, 1.5, 22]], 1.1, blue, core);
+  tube([[s * 33, 34, 6], [s * 28, 38, 10], [s * 20, 40, 8], [s * 14, 33, 6]], 0.9, pipeMat, core);
+}
+const coreLight = new THREE.PointLight(0xff3010, 0, 120, 1.6); coreLight.position.set(0, 20, 6); core.add(coreLight);
+// reactor hall floor around the lid + yellow refuelling machine (crane)
+const hallFloor = new THREE.Mesh(new THREE.RingGeometry(24, 60, 64), M(0x8f8a82, { roughness: 0.9 })); hallFloor.rotation.x = -Math.PI / 2; hallFloor.position.y = 40.02; core.add(hallFloor);
+const crane = new THREE.Group(); crane.position.set(-8, 40, -14); core.add(crane);
+box(4, 14, 4, yellow, -12, 7, 0, crane); box(4, 14, 4, yellow, 12, 7, 0, crane); box(30, 3, 5, yellow, 0, 15, 0, crane);
+box(6, 6, 6, M(0xe0a516), 0, 11, 0, crane); cyl(0.8, 0.8, 8, M(0xd9d9d4, { metalness: .6 }), 0, 5, 0, crane, 16);
+
+// ---------------------------------------------------------------- explosion particles (fire, smoke, debris)
+function spriteTex(inner, outer) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, inner); gr.addColorStop(1, outer); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const fireTex = spriteTex('rgba(255,240,190,1)', 'rgba(255,90,10,0)'), smokeTex = spriteTex('rgba(40,38,36,0.95)', 'rgba(40,38,36,0)');
+function makeParticles(count, tex, additive) {
+  const grp = new THREE.Group(); const list = [];
+  for (let i = 0; i < count; i++) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending }));
+    s.userData = { v: new THREE.Vector3((rnd() - .5) * 2, 0.6 + rnd() * 1.4, (rnd() - .5) * 2), d: rnd() * 0.6, s: 0.5 + rnd() }; grp.add(s); list.push(s);
+  }
+  return { grp, list };
+}
+const fire = makeParticles(160, fireTex, true), smoke = makeParticles(140, smokeTex, false);
+const debris = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), M(0x3a3a3a), 220); const debV = [];
+for (let i = 0; i < 220; i++) debV.push([(rnd() - .5) * 40, 25 + rnd() * 45, (rnd() - .5) * 40, rnd() * 6, 0.4 + rnd() * 1.4]);
+const blueGlow = new THREE.Mesh(new THREE.CylinderGeometry(5, 9, 120, 32, 1, true), new THREE.MeshBasicMaterial({ color: 0x6f9bff, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+let fxParent = null;
+function attachFX(parent, pos, scale) {
+  for (const g of [fire.grp, smoke.grp, debris, blueGlow]) { if (g.parent) g.parent.remove(g); parent.add(g); }
+  fire.grp.position.copy(pos); smoke.grp.position.copy(pos); debris.position.copy(pos); blueGlow.position.copy(pos).add(new THREE.Vector3(0, 60 * scale, 0));
+  fire.grp.scale.setScalar(scale); smoke.grp.scale.setScalar(scale); debris.scale.setScalar(scale); blueGlow.scale.setScalar(scale);
+}
+function updateFX(tt, on, blue) {
+  const vis = on && tt >= 0; fire.grp.visible = smoke.grp.visible = debris.visible = vis; blueGlow.material.opacity = (vis && blue) ? 0.28 : 0;
+  if (!vis) return;
+  fire.list.forEach((s, i) => { const u = ((tt * 0.55 + s.userData.d) % 1); const k = tt < 0.6 ? tt / 0.6 : 1;
+    s.position.set(s.userData.v.x * 9 * u * k, 2 + s.userData.v.y * 30 * u, s.userData.v.z * 9 * u * k); const sc = (6 + 18 * u) * s.userData.s * (tt < 0.4 ? 1.6 : 1); s.scale.set(sc, sc, 1); s.material.opacity = (1 - u) * 0.9; });
+  smoke.list.forEach((s, i) => { const u = ((tt * 0.12 + s.userData.d) % 1);
+    s.position.set(s.userData.v.x * 14 * u + u * 18, 10 + s.userData.v.y * 70 * u, s.userData.v.z * 14 * u); const sc = (10 + 40 * u) * s.userData.s; s.scale.set(sc, sc, 1); s.material.opacity = Math.min(1, tt / 0.8) * (1 - u) * 0.85; });
+  for (let i = 0; i < debV.length; i++) { const [vx, vy, vz, rot, sz] = debV[i]; const t2 = Math.min(tt, 3.5);
+    dummy.position.set(vx * t2, Math.max(0, vy * t2 - 16 * t2 * t2), vz * t2); dummy.rotation.set(rot * t2, rot * t2 * 0.7, 0); dummy.scale.setScalar(sz); dummy.updateMatrix(); debris.setMatrixAt(i, dummy.matrix); }
+  debris.instanceMatrix.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- state + shots
+function setCore(power, rodsIn, tipsHot, lidOff) {
+  coreGlow.emissiveIntensity = 0.25 + 0.9 * Math.min(power, 3); coreLight.intensity = 90 * Math.min(power, 3);
+  const top = 30, travel = 24;
+  rodPos.forEach(([x, z], i) => {
+    const y = top + 11 - travel * rodsIn;                                // rod centre
+    dummy.position.set(x, y, z); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); rods.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(x, y - 13, z); dummy.updateMatrix(); tips.setMatrixAt(i, dummy.matrix);
+  });
+  rods.instanceMatrix.needsUpdate = tips.instanceMatrix.needsUpdate = true;
+  tips.material.emissive.set(tipsHot ? 0xff5a10 : 0x000000); tips.material.emissiveIntensity = tipsHot ? 2.2 : 0;
+  bloom.strength = 0.3 + 0.22 * Math.min(power, 2);
+  elena.position.y = 31.5 + lidOff * 60; elena.rotation.z = lidOff * 1.2; elena.rotation.x = lidOff * 0.4;
+}
+const lerp = (a, b, k) => a + (b - a) * k, ease = k => { k = Math.min(1, Math.max(0, k)); return k * k * (3 - 2 * k); };
+const V = (a) => new THREE.Vector3(...a);
+function camPath(t, D, from, to, lookFrom, lookTo) {
+  const k = ease(t / D); camera.position.copy(V(from).lerp(V(to), k)); camera.lookAt(V(lookFrom).lerp(V(lookTo || lookFrom), k));
+}
+const anim = (v, t) => Array.isArray(v) ? lerp(v[0], v[1], ease((t - v[2]) / Math.max(0.01, v[3] - v[2]))) : (v ?? 0);
+
+const SHOTS = {
+  // the whole plant, slow orbit (like the user's opening)
+  plant: (t, D, p) => { const a = (p.a0 ?? 0.6) + (p.da ?? 0.25) * t / D; const r = p.r ?? 230, h = p.h ?? 120;
+    camera.position.set(Math.cos(a) * r, h, Math.sin(a) * r); camera.lookAt(0, 20, 0); setUnits(p, t); },
+  // push toward unit 4
+  unit4: (t, D, p) => { camPath(t, D, p.from || [160, 90, 170], p.to || [95, 60, 85], [52, 30, 0], [52, 34, 0]); setUnits(p, t); },
+  // reactor cut-away, orbiting
+  core: (t, D, p) => { const a = (p.a0 ?? -0.35) + (p.da ?? 0.25) * t / D; const r = p.r ?? 88, h = p.h ?? 46;
+    camera.position.set(Math.sin(a) * r, h, Math.cos(a) * r); camera.lookAt(0, p.ly ?? 18, 0);
+    setCore(anim(p.power, t), anim(p.rods, t), !!p.tips_hot, 0); updateFX(-1, false); },
+  // looking down at the lid 'Elena' and the crane in the reactor hall
+  hall: (t, D, p) => { camPath(t, D, [-34, 78, 46], [-22, 66, 34], [0, 36, 0]); setCore(anim(p.power ?? 0.4, t), anim(p.rods ?? 0.7, t), false, 0); updateFX(-1, false); },
+  // close on the rods dropping, graphite tips glowing
+  rods: (t, D, p) => { camPath(t, D, [10, 34, 34], [7, 28, 28], [0, 20, 0], [0, 15, 0]); setCore(anim(p.power, t), anim(p.rods, t), !!p.tips_hot, 0); updateFX(-1, false); },
+  // explosion in the cut-away
+  boom: (t, D, p) => { const a = -0.3 + 0.1 * t / D; camera.position.set(Math.sin(a) * 120, 62, Math.cos(a) * 120); camera.lookAt(0, 34, 0);
+    const te = p.explode ?? 0.6; const tt = t - te; setCore(tt > 0 ? 3 : anim(p.power, t), anim(p.rods ?? 0.3, t), true, tt > 0 ? ease(tt / 1.2) : 0);
+    attachFX(core, new THREE.Vector3(0, 32, 0), 1); updateFX(tt, true, !!p.blue); },
+  // the plant after the explosion: unit 4 roof gone, fire and smoke
+  plant_boom: (t, D, p) => { const a = (p.a0 ?? 0.55) + 0.12 * t / D; camera.position.set(52 + Math.cos(a) * 170, 95, Math.sin(a) * 170); camera.lookAt(52, 35, 0);
+    setUnits(Object.assign({ broken: true }, p), t); attachFX(units[3], new THREE.Vector3(0, 44, 0), 1.1); updateFX(t + (p.tstart ?? 1.5), true, !!p.blue); },
+};
+function setUnits(p, t) {
+  units.forEach((u, i) => { u.children.forEach(c => { if (c.material && c.material.emissive) { c.material = c.material.clone(); } }); });
+  if (p.hl) { const k = Math.min(1, Math.max(0, (t - (p.hl_at ?? 0.3)) / 0.5)); units[p.hl - 1].children[0].material.emissive = new THREE.Color(0xffc400); units[p.hl - 1].children[0].material.emissiveIntensity = 0.55 * k; }
+  if (p.broken) { units[3].children[2].visible = false; units[3].children[1].visible = false; } else { units[3].children[2].visible = true; units[3].children[1].visible = true; }
+  updateFX(-1, false);
+}
+const bgTex = (() => { const cv = document.createElement('canvas'); cv.width = 16; cv.height = 512; const g = cv.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, '#1d232b'); gr.addColorStop(0.6, '#3a414a'); gr.addColorStop(1, '#14171b'); g.fillStyle = gr; g.fillRect(0, 0, 16, 512);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; })();
+const skyCol = new THREE.Color(0xc9dcea);
+window.renderShot = (name, t, D, params) => {
+  const inside = (name === 'core' || name === 'hall' || name === 'rods' || name === 'boom');
+  plant.visible = trees.visible = pond.visible = ground.visible = !inside; core.visible = inside;
+  hallFloor.visible = crane.visible = (name === 'hall'); lidPipes.visible = (name !== 'hall');
+  if (inside) { scene.fog.near = 300; scene.fog.far = 900; scene.background = bgTex; }
+  else { scene.fog.near = 180; scene.fog.far = 700; scene.background = skyCol; }
+  SHOTS[name](t, D, params || {}); composer.render(); return true;
+};
+window.__dbg = () => { const res = []; scene.traverse(o => { if (!o.isMesh && !o.isSprite) return; let v = true; let q = o; while (q) { if (!q.visible) v = false; q = q.parent; } if (!v) return;
+  const bb = new THREE.Box3().setFromObject(o); const s = bb.getSize(new THREE.Vector3()); if (s.length() > 120 || !isFinite(s.length())) res.push([o.type, o.isInstancedMesh, o.count, o.geometry ? JSON.stringify(o.geometry.parameters) : '', JSON.stringify(o.position), o.parent === core, o.parent === elena].join(' ')); }); return res; };
+window.ready = true;
+</script></body></html>

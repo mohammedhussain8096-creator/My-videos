@@ -14,7 +14,7 @@ V_EUROPE = (54.0, 20.0, 52.0); V_UKRAINE = (50.5, 30.5, 16.0); V_ZONE = (51.35, 
 def city(k, at, dx=1, dy=0): n = CITY[k]; return (n[0], n[1], n[2], at, dx, dy)
 def P(img, grade='cold', **kw): return dict(kind='photo', img=img, grade=grade, **kw)
 def MAP(**kw): return dict(kind='map', **kw)
-def R(**kw): return dict(kind='reactor', **kw)
+def R(**kw): return dict(kind='core3d', **kw)
 def TITLE(title, num, bg=None, **kw): return dict(kind='title', title=title, num=num, bgimg=bg, tr='dip', **kw)
 def cap(t, at=0.4): return ('caption', t, {'at': at})
 def date(t, at=0.2): return ('date', t, {'at': at})

@@ -156,6 +156,16 @@ def draw_photo(sp, t, D):
     bd = int(5 * U); bg.paste((220, 222, 220), (px - bd, py - bd, px + pw + bd, py + ph + bd)); bg.paste(p, (px, py))
     return bg
 
+
+def live_bg(sp, t, D, default, dark=0.5, grade=None):
+    """real photo background with a slow Ken Burns move, darkened for text (never a plain colour)"""
+    name = sp.get('bgimg') or default; g = grade or sp.get('grade', 'cold')
+    ph = dict(img=name, grade=g, frame=False, z0=sp.get('bz0', 1.05), z1=sp.get('bz1', 1.18), fx0=sp.get('bfx', 0.5), fy0=sp.get('bfy', 0.5))
+    im = draw_photo(ph, t, max(D, 0.1))
+    a = np.asarray(im, np.float32); yy = np.linspace(0, 1, H)[:, None, None]
+    a = a * (1 - dark) * (0.75 + 0.25 * (1 - np.abs(yy - 0.5) * 2))
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8))
+
 # ------------------------------------------------------------------ map (real satellite imagery, NASA GIBS, public domain)
 M_LON0, M_LON1, M_LAT0, M_LAT1 = -14.0, 62.0, 30.0, 72.0
 MPX = 8400
@@ -394,7 +404,7 @@ def draw_reactor(sp, t, D):
 GRAPH = [(0.0, 1600), (0.10, 1600), (0.22, 720), (0.30, 30), (0.42, 160), (0.55, 200), (0.80, 200), (0.86, 260), (0.92, 380), (0.96, 3200), (1.0, 30000)]
 GRAPH_T = ['23:10', '00:05', '00:28', '01:00', '01:23:04', '01:23:40']
 def draw_graph(sp, t, D):
-    img = dark_bg('steel').copy().convert('RGBA'); d = ImageDraw.Draw(img)
+    img = live_bg(sp, t, D, 'cc0_30', dark=0.62).convert('RGBA'); d = ImageDraw.Draw(img)
     gx0, gy0, gx1, gy1 = W * 0.12, H * 0.16, W * 0.9, H * 0.8
     for i in range(6):
         y = lerp(gy1, gy0, i / 5); d.line([gx0, y, gx1, y], fill=(50, 60, 64), width=1)
@@ -426,7 +436,7 @@ def draw_graph(sp, t, D):
 
 # ------------------------------------------------------------------ dosimeter
 def draw_dosimeter(sp, t, D):
-    img = (blur_bg(sp['bgimg'], 'cold').copy() if sp.get('bgimg') else dark_bg('tox').copy()).convert('RGBA'); d = ImageDraw.Draw(img)
+    img = live_bg(sp, t, D, 'cc0_36', dark=0.55).convert('RGBA'); d = ImageDraw.Draw(img)
     bx, by, bw, bh = W * 0.3, H * 0.14, W * 0.4, H * 0.72
     d.rounded_rectangle([bx, by, bx + bw, by + bh], radius=int(30 * U), fill=(52, 66, 50), outline=(20, 26, 20), width=int(6 * U))
     cx, cy, R = bx + bw / 2, by + bh * 0.42, bw * 0.36
@@ -453,7 +463,7 @@ def draw_dosimeter(sp, t, D):
 
 # ------------------------------------------------------------------ clock / counter / bars / title
 def draw_clock(sp, t, D):
-    img = (blur_bg(sp['bgimg'], 'cold').copy() if sp.get('bgimg') else dark_bg('red').copy()).convert('RGBA')
+    img = live_bg(sp, t, D, 'cc0_30', dark=0.6).convert('RGBA')
     h0, m0, s0 = sp.get('from', (1, 23, 4)); rate = sp.get('rate', 1.0); stop = sp.get('stop')
     secs = h0 * 3600 + m0 * 60 + s0 + (min(t, stop) if stop is not None else t) * rate
     txt = f'{int(secs // 3600) % 24:02d}:{int(secs // 60) % 60:02d}:{int(secs) % 60:02d}'
@@ -474,7 +484,7 @@ def icon(kind, size, col):
     return im
 
 def draw_counter(sp, t, D):
-    img = (blur_bg(sp['bgimg'], sp.get('grade', 'cold')).copy() if sp.get('bgimg') else dark_bg(sp.get('tone', 'steel')).copy()).convert('RGBA')
+    img = live_bg(sp, t, D, 'pd_pripyat1984', dark=0.5).convert('RGBA')
     a, b = sp.get('count', (0, 100)); dur = sp.get('cdur', min(2.5, D * 0.6))
     v = lerp(a, b, eout((t - 0.2) / dur)); val = f"{int(round(v)):,}" + sp.get('suffix', '')
     ti = text_img(val, 'head', 250, fill=sp.get('col', AMBER), track=4)
@@ -488,7 +498,7 @@ def draw_counter(sp, t, D):
     return img.convert('RGB')
 
 def draw_bars(sp, t, D):
-    img = (blur_bg(sp['bgimg'], 'cold').copy() if sp.get('bgimg') else dark_bg('steel').copy()).convert('RGBA'); d = ImageDraw.Draw(img)
+    img = live_bg(sp, t, D, 'cc0_33', dark=0.58).convert('RGBA'); d = ImageDraw.Draw(img)
     items = sp['bars']; mx = max(v for _, v, *_ in items)
     for i, it in enumerate(items):
         lab, v = it[:2]; col = it[2] if len(it) > 2 else AMBER; at = 0.3 + i * 0.7
@@ -501,7 +511,7 @@ def draw_bars(sp, t, D):
     return img.convert('RGB')
 
 def draw_title(sp, t, D):
-    img = (blur_bg(sp['bgimg'], 'cold').copy() if sp.get('bgimg') else dark_bg('steel').copy()).convert('RGBA')
+    img = live_bg(sp, t, D, 'cc0_29', dark=0.5).convert('RGBA')
     a = ease((t - 0.15) / 0.7)
     num = text_img(sp.get('num', ''), 'osw', 40, fill=RED, track=10)
     title = text_img(sp['title'].upper(), 'head', 170, fill=WHITE, track=int(lerp(20, 8, eout(t / 1.5))))
@@ -564,7 +574,14 @@ DRAW = {'photo': draw_photo, 'map': draw_map, 'reactor': draw_reactor, 'graph': 
 def frame_of(i, t):
     sc = TIMING['scenes'][i]; sp = SCENES[i]; dur = sc['end'] - sc['start']
     tt = t + sp.get('_t0', 0.0); D = dur + sp.get('_t0', 0.0) + sp.get('_tail', 0.0)
-    if sp['kind'] in ('fire', 'plant'):
+    if sp['kind'] == 'three':                                  # pre-rendered real-3D frames (three.js, see three/)
+        d3 = os.path.join(OUT, 'three', f'{i + 1:03d}'); fr = sorted(os.listdir(d3)) if os.path.isdir(d3) else []
+        k = min(len(fr) - 1, max(0, int(round(t * FPS)))) if fr else 0
+        img = Image.open(os.path.join(d3, fr[k])).convert('RGB') if fr else live_bg(sp, tt, D, 'pd_reactor')
+        if img.size != (W, H): img = img.resize((W, H), Image.LANCZOS)
+    elif sp['kind'] == 'core3d':
+        import core3d; img = core3d.draw_core3d(sp, tt, D)
+    elif sp['kind'] in ('fire', 'plant'):
         import style; img = (style.draw_fire if sp['kind'] == 'fire' else style.draw_plant)(sp, tt, D)
     else:
         img = DRAW[sp['kind']](sp, tt, D)
