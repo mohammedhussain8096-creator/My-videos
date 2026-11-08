@@ -104,12 +104,12 @@ const rimShape = new THREE.Shape(); rimShape.absarc(0, 0, 24, a0, a1, false); ri
 const rim = new THREE.Mesh(new THREE.ShapeGeometry(rimShape, 64), concrete); rim.rotation.x = -Math.PI / 2; rim.position.y = 40.01; core.add(rim);
 for (const a of [cutStart, cutStart + cutLen]) {                         // cut faces of the shaft and vessel
   const f = box(0.4, 40, 5.5, concrete, 0, 20, 0, core); f.position.set(Math.sin(a) * 21.25, 20, Math.cos(a) * 21.25); f.rotation.y = a;
-  const g = box(0.4, 24, 15.6, M(0x4a1410, { emissive: new THREE.Color(0xff3a14), emissiveIntensity: 0.6 }), 0, 17, 0, core); g.position.set(Math.sin(a) * 7.8, 17, Math.cos(a) * 7.8); g.rotation.y = a; g.userData.cutface = true;
+  const g = box(0.4, 24, 15.6, M(0x26272b, { emissive: new THREE.Color(0xff5a1a), emissiveIntensity: 0.0, roughness: 0.85 }), 0, 17, 0, core); g.position.set(Math.sin(a) * 7.8, 17, Math.cos(a) * 7.8); g.rotation.y = a; g.userData.cutface = true;
 }
 const vessel = cyl(16, 16, 26, steel, 0, 17, 0, core, 96, true, cutStart, cutLen); vessel.material = M(0x8d969c, { metalness: 0.75, roughness: 0.35, side: THREE.DoubleSide });
 // graphite core: columns of graphite with an emissive glow driven by 'power'
-const coreGlow = M(0x5a0d08, { emissive: new THREE.Color(0xff2a10), emissiveIntensity: 0.4, roughness: 0.6 });
-const colGeo = new THREE.BoxGeometry(1.25, 24, 1.25);
+const coreGlow = M(0x2e2f33, { emissive: new THREE.Color(0xff5a1a), emissiveIntensity: 0.0, roughness: 0.85, metalness: 0.1 });   // graphite: dark grey
+const colGeo = new THREE.BoxGeometry(1.0, 24, 1.0);
 const cols = new THREE.InstancedMesh(colGeo, coreGlow, 1400); let n = 0; const dummy = new THREE.Object3D();
 for (let x = -15; x <= 15; x += 1.42) for (let z = -15; z <= 15; z += 1.42) {
   if (x * x + z * z > 15 * 15) continue; const th = Math.atan2(x, z);
@@ -117,10 +117,20 @@ for (let x = -15; x <= 15; x += 1.42) for (let z = -15; z <= 15; z += 1.42) {
   dummy.position.set(x, 17, z); dummy.updateMatrix(); cols.setMatrixAt(n++, dummy.matrix);
 }
 cols.count = n; cols.castShadow = cols.receiveShadow = true; core.add(cols);
+// fuel channels: thin tubes between the graphite columns, glowing Cherenkov blue (and orange-hot in the surge)
+const chanGlow = new THREE.MeshStandardMaterial({ color: 0x0a1a30, emissive: new THREE.Color(0x4f9dff), emissiveIntensity: 0.8, roughness: 0.4 });
+const chans = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.24, 0.24, 24, 8), chanGlow, 1400); let chn = 0;
+for (let x = -14.3; x <= 14.3; x += 1.42) for (let z = -14.3; z <= 14.3; z += 1.42) {
+  if (x * x + z * z > 14.6 * 14.6) continue; const th = Math.atan2(x, z); if (Math.abs(th) < Math.PI / 4 - 0.05) continue;
+  dummy.position.set(x, 17, z); dummy.updateMatrix(); chans.setMatrixAt(chn++, dummy.matrix);
+}
+chans.count = chn; core.add(chans);
+const haze = new THREE.Mesh(new THREE.CylinderGeometry(15, 15, 23, 64, 1, true, cutStart, cutLen), new THREE.MeshBasicMaterial({ color: 0x3f8cff, transparent: true, opacity: 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); haze.position.y = 17; core.add(haze);
+const cherenkov = new THREE.PointLight(0x4f9dff, 0, 90, 1.5); cherenkov.position.set(0, 22, 6); core.add(cherenkov);
 // fuel channels glowing inside the cut: vertical light strips on the cut face
 const chanMat = new THREE.MeshBasicMaterial({ color: 0xff6a30 });
 // bottom plate: white perforated disc
-const bp = cyl(16.5, 16.5, 1.4, M(0xf1eeea), 0, 3.6, 0, core, 96);
+const bp = cyl(16.5, 16.5, 1.4, M(0x9c9e9f, { metalness: 0.5, roughness: 0.45 }), 0, 3.6, 0, core, 96);
 for (let i = 0; i < 140; i++) { const r = Math.sqrt(rnd()) * 15, a = rnd() * Math.PI * 2; cyl(0.45, 0.45, 1.5, M(0x6a2a2a), Math.cos(a) * r, 3.65, Math.sin(a) * r, core, 10); }
 // control rods: orange cylinders, instanced so they can move
 const rodMat = M(0xf08a3c, { roughness: 0.45, metalness: 0.3, emissive: new THREE.Color(0x2a0a00) });
@@ -148,7 +158,7 @@ for (const s of [-1, 1]) {
   tube([[s * 36, 2, 14], [s * 30, 1.5, 18], [s * 22, 1.5, 22]], 1.1, blue, core);
   tube([[s * 33, 34, 6], [s * 28, 38, 10], [s * 20, 40, 8], [s * 14, 33, 6]], 0.9, pipeMat, core);
 }
-const coreLight = new THREE.PointLight(0xff3010, 0, 120, 1.6); coreLight.position.set(0, 20, 6); core.add(coreLight);
+const coreLight = new THREE.PointLight(0xff6a20, 0, 120, 1.6); coreLight.position.set(0, 20, 6); core.add(coreLight);
 // reactor hall floor around the lid + yellow refuelling machine (crane)
 const hallFloor = new THREE.Mesh(new THREE.RingGeometry(24, 60, 64), M(0x8f8a82, { roughness: 0.9 })); hallFloor.rotation.x = -Math.PI / 2; hallFloor.position.y = 40.02; core.add(hallFloor);
 const crane = new THREE.Group(); crane.position.set(-8, 40, -14); core.add(crane);
@@ -194,7 +204,11 @@ function updateFX(tt, on, blue) {
 
 // ---------------------------------------------------------------- state + shots
 function setCore(power, rodsIn, tipsHot, lidOff) {
-  coreGlow.emissiveIntensity = 0.25 + 0.9 * Math.min(power, 3); coreLight.intensity = 90 * Math.min(power, 3);
+  const hot = Math.max(0, Math.min(power, 3) - 1.2) / 1.8;                  // only the surge makes graphite glow
+  coreGlow.emissiveIntensity = 0.9 * hot; coreLight.intensity = 140 * hot;
+  chanGlow.emissiveIntensity = 1.3 + 0.9 * Math.min(power, 1.5); chanGlow.emissive.setRGB(0.31 + 0.69 * hot, 0.62 - 0.27 * hot, 1.0 - 0.9 * hot);
+  cherenkov.intensity = 14 + 14 * Math.min(power, 1.5); haze.material.opacity = (0.10 + 0.08 * Math.min(power, 1.5)) * (1 - hot); haze.material.color.setRGB(0.25 + 0.75 * hot, 0.55 - 0.15 * hot, 1.0 - 0.85 * hot);
+  core.children.forEach(c => { if (c.userData.cutface) c.material.emissiveIntensity = 0.8 * hot; });
   const top = 30, travel = 24;
   rodPos.forEach(([x, z], i) => {
     const y = top + 11 - travel * rodsIn;                                // rod centre
