@@ -30,6 +30,7 @@ def _word_time(sc, word):
         i = p['text'].find(word)
         if i >= 0:
             v = p['start'] - sc['start'] + (p['end'] - p['start']) * i / max(1, len(p['text'])) - 0.1
+            if v < -0.15: continue          # spoken before this scene started
             return max(0.0, v)
     return None
 

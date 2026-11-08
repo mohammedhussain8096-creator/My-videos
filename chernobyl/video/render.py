@@ -243,11 +243,21 @@ def plume_mask(key):
 
 def draw_map(sp, t, D):
     k = ease(t / D)
-    v0 = view_box(sp.get('view', (50, 25, 40))); v1 = view_box(sp.get('view1', sp.get('view', (50, 25, 40))))
-    cx, cy, w = (lerp(a, b, k) for a, b in zip(v0, v1)); h = w * H / W
-    box = (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2); s = W / w
-    base = sat_frame(cx, cy, w).convert('RGBA')
-    def scr(la, lo): x, y = ll(la, lo); return (x - box[0]) * s, (y - box[1]) * s
+    if sp.get('style', 'flat') == 'flat':                 # reference style: flat beige/blue map, glowing highlights
+        import style
+        va, vb = sp.get('view', (50, 25, 40)), sp.get('view1', sp.get('view', (50, 25, 40)))
+        # zoom in log-space so big zooms feel even
+        vw = math.exp(lerp(math.log(va[2]), math.log(vb[2]), k))
+        vv = (lerp(va[0], vb[0], k), lerp(va[1], vb[1], k), vw)
+        base, PJ, box = style.flat_frame(sp, t, D, vv); s = W / (box[2] - box[0])
+        def scr(la, lo): x, y = PJ(la, lo); return (x - box[0]) * s, (y - box[1]) * s
+        if PJ is not style.EU: sp = dict(sp, plume=[])
+    else:
+        v0 = view_box(sp.get('view', (50, 25, 40))); v1 = view_box(sp.get('view1', sp.get('view', (50, 25, 40))))
+        cx, cy, w = (lerp(a, b, k) for a, b in zip(v0, v1)); h = w * H / W
+        box = (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2); s = W / w
+        base = sat_frame(cx, cy, w).convert('RGBA')
+        def scr(la, lo): x, y = ll(la, lo); return (x - box[0]) * s, (y - box[1]) * s
     # plume: list of stages (at, blobs); each stage fades in over 1.5 s
     for st in sp.get('plume', []):
         at, blobs = st; a = ease((t - at) / 1.6)
@@ -271,7 +281,7 @@ def draw_map(sp, t, D):
         if a <= 0: continue
         x, y = scr(la, lo); r = 7 * U
         d.ellipse([x - r, y - r, x + r, y + r], fill=(235, 235, 230, int(255 * a)))
-        ti = text_img(name.upper(), 'osw', 34, fill=WHITE, track=2)
+        ti = text_img(name.upper(), 'osw', 34, fill=WHITE if sp.get('style', 'flat') != 'flat' else (30, 30, 30), track=2, shadow=sp.get('style', 'flat') != 'flat')
         put(base, ti, x - ti.width / 2 + dx * (ti.width / 2 + 2 * U), y - ti.height / 2 + dy * 40 * U, a)
     if sp.get('pin', True):                           # the plant: pulsing red beacon
         a = ease((t - sp.get('pin_at', 0.2)) / 0.5)
@@ -283,7 +293,7 @@ def draw_map(sp, t, D):
             base.alpha_composite(rl); d = ImageDraw.Draw(base)
             r = 11 * U; d.ellipse([x - r, y - r, x + r, y + r], fill=RED + (int(255 * a),), outline=(255, 220, 210, int(255 * a)), width=int(3 * U))
             if sp.get('pin_label', True):
-                ti = text_img('CHERNOBYL', 'osw', 38, fill=(255, 210, 200), track=3); put(base, ti, x + 18 * U, y - ti.height / 2 - 2 * U, a)
+                ti = text_img('CHERNOBYL', 'osw', 38, fill=(255, 210, 200) if sp.get('style', 'flat') != 'flat' else (170, 20, 15), track=3, shadow=sp.get('style', 'flat') != 'flat'); put(base, ti, x + 18 * U, y - ti.height / 2 - 2 * U, a)
     lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for ar in sp.get('arrows', []):                   # wind arrows (lat0, lon0, lat1, lon1, at)
         la0, lo0, la1, lo1, at = ar; p = ease((t - at) / 1.8)
@@ -295,6 +305,11 @@ def draw_map(sp, t, D):
         d.polygon([(xb + math.cos(ang) * L * 0.6, yb + math.sin(ang) * L * 0.6), (xb + math.cos(ang + 2.5) * L, yb + math.sin(ang + 2.5) * L),
                    (xb + math.cos(ang - 2.5) * L, yb + math.sin(ang - 2.5) * L)], fill=TOX + (240,))
     base.alpha_composite(lay)
+    if sp.get('icons'):
+        import style
+        for ic in sp['icons']:                          # (kind, lat, lon, at, size)
+            kind_, la, lo, at = ic[:4]; size = int((ic[4] if len(ic) > 4 else 180) * U)
+            x, y = scr(la, lo); style.put_icon(base, style.radiation_icon(size) if kind_ == 'rad' else style.bolt_icon(size), x, y, t, at)
     return base.convert('RGB')
 
 # ------------------------------------------------------------------ reactor cross-section
@@ -502,10 +517,19 @@ def overlays(img, sp, t, dur):
     for o in sp.get('ov', []):
         kind, txt = o[0], o[1]; opt = o[2] if len(o) > 2 else {}
         at = opt.get('at', 0.25); a = ease((t - at) / 0.45)
+        if kind == 'kw' and 'off' in opt and t > opt['off']: continue
+        if kind == 'kw' and opt.get('y', 0.84) > 0.5:    # only the newest bottom keyword is on screen (like the reference)
+            later = [o2 for o2 in sp.get('ov', []) if o2[0] == 'kw' and (o2[2] if len(o2) > 2 else {}).get('y', 0.84) > 0.5
+                     and at < (o2[2] if len(o2) > 2 else {}).get('at', 0.25) <= t]
+            if later: continue
         if 'off' in opt: a *= 1 - ease((t - opt['off']) / 0.4)
         if a <= 0: continue
         if kind in ('quote', 'big') and opt.get('dim', True):
             img.alpha_composite(Image.new('RGBA', img.size, (0, 0, 0, int((150 if kind == 'quote' else 110) * a))))
+        if kind == 'kw':            # reference-style keyword: bold white, black outline, pops/types in
+            import style
+            img = img.convert('RGBA'); style.kw(img, txt, t, at, y=opt.get('y', 0.84), size=opt.get('size', 86), col=opt.get('col', (255, 255, 255)), x=opt.get('x', 0.5))
+            continue
         if kind == 'date':          # typewriter date stamp, top-left
             n = int(len(txt) * min(1, (t - at) / 0.8)); ti = text_img(txt[:max(1, n)], 'mono', 46, fill=(255, 230, 200))
             put(img, ti, 60 * U, 50 * U, a)
@@ -540,7 +564,12 @@ DRAW = {'photo': draw_photo, 'map': draw_map, 'reactor': draw_reactor, 'graph': 
 def frame_of(i, t):
     sc = TIMING['scenes'][i]; sp = SCENES[i]; dur = sc['end'] - sc['start']
     tt = t + sp.get('_t0', 0.0); D = dur + sp.get('_t0', 0.0) + sp.get('_tail', 0.0)
-    img = DRAW[sp['kind']](sp, tt, D)
+    if sp['kind'] in ('fire', 'plant'):
+        import style; img = (style.draw_fire if sp['kind'] == 'fire' else style.draw_plant)(sp, tt, D)
+    else:
+        img = DRAW[sp['kind']](sp, tt, D)
+    if sp.get('film'):
+        import style; img = Image.fromarray(style.film(np.asarray(img, np.float32), tt).astype(np.uint8))
     return np.asarray(overlays(img, sp, t, dur))
 
 def transition(i, t, a, prev):
