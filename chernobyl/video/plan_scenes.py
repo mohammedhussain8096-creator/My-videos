@@ -25,7 +25,7 @@ SC.update({
     # ------------------------------------------------------------ the city of the future
     19: TITLE('The City of the Future', 'CHAPTER 1', bg='pd_pripyat1984', grade='bw'),
     20: MAP(view=V_EUROPE, view1=V_UKRAINE, pin=True, cities=[city('kyiv', 1.2)], pin_label=False),
-    21: MAP(view=V_UKRAINE, view1=(51.0, 30.3, 5.0), cities=[city('kyiv', -1), city('pripyat', 2.0, -1, 0)], ov=[big('100 KM', 'north of Kyiv', y=0.82, size=120, dim=False, at=0.8)]),
+    21: MAP(view=V_UKRAINE, view1=(51.0, 30.3, 5.0), cities=[city('kyiv', -1), city('pripyat', 2.0, 0, -1)], ov=[big('100 KM', 'north of Kyiv', y=0.82, size=120, dim=False, at=0.8)]),
     22: P('pd_pripyat1984', grade='bw', z0=1.0, z1=1.2, fx0=0.5, fy0=0.5, ov=[cap('Pripyat from the air, 1984')]),
     23: P('pd_building', z0=1.0, z1=1.15, fx0=0.5, fy0=0.4),
     24: P('cc0_27', z0=1.05, z1=1.2, fx0=0.5, fy0=0.5),

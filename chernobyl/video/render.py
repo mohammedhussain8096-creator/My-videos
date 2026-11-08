@@ -156,39 +156,68 @@ def draw_photo(sp, t, D):
     bd = int(5 * U); bg.paste((220, 222, 220), (px - bd, py - bd, px + pw + bd, py + ph + bd)); bg.paste(p, (px, py))
     return bg
 
-# ------------------------------------------------------------------ map (night Europe)
+# ------------------------------------------------------------------ map (real satellite imagery, NASA GIBS, public domain)
 M_LON0, M_LON1, M_LAT0, M_LAT1 = -14.0, 62.0, 30.0, 72.0
-MPX = 4200
+MPX = 8400
 def merc(lat): return math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
 MY0, MY1 = merc(M_LAT1), merc(M_LAT0)
 MPY = int(MPX * (MY0 - MY1) / math.radians(M_LON1 - M_LON0))
 def ll(lat, lon): return (lon - M_LON0) / (M_LON1 - M_LON0) * MPX, (MY0 - merc(lat)) / (MY0 - MY1) * MPY
 @lru_cache(None)
 def countries(): return json.load(open(os.path.join(ASSETS, 'countries.json')))
-LAND = (38, 46, 50); SEA = (10, 15, 19); HL = {'Ukraine': (58, 70, 62), 'Belarus': (52, 60, 58)}
+
+def _grade_sat(im):
+    im = ImageEnhance.Contrast(ImageEnhance.Color(im).enhance(0.85)).enhance(1.12)
+    return ImageEnhance.Brightness(im).enhance(0.82)
+
 @lru_cache(None)
 def map_base():
-    im = Image.new('RGB', (MPX, MPY), SEA); d = ImageDraw.Draw(im)
+    """Europe: NASA Blue Marble Next Generation (500 m), Mercator, with thin country borders"""
+    im = _grade_sat(Image.open(os.path.join(ASSETS, 'sat', 'europe_bmng.jpg')).convert('RGB')).resize((MPX, MPY), Image.LANCZOS)
+    lay = Image.new('RGBA', im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for n, rs in countries().items():
         for r in rs:
             pts = [ll(la, lo) for lo, la in r]; xs = [p[0] for p in pts]
             if max(xs) < -50 or min(xs) > MPX + 50: continue
-            d.polygon(pts, fill=HL.get(n, LAND))
-    a = np.asarray(im, np.float32)
-    rng = np.random.default_rng(2)
-    tex = np.asarray(Image.fromarray(rng.normal(128, 40, (MPY // 4, MPX // 4)).clip(0, 255).astype(np.uint8)).resize((MPX, MPY), Image.BICUBIC), np.float32) - 128
-    land = (np.abs(a - np.array(SEA)).sum(axis=2) > 6)[..., None]
-    a = a + tex[..., None] * 0.08 * land
-    im = Image.fromarray(a.clip(0, 255).astype(np.uint8)); d = ImageDraw.Draw(im)
+            d.line(pts + [pts[0]], fill=(255, 255, 255, 70), width=3)
+    im = im.convert('RGBA'); im.alpha_composite(lay); return im.convert('RGB')
+
+Z_LON0, Z_LON1, Z_LAT0, Z_LAT1 = 26.0, 35.0, 48.5, 54.0
+@lru_cache(None)
+def zone_base():
+    """northern Ukraine close-up: NASA MODIS Terra true colour, 9 Aug 2016 (250 m), Mercator, with borders"""
+    im = _grade_sat(Image.open(os.path.join(ASSETS, 'sat', 'ukraine_modis.jpg')).convert('RGB'))
+    zw, zh = im.size; zy0, zy1 = merc(Z_LAT1), merc(Z_LAT0)
+    def zll(lat, lon): return (lon - Z_LON0) / (Z_LON1 - Z_LON0) * zw, (zy0 - merc(lat)) / (zy0 - zy1) * zh
+    lay = Image.new('RGBA', im.size, (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for n, rs in countries().items():
         for r in rs:
-            pts = [ll(la, lo) for lo, la in r]; xs = [p[0] for p in pts]
-            if max(xs) < -50 or min(xs) > MPX + 50: continue
-            d.line(pts + [pts[0]], fill=(92, 104, 108), width=2)
-    return im
+            pts = [zll(la, lo) for lo, la in r]; xs = [p[0] for p in pts]
+            if max(xs) < -50 or min(xs) > zw + 50: continue
+            d.line(pts + [pts[0]], fill=(255, 255, 255, 80), width=3)
+    im = im.convert('RGBA'); im.alpha_composite(lay); return im.convert('RGB'), zll
 
 def view_box(v):
     lat, lon, wdeg = v; cx, cy = ll(lat, lon); w = wdeg / (M_LON1 - M_LON0) * MPX; return cx, cy, w
+
+def sat_frame(cx, cy, w):
+    """real-imagery frame for a Europe-pixel view box; blends to the sharp MODIS image when zoomed in"""
+    h = w * H / W; box = (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+    wdeg = w / MPX * (M_LON1 - M_LON0)
+    eu = map_base().resize((W, H), Image.BILINEAR, box=box) if wdeg > 5.5 else None
+    if wdeg < 9.0:
+        zim, zll = zone_base()
+        # convert the box corners to lon/lat, then to zone pixels
+        def inv(x, y):
+            lon = M_LON0 + x / MPX * (M_LON1 - M_LON0); my_ = MY0 - y / MPY * (MY0 - MY1)
+            lat = math.degrees(2 * math.atan(math.exp(my_)) - math.pi / 2); return lat, lon
+        la0, lo0 = inv(box[0], box[1]); la1, lo1 = inv(box[2], box[3])
+        x0, y0 = zll(la0, lo0); x1, y1 = zll(la1, lo1)
+        if 0 <= x0 and 0 <= y0 and x1 <= zim.width and y1 <= zim.height:
+            z = zim.resize((W, H), Image.BICUBIC, box=(x0, y0, x1, y1))
+            if eu is None: return z
+            k = ease((9.0 - wdeg) / 3.5); return Image.blend(eu, z, k)
+    return eu if eu is not None else map_base().resize((W, H), Image.BILINEAR, box=box)
 
 PLANT = (51.389, 30.099)
 @lru_cache(64)
@@ -197,36 +226,45 @@ def plume_mask(key):
     blobs = json.loads(key)
     m = Image.new('L', (MPX // 4, MPY // 4), 0); d = ImageDraw.Draw(m)
     rng = np.random.default_rng(9)
-    for la, lo, r_deg in blobs:
-        x, y = ll(la, lo); r = r_deg / (M_LON1 - M_LON0) * MPX
-        for k in range(14):
-            ox, oy = rng.normal(0, r * 0.35, 2); rr = r * rng.uniform(0.45, 0.85)
-            d.ellipse([(x + ox - rr) / 4, (y + oy - rr * 0.7) / 4, (x + ox + rr) / 4, (y + oy + rr * 0.7) / 4], fill=110)
-    return m.filter(ImageFilter.GaussianBlur(10)).resize((MPX, MPY), Image.BILINEAR)
+    nb = len(blobs)
+    for bi, (la, lo, r_deg) in enumerate(blobs):
+        x, y = ll(la, lo); r = r_deg / (M_LON1 - M_LON0) * MPX; dens = int(150 - 80 * bi / max(1, nb - 1))   # thicker near the source
+        for k in range(18):
+            ox, oy = rng.normal(0, r * 0.38, 2); rr = r * rng.uniform(0.35, 0.8)
+            d.ellipse([(x + ox - rr) / 4, (y + oy - rr * 0.7) / 4, (x + ox + rr) / 4, (y + oy + rr * 0.7) / 4], fill=dens)
+    m = m.filter(ImageFilter.GaussianBlur(14))
+    a = np.asarray(m, np.float32) / 255                       # break it up with cloud noise
+    nz = np.zeros_like(a)
+    for oc, amp in ((8, 0.5), (24, 0.3), (64, 0.2)):
+        g = rng.random((max(2, a.shape[0] // oc), max(2, a.shape[1] // oc))).astype(np.float32)
+        nz += amp * np.asarray(Image.fromarray((g * 255).astype(np.uint8)).resize((a.shape[1], a.shape[0]), Image.BICUBIC), np.float32) / 255
+    a = np.clip(a * (0.35 + 1.0 * nz), 0, 1)
+    return Image.fromarray((a * 255).astype(np.uint8)).resize((MPX, MPY), Image.BILINEAR)
 
 def draw_map(sp, t, D):
     k = ease(t / D)
     v0 = view_box(sp.get('view', (50, 25, 40))); v1 = view_box(sp.get('view1', sp.get('view', (50, 25, 40))))
     cx, cy, w = (lerp(a, b, k) for a, b in zip(v0, v1)); h = w * H / W
     box = (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2); s = W / w
-    base = map_base().resize((W, H), Image.BILINEAR, box=box).convert('RGBA')
+    base = sat_frame(cx, cy, w).convert('RGBA')
     def scr(la, lo): x, y = ll(la, lo); return (x - box[0]) * s, (y - box[1]) * s
     # plume: list of stages (at, blobs); each stage fades in over 1.5 s
     for st in sp.get('plume', []):
         at, blobs = st; a = ease((t - at) / 1.6)
         if a <= 0: continue
         m = plume_mask(json.dumps(blobs)).resize((W, H), Image.BILINEAR, box=box)
-        pulse = 0.85 + 0.15 * math.sin(t * 2.2)
-        layer = Image.new('RGBA', (W, H), TOX + (0,)); layer.putalpha(m.point(lambda v: int(v * a * pulse * 1.3)))
-        base.alpha_composite(layer)
-    d = ImageDraw.Draw(base)
+        pulse = 0.9 + 0.1 * math.sin(t * 1.7)
+        glow = Image.new('RGBA', (W, H), (150, 230, 60, 0)); glow.putalpha(m.filter(ImageFilter.GaussianBlur(18 * U)).point(lambda v: int(min(255, v * a * 0.9))))
+        core = Image.new('RGBA', (W, H), (215, 245, 110, 0)); core.putalpha(m.point(lambda v: int(min(255, v * a * pulse * 0.95))))
+        base.alpha_composite(glow); base.alpha_composite(core)
+    lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for z in sp.get('zone', []):                      # (radius_km, at)
         r_km, at = z; a = ease((t - at) / 0.8)
         if a <= 0: continue
         x, y = scr(*PLANT); x2, _ = scr(PLANT[0], PLANT[1] + r_km / (111.3 * math.cos(math.radians(PLANT[0]))))
         R = abs(x2 - x) * eout((t - at) / 1.2)
-        d.ellipse([x - R, y - R, x + R, y + R], outline=AMBER + (int(230 * a),), width=int(4 * U))
-        d.ellipse([x - R, y - R, x + R, y + R], fill=AMBER + (int(30 * a),))
+        d.ellipse([x - R, y - R, x + R, y + R], fill=AMBER + (int(45 * a),), outline=AMBER + (int(235 * a),), width=int(4 * U))
+    base.alpha_composite(lay); d = ImageDraw.Draw(base)
     for c in sp.get('cities', []):                    # (name, lat, lon, at, dx, dy)
         name, la, lo, at = c[:4]; dx, dy = (c[4], c[5]) if len(c) > 5 else (1, 0)
         a = ease((t - at) / 0.5)
@@ -238,13 +276,15 @@ def draw_map(sp, t, D):
     if sp.get('pin', True):                           # the plant: pulsing red beacon
         a = ease((t - sp.get('pin_at', 0.2)) / 0.5)
         if a > 0:
-            x, y = scr(*PLANT)
+            x, y = scr(*PLANT); rl = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(rl)
             for k2 in range(3):
                 ph = ((t * 0.8 + k2 / 3) % 1); R = (10 + 60 * ph) * U
                 d.ellipse([x - R, y - R, x + R, y + R], outline=RED + (int(200 * (1 - ph) * a),), width=int(3 * U))
+            base.alpha_composite(rl); d = ImageDraw.Draw(base)
             r = 11 * U; d.ellipse([x - r, y - r, x + r, y + r], fill=RED + (int(255 * a),), outline=(255, 220, 210, int(255 * a)), width=int(3 * U))
             if sp.get('pin_label', True):
                 ti = text_img('CHERNOBYL', 'osw', 38, fill=(255, 210, 200), track=3); put(base, ti, x + 18 * U, y - ti.height / 2 - 2 * U, a)
+    lay = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
     for ar in sp.get('arrows', []):                   # wind arrows (lat0, lon0, lat1, lon1, at)
         la0, lo0, la1, lo1, at = ar; p = ease((t - at) / 1.8)
         if p <= 0: continue
@@ -254,6 +294,7 @@ def draw_map(sp, t, D):
         (xa, ya), (xb, yb) = pts[-2], pts[-1]; ang = math.atan2(yb - ya, xb - xa); L = 26 * U
         d.polygon([(xb + math.cos(ang) * L * 0.6, yb + math.sin(ang) * L * 0.6), (xb + math.cos(ang + 2.5) * L, yb + math.sin(ang + 2.5) * L),
                    (xb + math.cos(ang - 2.5) * L, yb + math.sin(ang - 2.5) * L)], fill=TOX + (240,))
+    base.alpha_composite(lay)
     return base.convert('RGB')
 
 # ------------------------------------------------------------------ reactor cross-section
