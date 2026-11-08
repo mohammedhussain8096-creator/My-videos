@@ -1,0 +1,40 @@
+"""Scene-by-scene visuals. Filled in chapter by chapter."""
+from plan import SC, SAME, P, MAP, R, TITLE, cap, date, label, big, quote, city, V_EUROPE, V_UKRAINE, V_ZONE, V_NORTH
+
+SC.update({
+    # ------------------------------------------------------------ cold open: the button
+    1: dict(kind='clock', **{'from': (1, 23, 30)}, rate=1.0, label='26 APRIL 1986  ·  CHERNOBYL, SOVIET UKRAINE', sfx=[('tick', 0.0, 6)]),
+    2: P('cc0_30', z0=1.25, z1=1.45, fx0=0.5, fy0=0.55, ov=[cap('Control room of Reactor No. 4 (photographed decades later)')]),
+    3: P('cc0_30', z0=1.9, z1=2.3, fx0=0.45, fy0=0.62, ov=[label('AZ-5', size=110, col=(255, 70, 50), y=0.5, at=0.6)]),
+    4: R(power=0.5, boil=0.2, rods=(0.15, 0.55, 0.3, 3.0), labels=[('EMERGENCY SHUTDOWN', 0.08, 0.12, 0.3, (255, 120, 100))]),
+    5: R(power=(0.6, 3.0, 0.0, 1.0), boil=(0.4, 1.0, 0, 1.0), rods=0.6, tips_hot=True, explode=1.3, tr='cut', sfx=[('boom', 1.3)]),
+    6: SAME,
+    7: R(power=2.0, boil=1.0, rods=0.6, explode=-1.0, blue_glow=True, tr='flash', ov=[label('THE CORE IS OPEN TO THE SKY', y=0.88, at=1.0)]),
+    8: SAME,
+    9: dict(kind='counter', count=(0, 50000), label='PEOPLE ASLEEP NEXT DOOR', bgimg='pd_pripyat1984', grade='bw', icons=('person', 40)),
+    10: dict(kind='counter', count=(0, 36), suffix=' HOURS', label='BEFORE ANYONE TOLD THEM', bgimg='pd_pripyat1984', grade='bw', col=(255, 90, 70)),
+    11: TITLE('Chernobyl', 'THE WORST NUCLEAR DISASTER IN HISTORY', bg='cc0_26'),
+    12: dict(kind='counter', count=(0, 3), label='QUESTIONS THIS VIDEO WILL ANSWER', bgimg='cc0_44', col=(255, 255, 255), cdur=1.0),
+    13: R(power=0.9, boil=0.6, rods=(0.0, 0.25, 0.2, 2.5), tips_hot=True, meter=False,
+          labels=[('1  ·  THE BUTTON THAT DESTROYED IT', 0.06, 0.1, 0.2, (255, 200, 120))]),
+    14: P('cc0_26', z0=1.1, z1=1.3, fx0=0.5, fy0=0.6, ov=[label('2  ·  THE DARK WATER', y=0.12, size=56, col=(150, 210, 255))]),
+    15: P('cc0_29', z0=1.0, z1=1.15, fx0=0.5, fy0=0.5, ov=[label("3  ·  THE ELEPHANT'S FOOT", y=0.12, size=56, col=(255, 140, 90))]),
+    16: SAME,
+    17: P('pd_pripyat1974', grade='bw', z0=1.0, z1=1.25, fx0=0.5, fy0=0.5, tr='push'),
+    18: SAME,
+    # ------------------------------------------------------------ the city of the future
+    19: TITLE('The City of the Future', 'CHAPTER 1', bg='pd_pripyat1984', grade='bw'),
+    20: MAP(view=V_EUROPE, view1=V_UKRAINE, pin=True, cities=[city('kyiv', 1.2)], pin_label=False),
+    21: MAP(view=V_UKRAINE, view1=(51.0, 30.3, 5.0), cities=[city('kyiv', -1), city('pripyat', 2.0, -1, 0)], ov=[big('100 KM', 'north of Kyiv', y=0.82, size=120, dim=False, at=0.8)]),
+    22: P('pd_pripyat1984', grade='bw', z0=1.0, z1=1.2, fx0=0.5, fy0=0.5, ov=[cap('Pripyat from the air, 1984')]),
+    23: P('pd_building', z0=1.0, z1=1.15, fx0=0.5, fy0=0.4),
+    24: P('cc0_27', z0=1.05, z1=1.2, fx0=0.5, fy0=0.5),
+    25: P('pd_pool', z0=1.0, z1=1.15, fx0=0.5, fy0=0.5, ov=[cap('The Azure swimming pool, Pripyat')]),
+    26: dict(kind='counter', count=(0, 26), label='AVERAGE AGE IN PRIPYAT, 1986', bgimg='cc0_36', col=(255, 220, 120), cdur=1.6),
+    27: P('cc0_36', z0=1.0, z1=1.15, fx0=0.5, fy0=0.5),
+    28: P('cc0_33', z0=1.0, z1=1.12, fx0=0.5, fy0=0.5),
+    29: P('cc0_32', z0=1.0, z1=1.15, fx0=0.5, fy0=0.55),
+    30: P('pd_amuse', z0=1.0, z1=1.15, fx0=0.5, fy0=0.5),
+    31: P('pd_ferris', z0=1.0, z1=1.2, fx0=0.5, fy0=0.45, ov=[date('OPENING: 1 MAY 1986', 0.8)]),
+    32: P('pd_ferris', z0=1.25, z1=1.45, fx0=0.5, fy0=0.4, ov=[big('IT NEVER OPENED', '', w='never', y=0.8, size=130, dim=False)]),
+})

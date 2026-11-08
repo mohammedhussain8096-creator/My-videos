@@ -1,0 +1,742 @@
+[
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "At 1:23 in the morning, on April 26th, 1986, a young engineer in Soviet Ukraine pressed a button."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "It was the most important safety button in the building. Its only job was to shut the reactor down."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "Four seconds later, Reactor Number Four of the Chernobyl Nuclear Power Plant exploded."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "The roof was blown off. A column of radioactive fire rose into the night sky. And in the city next door, fifty thousand people were asleep."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "They would not be told anything for the next thirty-six hours."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "This is the story of the worst nuclear disaster in history. And by the end of this video, you will know three things that most people never learn."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "Why the button meant to save the reactor is the thing that destroyed it. What three men found when they waded into the dark water beneath a burning reactor. And why a lump of melted fuel, nicknamed the Elephant's Foot, could kill you in minutes."
+ },
+ {
+  "part": "The Button",
+  "cue": "",
+  "text": "But to understand any of it, we have to start with a city that was built to be perfect."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "In 1970, the Soviet Union began building a new city in the forests of northern Ukraine, about a hundred kilometers north of Kyiv."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "They called it Pripyat. It was built for the workers of a brand new nuclear power plant, and it was meant to show the world what a Soviet city could be."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "It had wide streets, modern apartments, a hospital, schools, a cinema, a swimming pool, and a palace of culture. In 1986, the average age of its people was just twenty-six."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "Families wanted to live there. Jobs at the plant paid well, the shops were better stocked than almost anywhere else, and the river and the forest were right outside the door."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "There was even an amusement park, with a big yellow Ferris wheel. It was supposed to open on May 1st, 1986, for the holiday."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "It never did."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "Three kilometers from the city stood the reason Pripyat existed. The Chernobyl Nuclear Power Plant. Four giant reactors, with two more under construction. One of the largest nuclear stations on Earth."
+ },
+ {
+  "part": "The City of the Future",
+  "cue": "",
+  "text": "And inside Reactor Number Four, there was a secret."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "The reactors at Chernobyl were a Soviet design called the RBMK."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "Here is how it worked, in simple terms. Inside the core, uranium fuel splits apart and releases heat. Water flows through the core, boils into steam, and the steam spins giant turbines that make electricity."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "To keep the reaction from running out of control, operators lower control rods into the core. The rods soak up neutrons, the tiny particles that keep the chain reaction going. More rods in, less power. Rods out, more power."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "Simple enough. But the RBMK had two hidden flaws."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "The first was about the water. In most reactors, if the water boils away, the reaction slows down. In the RBMK, it was the opposite. Less water meant more power. More power boiled more water. And more boiling meant even more power."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "At low power, this could turn into a runaway loop."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "The second flaw was hidden in the control rods themselves. The tip of each rod was made of graphite. And graphite does not slow the reaction down. It speeds it up."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "So for the first few seconds, as a rod entered the core, it did not reduce the power at the bottom of the reactor. It increased it."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "Soviet scientists had seen signs of this problem at another plant in 1983. But the warning never reached the people running Reactor Number Four."
+ },
+ {
+  "part": "The Machine",
+  "cue": "",
+  "text": "They had no idea that their emergency button could do the opposite of what it was designed to do."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "On April 25th, 1986, Reactor Number Four was scheduled for a safety test."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "The question was simple. If the plant ever lost outside power, the emergency diesel generators needed about a minute to start pumping cooling water. Could the spinning turbine, slowing down, produce enough electricity to fill that gap?"
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "It was an important question. The test had already been tried before, and it had never fully worked."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "The plan was to run the test during the day, with the reactor at reduced power. But that afternoon, the grid controller in Kyiv asked them to wait. The city needed the electricity."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "So the test was delayed by about ten hours."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "The experienced day shift went home. The evening shift prepared. And the test finally began after midnight, with the night shift at the controls."
+ },
+ {
+  "part": "The Test",
+  "cue": "",
+  "text": "Running the reactor that night was a twenty-five year old engineer named Leonid Toptunov. The shift chief was Aleksandr Akimov. And supervising the test was the deputy chief engineer, Anatoly Dyatlov, a tough and demanding boss."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "Just after midnight, while the operators were lowering the power, something went wrong."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "The reactor's output suddenly crashed, almost to zero."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "This was dangerous. When an RBMK runs at very low power, the core fills with a gas called xenon, which soaks up neutrons and keeps the power down. It is called reactor poisoning."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "The safe choice was to stop and wait a day. But the test was already late."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "To bring the power back up, the operators pulled control rods out of the core. Then more rods. And more."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "The rules said there should always be at least fifteen rods in the core. By 1:23 in the morning, there were only a handful left."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "The power climbed back to about 200 megawatts, far below the level the test was meant to use. The reactor was now unstable, starved of water flow, and almost every brake had been removed."
+ },
+ {
+  "part": "The Power Drops",
+  "cue": "",
+  "text": "And they started the test anyway."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "At 1:23 and 4 seconds, the turbine was disconnected. The cooling pumps began to slow down."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "Less water was flowing through the core. The water began to boil. And because of the first flaw, more steam meant more power."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "Thirty-six seconds later, someone pressed the emergency button. In the control room, it was called AZ-5."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "Every control rod in the reactor began to drop into the core at once."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "And this is the moment the second flaw woke up. The graphite tips entered first. At the bottom of the core, the power spiked."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "In just a few seconds, the output jumped to many times the reactor's full capacity. The fuel shattered. The cooling channels burst. Steam pressure tore the reactor apart."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "There was a first explosion. Then a second one, seconds later."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "The giant lid of the reactor, a disc of steel and concrete weighing more than a thousand tonnes, was thrown into the air and landed on its side. Burning graphite and pieces of the core were scattered across the roofs and the ground outside."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "For the first time in history, the core of a nuclear reactor was open to the sky."
+ },
+ {
+  "part": "1:23:40",
+  "cue": "",
+  "text": "Witnesses later described a strange blue glow rising above the building. It was the air itself, glowing from the radiation."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "In the control room, nobody understood what had happened."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "The lights flickered. Dust fell from the ceiling. Alarms were sounding everywhere. Akimov and Dyatlov believed a tank of water had exploded. They were sure the reactor itself was still intact."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "So they sent men to check. Some were sent to lower the control rods by hand. Others to pump water into a core that no longer existed."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "The men came back burned, vomiting, and in shock. They said the reactor was gone. Nobody wanted to believe them."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "The problem was the dosimeters, the devices that measure radiation. The ones they had could only read up to 3.6 roentgen per hour. So the needle simply stopped at 3.6."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "3.6 roentgen per hour is serious, but not deadly. It is roughly like having hundreds of chest X-rays in a single hour."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "But the real number near the open core was not 3.6. In some places, it was thousands of roentgen per hour."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "A dose of about 500 roentgen, taken in a short time, is enough to kill a person. Near the reactor, men were receiving that dose in minutes."
+ },
+ {
+  "part": "3.6 Roentgen",
+  "cue": "",
+  "text": "And they had no idea."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "Within minutes, firefighters arrived from the plant and from Pripyat."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "Lieutenant Volodymyr Pravyk and Lieutenant Viktor Kibenok led their men onto the roofs, where pieces of the reactor were burning. Many of them were in their twenties. Nobody told them it was a nuclear fire."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "The tar on the roof had melted and stuck to their boots. Some of the men picked up glowing chunks of graphite with their hands, not knowing that each piece was deadly."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "By morning, they had put out the fires on the roofs. They saved the other three reactors from catching fire too. But it cost them everything."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "The first patients were taken to the small hospital in Pripyat. Their uniforms were cut off and thrown into the basement. Those clothes are still there today, and they are still radioactive."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "The worst cases were flown to Hospital Number Six in Moscow, a special clinic for radiation injuries. Doctors fought for weeks to save them. An American doctor, Robert Gale, even flew in to perform bone marrow transplants."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "But for most of the firefighters, the dose had been far too high. Within weeks, Pravyk and Kibenok were dead. So were many of their men. Most were buried in sealed coffins."
+ },
+ {
+  "part": "The Firefighters",
+  "cue": "",
+  "text": "In total, twenty-eight workers and firefighters died of acute radiation sickness in the months after the explosion. Two plant workers had already died on the first night. One of them, Valery Khodemchuk, was never found. He is still inside the ruins of Reactor Number Four."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "And what about Pripyat?"
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "On the morning of April 26th, it was a normal Saturday."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "Children went to school. Couples got married. People sunbathed and went fishing. Some families walked to a railway bridge to watch the strange glow over the plant. It was beautiful, they said."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "Today, people call it the Bridge of Death. Though some historians doubt it was as deadly as the legend says, the people standing there that night were exposed without any warning."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "The authorities knew the reactor had exploded. But for a whole day, nobody told the city."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "Then, on the afternoon of April 27th, an announcement was made over the loudspeakers. Residents were told to pack documents and a few things for three days. Buses were coming."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "About 1,200 buses arrived, in a line that stretched for kilometers. In just a few hours, around 50,000 people left Pripyat."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "They took almost nothing. They left their furniture, their photographs, their toys, and their pets."
+ },
+ {
+  "part": "The City That Slept",
+  "cue": "",
+  "text": "They were told it was for three days. Nobody ever came back to live there again."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "The Soviet government still said nothing to the outside world."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "But radiation does not stop at borders."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "On the morning of April 28th, more than a thousand kilometers away, workers arriving at the Forsmark nuclear plant in Sweden set off the radiation alarms. The radiation was on their shoes."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "At first, the Swedes thought their own plant was leaking. They searched everywhere. Nothing was wrong. The wind was carrying the radiation from somewhere to the east."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "Sweden began asking Moscow questions. And that evening, Soviet television read a short statement, just a few sentences long. An accident had happened at Chernobyl. One reactor was damaged. Measures were being taken."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "That was all."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "And inside the Soviet Union, the silence went even further. On May 1st, just five days after the explosion, the May Day parade went ahead in Kyiv, about a hundred kilometers from the reactor. Thousands of people, many of them children, marched through the streets waving flags and flowers."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "The wind had turned. Radiation levels in the city were rising. The leaders knew. And the parade went on, because cancelling it would have meant admitting how bad things were."
+ },
+ {
+  "part": "The World Finds Out",
+  "cue": "",
+  "text": "The radioactive cloud went on to drift across Belarus, Ukraine, Russia, Scandinavia, and much of Europe. In total, Chernobyl released hundreds of times more radioactive material than the atomic bomb dropped on Hiroshima."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "Meanwhile, the core was still burning."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "The graphite inside the reactor had caught fire, and the fire was pushing radiation high into the air. Nobody had ever tried to put out a burning nuclear core before."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "So the Soviets tried something desperate. Helicopters flew over the open reactor and dropped sand, clay, lead, and boron straight into it. Pilots flew into the radioactive smoke again and again."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "Over about two weeks, they dropped around 5,000 tonnes of material into the core."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "It worked, slowly. By around May 10th, the fire was mostly out."
+ },
+ {
+  "part": "Fighting the Fire",
+  "cue": "",
+  "text": "But by then, scientists had found an even bigger danger. One that could make the first explosion look small."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "Under the reactor were huge pools of water, part of the safety system."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "The core was still melting. A glowing mixture of uranium, sand, concrete, and steel, now called corium, was slowly eating its way down through the building."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "If that molten mass reached the water below, it could set off a massive steam explosion. Some feared it could blow out the remains of the reactor, and spread even more radiation across Europe."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "The water had to be drained. But the valves that could drain it were in the flooded basement, in the dark, right under the reactor."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "Three men volunteered. Alexei Ananenko, Valeri Bezpalov, and Boris Baranov."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "They put on diving suits, waded into the radioactive water with flashlights, and searched the pipes until they found the right valves. They opened them. The pools were drained."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "For years, the story was told that all three died soon after. They did not. All three survived the mission, and lived for many years after it."
+ },
+ {
+  "part": "The Water Beneath",
+  "cue": "",
+  "text": "At the same time, hundreds of coal miners were brought in to dig a tunnel under the reactor, in brutal heat. Many worked without masks or shirts. The plan was to build a cooling system beneath the core. In the end, it was never needed. But the miners did not know that while they were digging."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "The fire was out. But the roof of the plant was still covered with pieces of the reactor. Chunks of graphite and fuel, so radioactive that standing next to them for a few minutes could be deadly."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "They had to be cleared before a cover could be built."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "First, the Soviets sent robots. Some were moon rovers, others were bought from West Germany. But the radiation was so strong that their electronics failed. One by one, the robots stopped working."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "So they sent people."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "Soldiers and reservists, wearing homemade armor of lead sheets, ran onto the roof. Each man had about a minute, sometimes less. He would grab a shovel, throw a piece of graphite over the edge, and run back."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "They called them biorobots."
+ },
+ {
+  "part": "The Biorobots",
+  "cue": "",
+  "text": "Over the years, around 600,000 people took part in the cleanup. They were called the liquidators. Many of them did not fully understand what they were being exposed to."
+ },
+ {
+  "part": "The Elephant's Foot",
+  "cue": "",
+  "text": "Now, remember the corium, the melted core that was eating its way through the building?"
+ },
+ {
+  "part": "The Elephant's Foot",
+  "cue": "",
+  "text": "In December 1986, workers exploring the basement under the reactor found where some of it had ended up. It had flowed through pipes and corridors, and then cooled into a solid, wrinkled mass."
+ },
+ {
+  "part": "The Elephant's Foot",
+  "cue": "",
+  "text": "It looked like the foot of an elephant."
+ },
+ {
+  "part": "The Elephant's Foot",
+  "cue": "",
+  "text": "When it was found, standing next to the Elephant's Foot could give you a deadly dose in just a few minutes. Today, it is much weaker, but it is still dangerous, and it is slowly cracking and turning to dust."
+ },
+ {
+  "part": "The Elephant's Foot",
+  "cue": "",
+  "text": "There is a famous photo of a worker standing next to it, taken years later. The image is blurry and stained. Not only because of the camera. Partly because the radiation itself was damaging the film."
+ },
+ {
+  "part": "The Sarcophagus",
+  "cue": "",
+  "text": "The broken reactor had to be sealed."
+ },
+ {
+  "part": "The Sarcophagus",
+  "cue": "",
+  "text": "In just 206 days, thousands of workers built a giant shelter of steel and concrete around Reactor Number Four. It was called the Sarcophagus."
+ },
+ {
+  "part": "The Sarcophagus",
+  "cue": "",
+  "text": "It was built fast, in deadly conditions, and it was never meant to last. Within a few decades, it was cracking and in danger of collapse."
+ },
+ {
+  "part": "The Sarcophagus",
+  "cue": "",
+  "text": "So in 2016, an enormous new arch was slid over the old one on rails. The New Safe Confinement is one of the largest movable structures ever built on land. It weighs about 36,000 tonnes, it is tall enough to cover the Statue of Liberty, and it is designed to last 100 years."
+ },
+ {
+  "part": "The Sarcophagus",
+  "cue": "",
+  "text": "Inside it, the ruins of Reactor Number Four are still there. Still radioactive. Still waiting to be taken apart."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "So who was to blame?"
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "At first, the Soviet Union blamed the operators. Dyatlov, the plant director, and the chief engineer were put on trial and sent to prison. Akimov and Toptunov were already dead."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "But one scientist knew the story was bigger."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "Valery Legasov was a leading Soviet chemist, and one of the main scientists sent to manage the disaster. In August 1986, he went to Vienna and spent hours explaining the accident to experts from around the world."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "In the years that followed, he pushed for the truth. He believed the reactor design itself, and a whole system of secrecy, had made the disaster possible."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "On April 27th, 1988, two years and one day after the explosion, Legasov took his own life. He left behind tapes about what he had seen."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "Today, it is widely accepted that the operators broke the rules, but that the reactor also had dangerous flaws that had been kept quiet. After Chernobyl, every RBMK reactor in the Soviet Union was changed. The control rods were redesigned."
+ },
+ {
+  "part": "The Truth",
+  "cue": "",
+  "text": "Which brings us back to the button."
+ },
+ {
+  "part": "The Answer",
+  "cue": "",
+  "text": "The button, AZ-5, was supposed to make the reactor safe."
+ },
+ {
+  "part": "The Answer",
+  "cue": "",
+  "text": "But on that night, the reactor was running at low power, with almost every control rod pulled out. When all the rods fell back in at once, their graphite tips entered first. For a few seconds, instead of slowing the reaction, they sped it up."
+ },
+ {
+  "part": "The Answer",
+  "cue": "",
+  "text": "In a reactor that was already unstable, those few seconds were enough."
+ },
+ {
+  "part": "The Answer",
+  "cue": "",
+  "text": "The emergency button did not cause the disaster alone. But in the exact conditions of that night, it was the final push."
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "How many people did Chernobyl kill?"
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "Officially, thirty-one people died in the short term. But the real toll is still argued about today."
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "The World Health Organization has estimated that up to 4,000 people among the most exposed groups could eventually die from radiation-related cancers. Other studies give much higher numbers, in the tens of thousands."
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "What is certain is this. Thousands of people who were children in 1986 later developed thyroid cancer, caused by radioactive iodine in milk and food."
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "More than 300,000 people were moved from their homes, forever. In Belarus, nearly a quarter of the country's land was contaminated."
+ },
+ {
+  "part": "The Cost",
+  "cue": "",
+  "text": "Around the plant, a zone with a radius of 30 kilometers was closed. It is still called the Exclusion Zone."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "And here is the strangest part of the story."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "Without people, nature came back."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "In the Chernobyl Exclusion Zone today, there are wolves, lynx, elk, and bears. In 1998, scientists even released a small herd of rare Przewalski's horses into the zone. Today, their descendants roam freely through the abandoned villages. Forests have grown through the streets of Pripyat. Trees grow inside apartment blocks. The yellow Ferris wheel still stands, rusting, in an amusement park that never opened."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "And something even stranger was found inside the reactor itself. In the 1990s, scientists discovered black fungus growing on the walls of the ruined building, in places where the radiation was still intense. Some studies suggest these fungi may even use radiation the way plants use sunlight. Life, growing in the most dangerous room on Earth."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "Near the plant, a pine forest died in the first days after the explosion. Its needles turned a rusty red. It is still called the Red Forest."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "Before 2022, tens of thousands of tourists visited the zone every year, walking through the empty classrooms and apartments of Pripyat with a guide and a dosimeter. Short visits, on the marked routes, give a dose smaller than a long flight."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "The zone has never been fully quiet. In 2022, during the war in Ukraine, Russian troops occupied the area for several weeks. And in 2025, a drone struck the New Safe Confinement, punching a hole in its outer roof."
+ },
+ {
+  "part": "The Zone Today",
+  "cue": "",
+  "text": "Some parts of the zone will not be safe to live in for thousands of years."
+ },
+ {
+  "part": "The Lesson",
+  "cue": "",
+  "text": "Years later, Mikhail Gorbachev, the last leader of the Soviet Union, wrote that Chernobyl was perhaps the real cause of the Soviet Union's collapse, five years later."
+ },
+ {
+  "part": "The Lesson",
+  "cue": "",
+  "text": "Because Chernobyl was not only a nuclear accident. It was what happens when a system hides its mistakes. When a flaw is known, and nobody is told. When a city sleeps for thirty-six hours next to an open reactor, because nobody wants to admit what has happened."
+ },
+ {
+  "part": "The Lesson",
+  "cue": "",
+  "text": "At 1:23 in the morning, a man pressed a button that was supposed to make everything safe."
+ },
+ {
+  "part": "The Lesson",
+  "cue": "",
+  "text": "The real danger was never the button."
+ },
+ {
+  "part": "The Lesson",
+  "cue": "",
+  "text": "It was everything that nobody was allowed to say."
+ }
+]
