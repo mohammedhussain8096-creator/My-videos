@@ -1,7 +1,7 @@
 """YouTube thumbnails for the Israel video (1280x720), drawn with the video's own map engine."""
 import os, sys
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageFilter, ImageEnhance, ImageChops
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import render as R, icons
 from render_text import text_img
@@ -56,13 +56,41 @@ def photo(name, h, tilt=0):
     sh.alpha_composite(card, (30, 30))
     return sh.rotate(tilt, Image.BICUBIC, expand=True)
 
+
+def pm_corner(fr, h=860):
+    """White House photo (public domain), cut out; dark moody grade + red rim light, face not altered."""
+    im = Image.open(os.path.join(HERE, 'assets', 'photos', 'netanyahu_cut.png')).convert('RGBA').crop((70, 100, 540, 720))
+    k = h / im.height; im = im.resize((int(im.width * k), h), Image.LANCZOS)
+    rgb = ImageEnhance.Contrast(ImageEnhance.Brightness(im.convert('RGB')).enhance(0.72)).enhance(1.35)
+    a = np.asarray(rgb).astype(np.float32)
+    yy = np.linspace(0, 1, im.height)[:, None, None]; xx = np.linspace(0, 1, im.width)[None, :, None]
+    a *= np.clip(1.0 - 0.6 * yy - 0.9 * np.clip(0.5 - xx, 0, 1) ** 1.2, 0.22, 1)       # light from the top, falls off below
+    a[..., 0] *= 1.04; a[..., 2] *= 0.92
+    body = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert('RGBA'); body.putalpha(im.getchannel('A'))
+    ramp = Image.fromarray((np.clip((np.arange(im.width) - 0.05 * im.width) / (0.09 * im.width), 0, 1) * 255).astype(np.uint8)[None, :].repeat(im.height, 0))
+    al = ImageChops.multiply(im.getchannel('A'), ramp); body.putalpha(al)
+    rim = Image.new('RGBA', im.size, (255, 50, 30, 0)); rim.putalpha(al.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(14)))
+    x, y = W - im.width + 30, H - im.height + 20
+    # dark smoky backdrop in the corner
+    yy2, xx2 = np.mgrid[0:H, 0:W].astype(np.float32)
+    d = np.sqrt(((xx2 - (x + im.width * 0.55)) / (im.width * 0.95)) ** 2 + ((yy2 - (y + im.height * 0.45)) / (im.height * 0.85)) ** 2)
+    dk = np.zeros((H, W, 4), np.uint8); dk[..., :3] = (18, 6, 4); dk[..., 3] = (np.clip(1.2 - d, 0, 1) ** 0.7 * 245).astype(np.uint8)
+    fr.alpha_composite(Image.fromarray(dk, 'RGBA'))
+    sh = Image.new('RGBA', fr.size, (0, 0, 0, 0)); sh.paste((0, 0, 0, 255), (x - 20, y), al)
+    sh = sh.filter(ImageFilter.GaussianBlur(40)); fr.alpha_composite(sh)
+    fr.alpha_composite(rim, (x, y)); fr.alpha_composite(rim, (x, y)); fr.alpha_composite(body, (x, y))
+    # bottom fade so he sits into the frame
+    g = np.zeros((H, W, 4), np.uint8); g[..., 3] = (np.clip((np.arange(H) - (H - 140)) / 140, 0, 1) * 170).astype(np.uint8)[:, None]
+    fr.alpha_composite(Image.fromarray(g, 'RGBA'))
+
 # 1. ONE LAND, TWO PEOPLES
-fr, cam = base((31.55, 33.75, 7.4), [('GREEN_LINE', 'blue', 1.0), ('WEST_BANK', 'green', 1.0), ('GAZA', 'green', 1.0)], dark=0.55)
+fr, cam = base((31.55, 34.45, 7.4), [('GREEN_LINE', 'blue', 1.0), ('WEST_BANK', 'green', 1.0), ('GAZA', 'green', 1.0)], dark=0.55)
 T(fr, 'ONE LAND', 70, 300, 190, 'white')
 T(fr, 'TWO PEOPLES', 70, 520, 170, 'yellow')
 T(fr, '3,000 years of history', 80, 720, 74, 'white', 'fredoka')
 P(fr, icons.get('flag-il', 190), 230, 900)
 P(fr, icons.get('flag-ps', 190), 610, 900)
+pm_corner(fr)
 save(fr, 'Israel_Thumb1.jpg')
 
 # 2. 3,000 YEARS IN 30 MINUTES
