@@ -46,7 +46,6 @@ def merc(lat):
 
 def ll2m(lat, lon):
     """lat/lon -> map image pixel"""
-    if lon < MJ['lon0']: lon += 360
     return (lon - MJ['lon0']) * PXD, (merc(MJ['lat1']) - merc(lat)) * MJ['ky']
 
 def place(p):

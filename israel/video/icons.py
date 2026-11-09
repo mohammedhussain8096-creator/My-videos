@@ -774,3 +774,5 @@ def tent_ic(s):
 
 _MORE.update({'dove': dove, 'handshake': handshake, 'star': star_david, 'crescent': crescent, 'cross': cross_ic, 'menorah': menorah,
               'scroll': scroll, 'wall': wallbar, 'tent': tent_ic, **{'flag-' + k: v for k, v in _FL2.items()}})
+
+_MORE.update({'cal-' + m.lower(): (lambda m: (lambda s: calendar(s, m)))(m) for m in ('JAN', 'APR', 'MAY', 'JUNE', 'JULY', 'SEPT', 'OCT', 'NOV', 'DEC')})

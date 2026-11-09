@@ -222,8 +222,5 @@ def resolve(timing_path):
             cont['fill'] = [(f[0], f[1]) for f in last.get('fill', [])]
             SCENES[n] = cont
 
-try:
-    import plan2   # the rest of the video (after the preview)
-except ImportError:
-    pass
+import plan2   # the rest of the video (after the preview)
 resolve(os.path.join(os.environ.get('OUT_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')), 'timing.json'))
