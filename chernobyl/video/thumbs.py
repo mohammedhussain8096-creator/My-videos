@@ -92,3 +92,40 @@ text(fr, 'AZ-5', 1870, 270, 'BebasNeue.ttf', 340, RED, 'r', glow=30)
 text(fr, 'THE SAFETY BUTTON', 1870, 560, 'BebasNeue.ttf', 150, WHITE, 'r')
 text(fr, 'THAT BLEW IT UP', 1870, 730, 'BebasNeue.ttf', 150, AMBER, 'r')
 save(fr, 'Chernobyl_Thumb3.jpg')
+
+# 4. stronger: Pripyat at dusk, the wrecked reactor glowing on the horizon, 36-hour hook
+def trefoil(size, col=(255, 210, 40)):
+    im = Image.new('RGBA', (size * 2, size * 2), (0, 0, 0, 0)); d = ImageDraw.Draw(im); c = size; r = size * 0.95
+    d.ellipse([c - r, c - r, c + r, c + r], fill=col + (255,), outline=(15, 10, 5, 255), width=size // 12)
+    for a0 in (-90 - 30, 30 - 30, 150 - 30):
+        d.pieslice([c - r * 0.8, c - r * 0.8, c + r * 0.8, c + r * 0.8], a0, a0 + 60, fill=(15, 10, 5, 255))
+    d.ellipse([c - r * 0.3, c - r * 0.3, c + r * 0.3, c + r * 0.3], fill=col + (255,))
+    d.ellipse([c - r * 0.2, c - r * 0.2, c + r * 0.2, c + r * 0.2], fill=(15, 10, 5, 255))
+    return im.resize((size, size), Image.LANCZOS)
+
+src = Image.open(os.path.join(A, 'photos_hd', 'pd_view.jpg')).convert('RGB')
+Z = 1.55; px, py = 1060, 610                                    # the sarcophagus in the photo
+win_w, win_h = W / Z, H / Z; x0, y0 = px - win_w * 0.62, py - win_h * 0.52
+img = src.resize((W, H), Image.LANCZOS, box=(x0, y0, x0 + win_w, y0 + win_h))
+ppx, ppy = (px - x0) * Z, (py - y0) * Z
+a = np.asarray(img).astype(np.float32) / 255
+lum = a.mean(axis=2, keepdims=True)
+Y, X = np.mgrid[0:H, 0:W].astype(np.float32)
+sky = np.clip((ppy + 40 - Y) / ppy, 0, 1)[..., None]           # 1 at the top, 0 at the horizon
+dusk = np.array([0.55, 0.12, 0.06]) * (0.35 + 0.9 * lum)        # blood-red dusk sky
+ground = a * np.array([0.62, 0.58, 0.55]) * 0.85
+a = ground * (1 - sky) + dusk * sky
+dist = np.sqrt(((X - ppx) / 1.0) ** 2 + ((Y - ppy) * 1.6) ** 2)
+glow = np.exp(-(dist / 260) ** 2)[..., None]; core = np.exp(-(dist / 60) ** 2)[..., None]
+col = np.exp(-((X - ppx) / 70) ** 2)[..., None] * np.clip((ppy - Y) / ppy, 0, 1)[..., None] * 0.8   # light column rising
+a = a + glow * np.array([1.0, 0.45, 0.08]) * 0.85 + core * np.array([1.0, 0.85, 0.5]) * 0.9 + col * np.array([1.0, 0.5, 0.1]) * 0.45
+vig = np.clip(((X / W - 0.5) * 2) ** 2 * 0.4 + ((Y / H - 0.5) * 2) ** 2 * 0.4, 0, 1)[..., None]
+a *= 1 - 0.6 * vig
+fr = Image.fromarray((np.clip(a, 0, 1) * 255).astype(np.uint8)).convert('RGBA')
+fr = Image.fromarray(np.asarray(fr)).filter(ImageFilter.UnsharpMask(2, 40, 3))
+ring(fr, ppx, ppy - 10, 150, RED, 14)
+arrow(fr, ppx - 300, ppy - 160, ppx - 160, ppy - 60, RED, 24)
+text(fr, '36 HOURS', 60, 190, 'BebasNeue.ttf', 300, RED, glow=30)
+text(fr, 'NOBODY TOLD THEM', 66, 400, 'BebasNeue.ttf', 130, WHITE)
+fr.alpha_composite(trefoil(220), (W - 290, 60))
+save(fr, 'Chernobyl_Thumb4.jpg')
