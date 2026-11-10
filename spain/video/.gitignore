@@ -1,0 +1,5 @@
+build
+__pycache__/
+assets/photos_raw
+assets/world_merc.jpg
+assets/sat
