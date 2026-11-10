@@ -1,6 +1,6 @@
-import numpy as np, json, wave, re
+import numpy as np, json, wave, re, soundfile as sf
 SR=44100; T=json.load(open('timing.json')); Ls=T['lines']; DUR=T['voEnd']+0.9; N=int(DUR*SR)
-rng=np.random.default_rng(7)
+S='../sep/'
 def wf(i,s,nth=1):
     n=0
     for w in Ls[i]['words']:
@@ -9,94 +9,45 @@ def wf(i,s,nth=1):
             if n==nth: return w['s']
     return Ls[i]['s']
 CUT=lambda i: 0 if i==0 else Ls[i]['s']-0.1
-mus=np.zeros(N); sfx=np.zeros(N)
-def add(buf,t,x,g=1.0):
+src={n:sf.read(S+f'{n}_sfx.wav')[0] for n in ['coins','carp']}
+def clip(n,t0,t1,pre=0.03,tail=0.12):
+    a=src[n][int((t0-pre)*SR):int((t1+tail)*SR)].copy(); f=int(0.012*SR); g=int(tail*SR)
+    a[:f]*=np.linspace(0,1,f); a[-g:]*=np.linspace(1,0,g)**2; return a/ (np.abs(a).max()+1e-9)
+def pitch(a,r): return np.interp(np.arange(0,len(a),r),np.arange(len(a)),a)
+SQ=[clip('carp',8.95,9.35),clip('carp',16.10,16.70),clip('carp',46.65,47.30)]
+SCRAPE=clip('coins',0.25,0.70); CLINK=clip('coins',37.95,38.75,tail=0.25); BANG=clip('coins',27.20,27.45,tail=0.3)
+THUD=clip('coins',20.00,20.25,tail=0.2); CREAK=clip('coins',55.40,55.90,tail=0.2); SLIDE=clip('carp',36.40,36.95,tail=0.2); DING=clip('carp',13.05,13.40,tail=0.25)
+sfx=np.zeros(N)
+def add(t,x,g=1.0):
     i=int(t*SR)
-    if i<0 or i>=N: return
-    x=x[:N-i]; buf[i:i+len(x)]+=x*g
-def env(n,a=0.005,d=8): t=np.arange(n)/SR; return np.minimum(t/a,1)*np.exp(-t*d)
-def pluck(f,dur=0.5,d=9,h=(1,0.5,0.25,0.12)):
-    n=int(dur*SR); t=np.arange(n)/SR; x=sum(a*np.sin(2*np.pi*f*(k+1)*t) for k,a in enumerate(h)); return x*env(n,0.003,d)
-def noise(dur): return rng.standard_normal(int(dur*SR))
-def lp(x,k):
-    y=np.empty_like(x); a=0
-    c=np.cumsum(x); y=(c-np.concatenate([np.zeros(k),c[:-k]]))/k; return y
-mid=lambda m: 440*2**((m-69)/12)
-# ---- music: sneaky pizzicato, 104 bpm ----
-bpm=104; beat=60/bpm; bar=beat*4
-prog=[[38,45,41,45],[38,45,41,44],[36,43,40,43],[33,40,45,44]]  # D minor walk
-mel=[[62,None,65,None,69,None,65,64],[62,None,65,None,68,None,65,None],[60,None,64,None,67,None,64,62],[57,None,61,None,64,None,61,None]]
-fin=CUT(14)
-t=0; b=0
-while t<DUR:
-    major = t>=fin-0.01
-    p=prog[b%4]; m=mel[b%4]
-    for q in range(4):
-        n=p[q]+(0 if not major else 0)
-        add(mus,t+q*beat,pluck(mid(n),0.45,7,(1,0.6,0.2)),0.55)
-        hat=noise(0.04)*env(int(0.04*SR),0.001,90); add(mus,t+q*beat+beat/2,hat-lp(hat,6),0.10)
-    for e in range(8):
-        if m[e] is not None:
-            nn=m[e]+(1 if major and m[e]%12==5 else 0)  # F->F# in finale
-            add(mus,t+e*beat/2,pluck(mid(nn+12),0.3,14,(1,0.3,0.1)),0.22)
-    if b%2==1: add(mus,t+3.5*beat,pluck(mid(74),0.25,16),0.16)
-    t+=bar; b+=1
-# duck music under explainer slightly less; fade ends
-fade=np.ones(N); k=int(0.4*SR); fade[:k]=np.linspace(0,1,k); k2=int(0.7*SR); fade[-k2:]=np.linspace(1,0,k2); mus*=fade
-# ---- sfx ----
-def whoosh(d=0.28):
-    n=int(d*SR); x=lp(noise(d),40); e=np.sin(np.linspace(0,np.pi,n))**2; return x*e*6
-def pop(f=520):
-    n=int(0.09*SR); t=np.arange(n)/SR; return np.sin(2*np.pi*(f+f*1.2*t/0.09)*t)*env(n,0.002,30)
-def bonk():
-    n=int(0.45*SR); t=np.arange(n)/SR; f=180*np.exp(-t*7)+70; x=np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*7)
-    wood=np.sin(2*np.pi*820*t)*np.exp(-t*40)*0.5; return x+wood
-def boing():
-    n=int(0.5*SR); t=np.arange(n)/SR; f=300+140*np.sin(2*np.pi*11*t)*np.exp(-t*4); return np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*6)*0.6
-def squeak(d=0.22,f0=1400,f1=2100):
-    n=int(d*SR); t=np.arange(n)/SR; f=np.linspace(f0,f1,n)+60*np.sin(2*np.pi*35*t); x=np.sign(np.sin(2*np.pi*np.cumsum(f)/SR))*0.25+np.sin(2*np.pi*np.cumsum(f)/SR); return x*np.sin(np.linspace(0,np.pi,n))**0.7*0.35
-def metal(fs,d=5,dur=0.8):
-    n=int(dur*SR); t=np.arange(n)/SR; return sum(np.sin(2*np.pi*f*t)*np.exp(-t*(d+i*1.5)) for i,f in enumerate(fs))/len(fs)
-def click(): n=int(0.03*SR); x=noise(0.03)*env(n,0.0005,160); return x-lp(x,5)
-def sweep(f0,f1,d):
-    n=int(d*SR); t=np.arange(n)/SR; f=f0*(f1/f0)**(t/d); return np.sin(2*np.pi*np.cumsum(f)/SR)*np.sin(np.linspace(0,np.pi,n))**0.5
-for i in range(1,len(Ls)): add(sfx,CUT(i)-0.12,whoosh(),0.5)
-P=lambda t,f=520,g=0.35: add(sfx,t,pop(f),g)
+    if 0<=i<N: x=x[:N-i]; sfx[i:i+len(x)]+=x*g
 tb=wf(0,'beaten')-0.05
-P(0.35); add(sfx,tb-0.1,whoosh(),0.6); add(sfx,tb+0.28,bonk(),0.9); add(sfx,tb+0.3,boing(),0.5); P(wf(0,'light'),700)
-P(CUT(1)+0.25); P(CUT(1)+0.55,650); add(sfx,wf(1,'and')-0.15,whoosh(),0.5); P(wf(1,'never'),700)
-for q in range(4): add(sfx,CUT(2)+0.25+q*0.3,squeak(0.2,1300+q*120,1900+q*150),0.5)
-P(CUT(2)+0.1); P(wf(2,'one',2),650); add(sfx,wf(2,'straight')+0.1,sweep(300,900,0.25),0.25); P(wf(2,'straight')+0.4,800)
-P(CUT(3)+0.3)
-for q in range(5): add(sfx,wf(3,'half')+q*0.22,squeak(0.18,1200+q*90,1800+q*100),0.35)
-P(wf(3,'half'),650)
-for q in range(4): add(sfx,CUT(4)+0.15+q*0.28,click(),0.9); 
-add(sfx,wf(4,'dark')-0.15,sweep(500,60,0.7),0.4); P(wf(4,'dark'),300,0.3)
-P(wf(5,'guards')); add(sfx,wf(5,'lenny')+0.1,sweep(400,800,0.2),0.2); add(sfx,wf(5,'lenny')+0.35,metal([1320,1980,2640],6,0.6),0.25)
-for q in range(2): add(sfx,wf(5,'and')+0.3+q*0.45,sweep(160,110,0.4),0.3)
-add(sfx,CUT(6)+0.6,metal([523,811,1244,1790,2417],6,0.9),0.7); P(wf(6,'cages'))
-tp=wf(6,'pliers'); add(sfx,tp,click(),1.4); add(sfx,tp+0.07,click(),1.2); add(sfx,tp+0.45,metal([400,640,990],9,0.5),0.4)
-idea=wf(7,'changed')-0.05; add(sfx,idea,metal([1318,1976,2637],4,1.1),0.55); P(wf(7,'one'),600); P(wf(7,'thing'),760)
-P(wf(8,'like'),650)
-a=wf(9,'it')-0.05; b=wf(9,'he',2)-0.05; c=wf(9,'it',2)-0.05; s9=CUT(9)
-for q in range(2): add(sfx,s9+0.12+q*0.25,squeak(0.2,1300,1900),0.5)
-for q in range(3): add(sfx,a+0.08+q*0.2,pluck(260-q*20,0.15,20),0.4)
-for q in range(int((c-b)/0.14)): add(sfx,b+0.08+q*0.14,squeak(0.12,1500+(q%2)*300,2200+(q%2)*300),0.5)
-add(sfx,c+0.05,sweep(900,300,0.38),0.25); add(sfx,c+0.42,bonk(),1.0); add(sfx,c+0.44,boing(),0.55)
-P(wf(10,'every'),600); add(sfx,wf(10,'tightens')-0.1,squeak(0.5,700,1100),0.25); P(wf(10,'right')-0.25,760); add(sfx,CUT(11)-0.4,metal([1760,2637],5,0.5),0.3)
-P(wf(11,'threads'),600); tf=wf(11,'backwards')-0.08; add(sfx,tf,sweep(1500,300,0.3),0.4); add(sfx,tf+0.05,whoosh(0.35),0.9); P(tf+0.1,820,0.4)
-P(CUT(12)+0.05,650); add(sfx,CUT(12)+0.2,squeak(0.5,700,1150),0.25); tR=wf(12,'right')-0.08; add(sfx,tR-0.3,metal([1760,2637],5,0.5),0.3); P(tR,500); add(sfx,tR+0.3,sweep(900,150,0.6),0.35); add(sfx,min(CUT(13)-0.25,tR+0.95),bonk(),0.6)
-s13=CUT(13); add(sfx,s13+0.3,sweep(300,600,0.5),0.15); add(sfx,s13+1.45,click(),1.6); add(sfx,s13+1.5,metal([900,1500,2300],10,0.3),0.5); P(wf(13,'key'),600); P(wf(13,'one'),700); P(wf(13,'own'),300,0.35)
-P(wf(14,'stealing'),600); P(wf(14,'stopped'),780); add(sfx,wf(14,'stopped')+0.05,metal([1046,1318,1568,2093],3,1.2),0.35)
-P(CUT(15)+0.12,420); tb15=wf(15,'he')-0.05; s16=CUT(16); P(wf(15,'first'),600); P(wf(15,'ticket'),760); add(sfx,tb15+0.6*(s16-tb15),metal([3100,4650,6200],7,0.7),0.6)
-P(wf(16,'he'),600); P(wf(16,'light'),820); 
-for q,nn in enumerate([74,78,81,86]): add(sfx,wf(16,'light')+0.1+q*0.09,pluck(mid(nn),0.9,4,(1,0.3)),0.3)
+add(tb+0.26,THUD,1.0)                                   # bulb bonks his head
+add(CUT(2)+0.35,SQ[0],0.8)                              # one twist
+add(wf(3,'half')+0.05,SQ[1],0.7)                        # everybody twisting
+add(CUT(6)+0.58,BANG,0.9)                               # cage slams down
+add(wf(6,'pliers'),SCRAPE,0.8)                          # pliers
+add(wf(7,'changed')-0.05,DING,0.8)                      # idea
+add(CUT(8)+0.15,CREAK,0.7)                              # walks in at home
+s9=CUT(9); b=wf(9,'he',2)-0.05; c=wf(9,'it',2)-0.05
+add(s9+0.15,SQ[2],0.75); add(b+0.1,pitch(SQ[0],1.12),0.8); add(b+0.55,pitch(SQ[0],1.25),0.8)
+add(c+0.40,THUD,1.0)                                    # bulb lands on foot
+add(wf(11,'backwards')-0.1,SLIDE,0.8)                   # thread flips
+add(CUT(12)+0.25,pitch(SQ[1],0.9),0.6)                  # screws in
+add(min(CUT(13)-0.3,wf(12,'right')+0.9),THUD,0.6)       # falls out
+tb15=wf(15,'he')-0.05; add(tb15+0.6*(CUT(16)-tb15),CLINK,0.9)   # coin at ticket booth
+# ---- music bed: the channel's own track, aligned so its ending lands on ours ----
+m=sf.read(S+'coins_music.wav')[0]; m=m[len(m)-N:] if len(m)>=N else np.pad(m,(N-len(m),0))
+f=int(0.6*SR); m[:f]*=np.linspace(0,1,f); g=int(0.5*SR); m[-g:]*=np.linspace(1,0,g)
 # ---- voice ----
 w=wave.open('vo.wav'); v=np.frombuffer(w.readframes(w.getnframes()),dtype=np.int16).astype(np.float64)/32768
-v=np.interp(np.arange(0,len(v),22050/SR),np.arange(len(v)),v); vo=np.zeros(N); vo[:min(N,len(v))]=v[:N]
-vo/=np.abs(vo).max(); 
-# sidechain: duck music when voice active
-e=lp(np.abs(vo),int(0.08*SR)); duck=1-0.45*np.clip(e/0.08,0,1)
-mix=vo*0.92 + mus/np.abs(mus).max()*0.2*duck + sfx*0.32
-mix=np.tanh(mix*1.15)/np.tanh(1.15); mix*=0.95/np.abs(mix).max()
-o=wave.open('mix.wav','w'); o.setnchannels(1); o.setsampwidth(2); o.setframerate(SR); o.writeframes((mix*32767).astype(np.int16).tobytes()); print('ok',DUR)
+v=np.interp(np.arange(0,len(v),22050/SR),np.arange(len(v)),v); vo=np.zeros(N); vo[:min(N,len(v))]=v[:N]; vo/=np.abs(vo).max()
+# match the reference's voice-to-bed balance
+rv=sf.read(S+'out/htdemucs/coins/vocals.wav')[0].mean(1); rb=sf.read(S+'out/htdemucs/coins/no_vocals.wav')[0].mean(1)
+rms=lambda x: np.sqrt((x[np.abs(x)>1e-3]**2).mean())
+ratio=rms(rb)/rms(rv); print('reference bed/voice ratio dB',20*np.log10(ratio))
+bed=m+0; mg=rms(vo)*ratio/rms(bed)*0.9
+ref_sfx_peak=np.abs(src['coins']).max()/np.abs(rv).max()
+mix=vo*0.9+bed*mg*0.9+sfx*min(0.5,ref_sfx_peak)*0.9
+mix=np.tanh(mix*1.1)/np.tanh(1.1); mix*=0.95/np.abs(mix).max()
+sf.write('mix2.wav',mix,SR); print('ok',DUR,'music gain',mg,'sfx gain',min(0.5,ref_sfx_peak))
