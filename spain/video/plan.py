@@ -21,7 +21,7 @@ PLACES = {
 VIEWS = {   # (lat, lon, width in degrees of longitude)
     'west_eu': (40.5, -2.0, 30), 'iberia': (40.0, -3.6, 15.5), 'spain_n': (42.6, -4.0, 8.5), 'strait': (36.0, -5.55, 2.6),
     'med_w': (38.5, 11.0, 54), 'europe': (46.0, 8.0, 46), 'world_wide': (8.0, 4.0, 248), 'atlantic': (22.0, -45.0, 110),
-    'americas': (2.0, -75.0, 90), 'south': (37.6, -4.5, 6.5), 'north': (42.8, -3.0, 9.0), 'east': (40.8, 0.0, 7.5),
+    'americas': (-8.0, -72.0, 90), 'south': (37.6, -4.5, 6.5), 'north': (42.8, -3.0, 9.0), 'east': (40.8, 0.0, 7.5),
 }
 _AMERICAS = ['Mexico', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Costa Rica', 'Panama', 'Colombia', 'Venezuela', 'Ecuador',
              'Peru', 'Bolivia', 'Chile', 'Argentina', 'Uruguay', 'Paraguay', 'Cuba', 'Dominican Republic', 'Puerto Rico']
