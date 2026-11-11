@@ -16,7 +16,7 @@ renders them. Read this before making or changing a video.
    - Send 2–3 hook options with the preview.
 3. **Music must not sound like a children's cartoon.** No bouncy ukulele or plucky comedy tunes
    ("Carefree" and "Investigations" were rejected). Use low, sparse, grown-up tracks such as
-   "Cool Vibes" or "Bass Walker", mixed about 19 dB under the voice.
+   "Cool Vibes" (the owner's pick for the channel sound), mixed about 19 dB under the voice.
 4. **No repeated pop sound on text.** Sound effects only on real actions, each used sparingly.
 5. **Characters in the reference style:** flat colour with no shading, egg-shaped body, very long
    thin legs, tiny hands, thick dark outline, big simple face. Use `makeChar2` in
@@ -79,8 +79,8 @@ reference videos instead. Facts in scripts come from memory unless checked, and 
 
 | Folder | Video | Status |
 |---|---|---|
-| `the-worst-plumber-in-london/` | The Worst Plumber in London (53 s) | Approved style; music changed to "Bass Walker" |
-| `he-owned-google-for-one-minute/` | He Owned Google for One Minute (57 s) | Music changed to "Cool Vibes" |
+| `the-worst-plumber-in-london/` | The Worst Plumber in London (53 s) | Approved style; music is "Cool Vibes" |
+| `he-owned-google-for-one-minute/` | He Owned Google for One Minute (57 s) | Music is "Cool Vibes" |
 | `the-backwards-bulb/` | The Thief Who Was Beaten by a Light Bulb (52 s) | Early style, superseded |
 | `the-window-that-broke-the-sky/` | Airplane windows | Preview only |
 | `the-cook-who-took-off-his-trousers/` | Trawler | Preview only; characters and ship rejected |
