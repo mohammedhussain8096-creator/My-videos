@@ -61,11 +61,11 @@ if len(Ls) > 14 and not END:
     add(wf(12, "can't") + 0.1, load('interface-sounds/Audio/drop_001.ogg'), 0.4); add(wf(12, 'cork') - 0.02, load('interface-sounds/Audio/pluck_001.ogg'), 0.5)
     add(wf(13, 'right') - 0.05, load('interface-sounds/Audio/select_002.ogg'), 0.35)
     signdrop(wf(14, 'bent') - 0.45 + 0.05); add(wf(14, 'only') + 0.3, load('interface-sounds/Audio/confirmation_001.ogg'), 0.4)
-m, _ = librosa.load('../dlmusic/Investigations.mp3', sr=SR, mono=True); m = m[:N] if len(m) >= N else np.pad(m, (0, N - len(m)))
+m, _ = librosa.load('../dlmusic/Bass_Walker.mp3', sr=SR, mono=True); m = m[:N] if len(m) >= N else np.pad(m, (0, N - len(m)))
 i = int(0.5 * SR); m[:i] *= np.linspace(0, 1, i); o = int(0.8 * SR); m[-o:] *= np.linspace(1, 0, o)
 w = wave.open('vo.wav'); v = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float64) / 32768
 v = np.interp(np.arange(0, len(v), 22050 / SR), np.arange(len(v)), v); vo = np.zeros(N); vo[:min(N, len(v))] = v[:N]; vo /= np.abs(vo).max()
-rms = lambda x: np.sqrt((x[np.abs(x) > 1e-3] ** 2).mean()); mg = rms(vo) / rms(m) * 10 ** (-12 / 20)
+rms = lambda x: np.sqrt((x[np.abs(x) > 1e-3] ** 2).mean()); mg = rms(vo) / rms(m) * 10 ** (-19 / 20)
 env = lp(np.abs(vo), int(0.1 * SR)); duck = 1 - 0.35 * np.clip(env / 0.08, 0, 1)
 mix = vo * 0.9 + m * mg * duck + sfx * 0.42; o = int(0.3 * SR); mix[-o:] *= np.linspace(1, 0, o)
 mix = np.tanh(mix * 1.1) / np.tanh(1.1); mix *= 0.95 / np.abs(mix).max(); sf.write('mix.wav', mix, SR); print('ok', DUR)
