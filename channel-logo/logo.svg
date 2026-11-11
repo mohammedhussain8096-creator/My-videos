@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="46%" r="75%">
+      <stop offset="0" stop-color="#1f6f7d"/><stop offset="0.55" stop-color="#103f52"/><stop offset="1" stop-color="#071c2b"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff8dc"/><stop offset="0.5" stop-color="#ffe08a" stop-opacity="0.95"/><stop offset="0.8" stop-color="#ffb347" stop-opacity="0.35"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="coat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a54d6"/><stop offset="1" stop-color="#4a2f96"/></linearGradient>
+    <radialGradient id="skin" cx="42%" cy="38%" r="75%"><stop offset="0" stop-color="#ffe0bd"/><stop offset="1" stop-color="#f3bd8c"/></radialGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <clipPath id="frame"><rect width="1024" height="1024"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)" stroke-linejoin="round" stroke-linecap="round">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <circle cx="512" cy="455" r="420" fill="url(#glow)"/>
+    <!-- broken halo ring: the "gap" -->
+    <path d="M 796 262 A 360 360 0 1 0 858 398" fill="none" stroke="#ffb347" stroke-width="46" filter="url(#soft)" opacity="0.8"/>
+    <path d="M 796 262 A 360 360 0 1 0 858 398" fill="none" stroke="#ffc94d" stroke-width="30"/>
+    <!-- spark in the gap -->
+    <g stroke="#fff3c4" stroke-width="16"><path d="M 872 300 l 46 -30"/><path d="M 850 262 l 22 -50"/><path d="M 890 344 l 54 6"/></g>
+    <!-- body -->
+    <path d="M 232 1100 C 232 860 330 742 512 742 C 694 742 792 860 792 1100 Z" fill="url(#coat)" stroke="#1b1522" stroke-width="24"/>
+    <path d="M 428 750 L 512 868 L 596 750" fill="#f6f0e2" stroke="#1b1522" stroke-width="20"/>
+    <path d="M 512 868 L 512 1040" stroke="#1b1522" stroke-width="16"/>
+    <circle cx="556" cy="930" r="17" fill="#ffc94d" stroke="#1b1522" stroke-width="10"/>
+    <circle cx="556" cy="1004" r="17" fill="#ffc94d" stroke="#1b1522" stroke-width="10"/>
+    <!-- head -->
+    <circle cx="512" cy="478" r="238" fill="url(#skin)" stroke="#1b1522" stroke-width="24"/>
+    <ellipse cx="372" cy="560" rx="38" ry="26" fill="#f08a7a" opacity="0.45"/><ellipse cx="652" cy="560" rx="38" ry="26" fill="#f08a7a" opacity="0.45"/>
+    <!-- beanie -->
+    <path d="M 276 446 C 262 250 400 168 512 168 C 624 168 762 250 748 446 C 660 400 364 400 276 446 Z" fill="#e2483d" stroke="#1b1522" stroke-width="24"/>
+    <path d="M 262 462 C 350 398 674 398 762 462 C 772 420 764 392 752 372 C 660 318 364 318 272 372 C 260 392 252 420 262 462 Z" fill="#f6f0e2" stroke="#1b1522" stroke-width="24"/>
+    <g stroke="#1b1522" stroke-width="10" opacity="0.5"><path d="M 380 346 l -8 74"/><path d="M 468 334 l -3 74"/><path d="M 556 334 l 3 74"/><path d="M 644 346 l 8 74"/></g>
+    <circle cx="512" cy="150" r="46" fill="#f6f0e2" stroke="#1b1522" stroke-width="22"/>
+    <!-- face: one raised brow + open eye, one wink -->
+    <path d="M 366 478 q 44 -34 88 -10" fill="none" stroke="#1b1522" stroke-width="20"/>
+    <circle cx="414" cy="532" r="25" fill="#1b1522"/><circle cx="423" cy="523" r="8" fill="#fff"/>
+    <path d="M 570 540 q 46 -52 92 0" fill="none" stroke="#1b1522" stroke-width="22"/>
+    <!-- smirk -->
+    <path d="M 430 628 Q 520 664 612 606 Q 596 704 512 706 Q 446 706 430 628 Z" fill="#7a1f2b" stroke="#1b1522" stroke-width="20"/>
+    <path d="M 449 640 Q 520 668 598 624 Q 594 644 588 656 Q 520 690 456 664 Z" fill="#fff"/>
+  </g>
+</svg>
