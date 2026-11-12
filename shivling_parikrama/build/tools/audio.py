@@ -47,8 +47,9 @@ for at in [0.05]+[scen[i]['a'] for i in ['sc4','tc1','tc2','tc3','sc9','sc10']]:
 def whoosh(d=.7):
     n=int(d*SR); w=rng.standard_normal(n).astype(np.float32); w=lp(w,0.08)-lp(w,0.01)
     e=np.sin(np.linspace(0,np.pi,n))**2; return (w*e).astype(np.float32)
-W=whoosh()
-for s in cues['scenes'][1:]: place(sfx,W,max(0,s['a']-.45),1.6)
+W=whoosh(); W=lp(W,0.35)  # softer top end
+WG=float(sys.argv[6]) if len(sys.argv)>6 else 0.45
+for s in cues["scenes"][1:]: place(sfx,W,max(0,s["a"]-.45),WG)
 # --- shimmer for gold, pop for tags
 def chime():
     n=int(1.6*SR); x=np.arange(n)/SR; s=np.zeros(n)
