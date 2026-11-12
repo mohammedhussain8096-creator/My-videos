@@ -17,7 +17,9 @@ renders them. Read this before making or changing a video.
 3. **Music must not sound like a children's cartoon.** No bouncy ukulele or plucky comedy tunes
    ("Carefree" and "Investigations" were rejected). Use low, sparse, grown-up tracks such as
    "Cool Vibes" (the owner's pick for the channel sound), mixed about 19 dB under the voice.
-4. **No repeated pop sound on text.** Sound effects only on real actions, each used sparingly.
+4. **No repeated pop sound on text, and no synthesized background noise.** Sound effects only on
+   real actions, each used sparingly. No noise-based ambience beds (crowd murmur, fire crackle,
+   crickets, wind, rain hiss); the owner rejected them. Music plus discrete action sounds only.
 5. **Characters in the reference style:** flat colour with no shading, egg-shaped body, very long
    thin legs, tiny hands, thick dark outline, big simple face. Use `makeChar2` in
    `pipeline/characters.js`. The earlier shaded, short-legged characters were rejected.
@@ -88,6 +90,7 @@ narration audio, use it as-is and build `timing.json` from a Whisper transcript.
 
 | Folder | Video | Status |
 |---|---|---|
+| `the-cook-who-got-paid-in-noise/` | The Cook Who Got Paid in Noise (54 s) | Full video; high-detail sets (courtroom, kitchen, night street); no ambience noise |
 | `the-girl-who-outsmarted-a-greedy-king/` | The Girl Who Outsmarted a Greedy King With a String (68 s, owner's own script and voice) | Full video; gold-mine/Einstein style: white heads (`makeChar3` in its src), real long shadows |
 | `the-worst-plumber-in-london/` | The Worst Plumber in London (53 s) | Approved style; music is "Cool Vibes" |
 | `he-owned-google-for-one-minute/` | He Owned Google for One Minute (57 s) | Music is "Cool Vibes" |
