@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<title>Shivling Parikrama</title>
+<style>
+@font-face{font-family:Hind;src:url(fonts/Hind-Bold.ttf);font-weight:700}
+@font-face{font-family:Hind;src:url(fonts/Hind-SemiBold.ttf);font-weight:600}
+@font-face{font-family:Yatra;src:url(fonts/YatraOne-Regular.ttf)}
+@font-face{font-family:Tiro;src:url(fonts/TiroDevanagariHindi-Regular.ttf)}
+html,body{margin:0;padding:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#0b0705}
+.scene{position:absolute;inset:0;opacity:0;will-change:opacity}
+.scene svg{position:absolute;inset:0;width:1080px;height:1920px}
+#fx{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen}
+#vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 75% 62% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%)}
+#flash{position:absolute;inset:0;background:#fff8e6;opacity:0;pointer-events:none}
+#cap{position:absolute;left:60px;right:60px;top:290px;text-align:center;font-family:Hind;font-weight:700;
+  font-size:62px;line-height:1.25;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 18px rgba(0,0,0,.7)}
+#cap span{transition:none}
+.tag{position:absolute;font-family:Hind;font-weight:700;color:#fff;background:linear-gradient(#d62a3a,#a3101f);
+  border:5px solid #f4c45a;border-radius:14px;padding:6px 30px 0;font-size:84px;line-height:1.25;
+  box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 40px rgba(220,40,40,.45);white-space:nowrap;opacity:0;
+  transform-origin:50% 50%}
+.gold{position:absolute;font-family:Yatra;text-align:center;white-space:nowrap;opacity:0;
+  background:linear-gradient(180deg,#fff3c4 0%,#ffd36b 35%,#e8a530 62%,#a8661a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 0 #3b1e08) drop-shadow(0 0 26px rgba(255,190,80,.55));transform-origin:50% 50%}
+.shade{position:absolute;width:1080px;height:300px;opacity:0;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(10,5,20,.7),rgba(10,5,20,0) 100%)}
+.pill{position:absolute;font-family:Hind;font-weight:700;color:#ffe3a0;font-size:54px;opacity:0;white-space:nowrap;background:rgba(45,18,6,.82);border:3px solid #f0c25a;border-radius:50px;padding:8px 34px 2px}
+.label{position:absolute;font-family:Hind;font-weight:600;color:#ffd77a;font-size:50px;text-align:center;opacity:0;
+  white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.6)}
+.label:after{content:"";display:block;height:4px;margin:6px auto 0;width:80%;background:linear-gradient(90deg,transparent,#ffd77a,transparent)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="gdefs" width="0" height="0" style="position:absolute"></svg>
+  <div id="scenes"></div>
+  <canvas id="fx" width="1080" height="1920"></canvas>
+  <div id="vignette"></div>
+  <div id="overlay"></div>
+  <div id="cap"></div>
+  <div id="flash"></div>
+</div>
+<script src="timing.js"></script>
+<script>
+// ------------------------------------------------------------------ utils
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const win=(t,a,b)=>clamp((t-a)/(b-a));
+const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eo=p=>1-Math.pow(1-p,3);
+const eback=p=>{const c1=1.9,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
+const $=id=>document.getElementById(id);
+const noise=(t,s=1)=>Math.sin(t*7.1*s)*.5+Math.sin(t*13.7*s+1.3)*.3+Math.sin(t*23.3*s+2.1)*.2;
+function fadeWin(t,a,b,fi=.4,fo=.4){ if(t<a-fi||t>b+fo) return 0; return Math.min(clamp((t-(a-fi))/fi),clamp(((b+fo)-t)/fo)); }
+
+// ------------------------------------------------------------------ timing helpers
+const L={}; TIMING.lines.forEach(l=>L[l.id]=l);
+function words(text){return text.split(/\s+/).filter(w=>w.length)}
+function wlen(w){return w.replace(/[।,?!…—.\-]/g,'').length||1}
+// approximate start time of word index i in line id
+function wt(id,i){const l=L[id];const ws=words(l.text);const tot=ws.reduce((s,w)=>s+wlen(w)+1.2,0);
+  let acc=0;for(let k=0;k<i&&k<ws.length;k++)acc+=wlen(ws[k])+1.2;return l.start+(l.end-l.start)*acc/tot;}
+function wi(id,needle){const ws=words(L[id].text);const i=ws.findIndex(w=>w.includes(needle));return wt(id,Math.max(0,i));}
+const END=TIMING.duration+1.4;
+
+// ------------------------------------------------------------------ colors
+const OUT='#1c0f08';
+const C={skin:'#b97a50',skinD:'#9a5f3c',kurta:'#f4eee2',kurtaD:'#d9d0bf',saff:'#e98327',saffD:'#c4641a',hair:'#1b1210',
+  stone:'#2a2c34',stoneL:'#4a4e5a',basin:'#3a3d47',basinD:'#2b2e36',plat:'#6b5a50',platD:'#54463e',
+  shiv:'#a8c6ec',shivD:'#86a6d2',shivO:'#24314d',tiger:'#eea53c',tigerD:'#b8741f',snake:'#4e8a52',gold:'#f5c04a'};
+
+// ------------------------------------------------------------------ art generators (SVG strings)
+function defs(){return `<defs>
+ <radialGradient id="gTemple" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#7a4a2a"/><stop offset=".55" stop-color="#43271a"/><stop offset="1" stop-color="#1a0d07"/></radialGradient>
+ <radialGradient id="gNight" cx="50%" cy="35%" r="80%"><stop offset="0" stop-color="#2d3f86"/><stop offset=".5" stop-color="#16204e"/><stop offset="1" stop-color="#070a1c"/></radialGradient>
+ <radialGradient id="gRed" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="#a3242a"/><stop offset=".6" stop-color="#5a0e14"/><stop offset="1" stop-color="#1e0406"/></radialGradient>
+ <radialGradient id="gSun" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#ffe2a0"/><stop offset=".45" stop-color="#e9a443"/><stop offset="1" stop-color="#7a3d10"/></radialGradient>
+ <radialGradient id="gDark" cx="50%" cy="60%" r="70%"><stop offset="0" stop-color="#2a170c"/><stop offset="1" stop-color="#050302"/></radialGradient>
+ <radialGradient id="glowY" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffd884" stop-opacity=".95"/><stop offset=".35" stop-color="#ff9d2e" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowW" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset=".4" stop-color="#cfe2ff" stop-opacity=".4"/><stop offset="1" stop-color="#9ec2ff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#bfe3ff" stop-opacity=".9"/><stop offset=".5" stop-color="#5aa8ff" stop-opacity=".3"/><stop offset="1" stop-color="#3a7bff" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gLinga" x1="0" x2="1"><stop offset="0" stop-color="#3c3f4b"/><stop offset=".25" stop-color="#555a69"/><stop offset=".45" stop-color="#2a2c34"/><stop offset="1" stop-color="#16171c"/></linearGradient>
+ <linearGradient id="gPillar" x1="0" x2="1"><stop offset="0" stop-color="#2c180d"/><stop offset=".3" stop-color="#6a4027"/><stop offset=".55" stop-color="#4a2b19"/><stop offset="1" stop-color="#1f1008"/></linearGradient>
+ <linearGradient id="gWater" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e6f6ff"/><stop offset="1" stop-color="#6fc3ff"/></linearGradient>
+ <linearGradient id="gCopper" x1="0" x2="1"><stop offset="0" stop-color="#8a4318"/><stop offset=".35" stop-color="#e08a4a"/><stop offset="1" stop-color="#7a3510"/></linearGradient>
+ <linearGradient id="gGoldStroke" x1="0" x2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#e3a12f"/></linearGradient>
+ <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+ <filter id="blur3"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>`;}
+
+function templeBG(p,{arch=true}={}){
+  let pillars='';
+  for(const x of [40,960]){pillars+=`<g><rect x="${x-50}" y="300" width="130" height="1500" fill="url(#gPillar)" stroke="${OUT}" stroke-width="4"/>
+    ${[420,700,980,1260,1540].map(y=>`<rect x="${x-62}" y="${y}" width="154" height="28" rx="6" fill="#7a4a2a" stroke="${OUT}" stroke-width="3"/><circle cx="${x+15}" cy="${y+80}" r="16" fill="none" stroke="#8a5a34" stroke-width="4"/>`).join('')}</g>`;}
+  const toran=[...Array(19)].map((_,i)=>{const x=60+i*53, y=125+Math.sin(i/18*Math.PI)*30;return `<circle cx="${x}" cy="${y}" r="17" fill="${i%2?'#f39a1e':'#ffcf3a'}" stroke="#7a3d08" stroke-width="2"/><path d="M${x} ${y+14} l-9 34 l9 -6 l9 6z" fill="#3f7d2e"/>`}).join('');
+  const bells=[300,780].map(x=>`<g id="${p}_bell${x}"><line x1="${x}" y1="100" x2="${x}" y2="420" stroke="#3a2412" stroke-width="5"/><path d="M${x-34} 480 q0 -62 34 -62 q34 0 34 62 z" fill="#c89536" stroke="${OUT}" stroke-width="4"/><circle cx="${x}" cy="486" r="9" fill="#7a5418"/></g>`).join('');
+  return `<rect width="1080" height="1920" fill="url(#gTemple)"/>
+   <g opacity=".35">${[...Array(12)].map((_,i)=>`<rect x="0" y="${300+i*140}" width="1080" height="3" fill="#000"/>`).join('')}</g>
+   ${arch?`<path d="M250 1700 V820 Q250 560 540 560 Q830 560 830 820 V1700 Z" fill="#0d0705" stroke="#6a4027" stroke-width="14"/><path d="M290 1700 V830 Q290 610 540 610 Q790 610 790 830 V1700Z" fill="#120a06"/>`:''}
+   ${pillars}<rect x="0" y="1700" width="1080" height="220" fill="#2a170d"/><rect x="0" y="1700" width="1080" height="8" fill="#5a361f"/>
+   <rect x="0" y="40" width="1080" height="60" fill="#3a2214" stroke="${OUT}" stroke-width="4"/>${toran}${bells}`;
+}
+
+function diya(p){return `<g id="${p}"><ellipse cx="0" cy="-40" rx="160" ry="160" fill="url(#glowY)" id="${p}_glow"/>
+ <path d="M-70 0 Q-60 40 0 42 Q60 40 70 0 Q30 14 -70 0Z" fill="#b5562a" stroke="${OUT}" stroke-width="4"/>
+ <path d="M-70 0 Q0 18 70 0 Q50 -10 0 -10 Q-50 -10 -70 0Z" fill="#7a3416" stroke="${OUT}" stroke-width="3"/>
+ <path d="M50 -4 q22 -10 34 -2 q-12 10 -34 8z" fill="#b5562a" stroke="${OUT}" stroke-width="3"/>
+ <g id="${p}_fl" transform="translate(74,-10)"><path d="M0 0 C-22 -20 -10 -60 0 -92 C10 -60 22 -20 0 0Z" fill="#ff9a1f"/><path d="M0 -2 C-12 -16 -6 -44 0 -64 C6 -44 12 -16 0 -2Z" fill="#ffe27a"/><ellipse cx="0" cy="-8" rx="4" ry="8" fill="#5a2a10"/></g></g>`;}
+function updDiya(p,t,k=1){const f=$(p+'_fl'); if(!f)return; const n=noise(t+p.length,1.3);
+  f.setAttribute('transform',`translate(74,-10) scale(${(1+n*.06)*k},${(1+n*.12)*k}) skewX(${n*6})`);
+  const g=$(p+'_glow'); g.setAttribute('opacity',.85+n*.15);}
+
+function shivlingFront(p){
+  const gar=[...Array(15)].map((_,i)=>{const a=Math.PI*(i/14);const x=-215*Math.cos(a), y=128+52*Math.sin(a);return `<circle cx="${x}" cy="${y}" r="15" fill="${i%2?'#ff9d1c':'#ffc52e'}" stroke="#7a3d08" stroke-width="2"/>`}).join('');
+  return `<g id="${p}">
+  <ellipse cx="0" cy="270" rx="360" ry="40" fill="#000" opacity=".45"/>
+  <path d="M-310 200 H310 V262 H-310Z" fill="${C.platD}" stroke="${OUT}" stroke-width="4"/>
+  <path d="M-265 160 H265 V200 H-265Z" fill="${C.plat}" stroke="${OUT}" stroke-width="4"/>
+  <path d="M-232 118 Q-200 168 0 170 Q200 168 232 118 Z" fill="${C.basinD}" stroke="${OUT}" stroke-width="4"/>
+  <path d="M185 98 L392 112 Q404 126 392 140 L190 150 Z" fill="${C.basin}" stroke="${OUT}" stroke-width="4"/>
+  <path d="M200 112 L386 122" stroke="#5b8fc0" stroke-width="7" id="${p}_chan" opacity="0"/>
+  <ellipse cx="0" cy="116" rx="236" ry="56" fill="${C.basin}" stroke="${OUT}" stroke-width="4"/>
+  <ellipse cx="0" cy="112" rx="200" ry="40" fill="#252830" stroke="#646a78" stroke-width="3"/>
+  <ellipse cx="0" cy="112" rx="190" ry="34" fill="#7cc6ff" opacity="0" id="${p}_pool"/>
+  <path d="M-92 116 V-110 Q-92 -205 0 -205 Q92 -205 92 -110 V116 Q0 140 -92 116Z" fill="url(#gLinga)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-62 -150 Q-50 -185 -10 -192" stroke="#8a90a0" stroke-width="7" fill="none" opacity=".6" stroke-linecap="round"/>
+  <g stroke="#f4f1ea" stroke-width="9" stroke-linecap="round" fill="none"><path d="M-66 -70 Q0 -60 66 -70"/><path d="M-68 -45 Q0 -35 68 -45"/><path d="M-66 -20 Q0 -10 66 -20"/></g>
+  <circle cx="0" cy="-45" r="11" fill="#d4202a"/>
+  <path d="M-86 110 V-108 Q-86 -196 0 -198 Q86 -196 86 -108 V110 Q0 132 -86 110Z" fill="#9fd8ff" opacity="0" id="${p}_wet"/>
+  <g transform="translate(0,-200)"><path d="M0 0 C-30 -20 -70 -10 -84 -40 C-50 -48 -20 -36 0 0Z" fill="#3f8f3a" stroke="#1d4a1a" stroke-width="3"/><path d="M0 0 C30 -20 70 -10 84 -40 C50 -48 20 -36 0 0Z" fill="#3f8f3a" stroke="#1d4a1a" stroke-width="3"/><path d="M0 0 C-14 -30 -10 -70 0 -88 C10 -70 14 -30 0 0Z" fill="#4aa344" stroke="#1d4a1a" stroke-width="3"/></g>
+  ${gar}
+  <path id="${p}_stream" d="M394 126 Q430 150 436 262" stroke="url(#gWater)" stroke-width="12" fill="none" stroke-linecap="round" opacity="0" stroke-dasharray="26 14"/>
+  <ellipse id="${p}_splash" cx="438" cy="262" rx="40" ry="10" fill="#9fdcff" opacity="0"/>
+ </g>`;}
+
+function shivlingTop(p){return `<g id="${p}">
+  <circle r="300" fill="none" stroke="#6b4a2c" stroke-width="3" stroke-dasharray="6 16" opacity=".7"/>
+  <path d="M140 -34 H330 Q350 -34 350 -14 V14 Q350 34 330 34 H140Z" fill="${C.basin}" stroke="${OUT}" stroke-width="4"/>
+  <path d="M150 0 H342" stroke="#6fc3ff" stroke-width="10" stroke-linecap="round"/>
+  <circle r="170" fill="${C.basin}" stroke="${OUT}" stroke-width="5"/><circle r="140" fill="#252830" stroke="#646a78" stroke-width="3"/>
+  <circle r="78" fill="url(#gLinga)" stroke="${OUT}" stroke-width="5"/>
+  <g stroke="#f4f1ea" stroke-width="7" stroke-linecap="round"><path d="M-44 -18 H44"/><path d="M-48 0 H48"/><path d="M-44 18 H44"/></g><circle r="8" fill="#d4202a"/>
+  <g transform="translate(-400,0) scale(.85)"><ellipse rx="70" ry="44" fill="#ece6da" stroke="${OUT}" stroke-width="4"/><circle cx="58" cy="0" r="28" fill="#f4efe6" stroke="${OUT}" stroke-width="4"/><path d="M70 -22 l18 -16 M70 22 l18 16" stroke="${OUT}" stroke-width="6" stroke-linecap="round"/><ellipse cx="-6" cy="0" rx="22" ry="34" fill="#a3242a" opacity=".85"/></g>
+  <path id="${p}_spill" d="M352 0 H520" stroke="#7cc6ff" stroke-width="14" stroke-linecap="round" opacity=".85" stroke-dasharray="20 12"/>
+ </g>`;}
+
+// devotee side view (faces +x). origin = hip.
+function devoteeSide(p,{lota=false}={}){
+  const leg=(id,shade)=>`<g id="${p}_${id}"><path d="M-24 0 H24 L22 128 H-20Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/>
+    <g id="${p}_${id}k" transform="translate(0,124)"><path d="M-20 0 H22 L18 120 H-16Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-18 116 H18 Q50 118 52 136 H-20Z" fill="${C.skin}" stroke="${OUT}" stroke-width="4"/></g></g>`;
+  const arm=(id,shade,sk,extra='')=>`<g id="${p}_${id}" transform="translate(4,-196)"><path d="M-18 -6 Q0 -16 18 -6 L16 100 H-16Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/>
+    <g id="${p}_${id}f" transform="translate(0,96)"><path d="M-14 0 H14 L12 92 H-12Z" fill="${sk}" stroke="${OUT}" stroke-width="4"/><circle cx="0" cy="100" r="17" fill="${sk}" stroke="${OUT}" stroke-width="4"/>${extra}</g></g>`;
+  const lotaSvg=lota?`<g id="${p}_lota" transform="translate(0,112)"><path d="M-40 -6 Q-56 40 0 50 Q56 40 40 -6 Q20 -16 0 -16 Q-20 -16 -40 -6Z" fill="#c8702f" stroke="${OUT}" stroke-width="4"/><path d="M-20 10 Q-26 30 -6 38" stroke="#f0a060" stroke-width="6" fill="none"/><path d="M-24 -14 Q0 -26 24 -14 L28 -28 Q0 -40 -28 -28Z" fill="#c76a2e" stroke="${OUT}" stroke-width="4"/></g>`:'';
+  return `<g id="${p}"><g id="${p}_body">
+   <ellipse cx="0" cy="268" rx="90" ry="16" fill="#000" opacity=".35" id="${p}_shadow"/>
+   ${arm('armB',C.kurtaD,C.skinD)}
+   ${leg('legB',C.kurtaD)}${leg('legF',C.kurta)}
+   <path d="M-46 -214 Q0 -232 46 -214 L58 30 Q0 46 -58 30Z" fill="${C.kurta}" stroke="${OUT}" stroke-width="5"/>
+   <path d="M-40 -212 Q10 -150 54 -30 L40 -18 Q-6 -140 -50 -196Z" fill="${C.saff}" stroke="${OUT}" stroke-width="4"/>
+   <path d="M-12 -244 H14 V-208 H-12Z" fill="${C.skinD}" stroke="${OUT}" stroke-width="4"/>
+   <g id="${p}_head" transform="translate(2,-296)">
+     <path d="M-50 4 Q-54 -58 4 -62 Q58 -60 60 -6 Q62 20 70 30 Q60 36 56 42 Q48 70 4 72 Q-46 68 -50 4Z" fill="${C.skin}" stroke="${OUT}" stroke-width="5"/>
+     <path d="M-54 6 Q-62 -66 6 -66 Q52 -66 58 -30 Q20 -42 -20 -30 Q-34 -6 -40 20 Z" fill="${C.hair}"/>
+     <path d="M-30 -60 Q-44 -96 -20 -100 Q-30 -80 -14 -64Z" fill="${C.hair}"/>
+     <ellipse cx="-18" cy="12" rx="11" ry="16" fill="${C.skinD}" stroke="${OUT}" stroke-width="3"/>
+     <g stroke="#fff" stroke-width="5" stroke-linecap="round"><path d="M22 -34 H52"/><path d="M24 -24 H54"/><path d="M24 -14 H54"/></g><circle cx="40" cy="-24" r="4" fill="#d4202a"/>
+     <path d="M26 -2 Q38 -8 52 -2" stroke="${OUT}" stroke-width="5" fill="none" stroke-linecap="round"/>
+     <g id="${p}_eye"><ellipse cx="40" cy="10" rx="9" ry="7" fill="#fff" stroke="${OUT}" stroke-width="2"/><circle cx="44" cy="10" r="5" fill="#1a0d06"/></g>
+     <path id="${p}_lid" d="M30 10 Q40 16 50 10" stroke="${OUT}" stroke-width="4" fill="none" opacity="0" stroke-linecap="round"/>
+     <path d="M40 48 Q50 50 56 46" stroke="#6a2a14" stroke-width="4" fill="none" stroke-linecap="round"/>
+   </g>
+   ${arm('armF',C.kurta,C.skin,lotaSvg)}
+  </g></g>`;}
+function updDevoteeSide(p,o){
+  const ph=o.phase||0, amp=o.walk||0;
+  const s=Math.sin(ph);
+  const legF=22*s*amp, legB=-22*s*amp;
+  $(p+'_legF').setAttribute('transform',`rotate(${legF})`);
+  $(p+'_legB').setAttribute('transform',`rotate(${legB})`);
+  $(p+'_legFk').setAttribute('transform',`translate(0,124) rotate(${Math.max(0,-Math.cos(ph))*28*amp})`);
+  $(p+'_legBk').setAttribute('transform',`translate(0,124) rotate(${Math.max(0,Math.cos(ph))*28*amp})`);
+  const aF=(o.armF!==undefined?o.armF:-16*s*amp), aB=(o.armB!==undefined?o.armB:16*s*amp);
+  $(p+'_armF').setAttribute('transform',`translate(4,-196) rotate(${aF})`);
+  $(p+'_armB').setAttribute('transform',`translate(4,-196) rotate(${aB})`);
+  $(p+'_armFf').setAttribute('transform',`translate(0,96) rotate(${o.foreF||-10})`);
+  $(p+'_armBf').setAttribute('transform',`translate(0,96) rotate(${o.foreB||-10})`);
+  if($(p+'_lota')) $(p+'_lota').setAttribute('transform',`translate(0,112) rotate(${o.lota||0})`);
+  const bob=-Math.abs(Math.cos(ph))*7*amp + (o.breath||0);
+  $(p+'_body').setAttribute('transform',`translate(0,${bob})`);
+  $(p+'_head').setAttribute('transform',`translate(2,-296) rotate(${o.headTilt||0})`);
+  const bl=o.blink||0; $(p+'_eye').setAttribute('transform',`translate(0,${10*(1-1)}) translate(40,10) scale(1,${1-bl}) translate(-40,-10)`);
+  $(p+'_lid').setAttribute('opacity',bl>.6?1:0);
+}
+function blinkAt(t,period=3.3,off=0){const x=((t+off)%period);return x<.14?Math.sin(x/.14*Math.PI):0;}
+
+function devoteeFront(p){return `<g id="${p}">
+  <path d="M-250 420 Q-240 170 -110 130 Q0 100 110 130 Q240 170 250 420Z" fill="${C.kurta}" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-140 140 Q-20 260 120 420 L200 420 Q60 230 -80 128Z" fill="${C.saff}" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-44 60 H44 V140 Q0 160 -44 140Z" fill="${C.skinD}" stroke="${OUT}" stroke-width="5"/>
+  <g id="${p}_head">
+   <path d="M-125 -60 Q-130 -210 0 -214 Q130 -210 125 -60 Q120 60 0 92 Q-120 60 -125 -60Z" fill="${C.skin}" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-132 -50 Q-150 -238 0 -236 Q150 -238 132 -50 Q120 -150 60 -170 Q0 -150 -60 -170 Q-120 -150 -132 -50Z" fill="${C.hair}"/>
+   <path d="M-10 -232 Q-20 -290 20 -300 Q4 -270 14 -234Z" fill="${C.hair}"/>
+   <ellipse cx="-130" cy="-30" rx="18" ry="34" fill="${C.skinD}" stroke="${OUT}" stroke-width="4"/><ellipse cx="130" cy="-30" rx="18" ry="34" fill="${C.skinD}" stroke="${OUT}" stroke-width="4"/>
+   <g stroke="#fff" stroke-width="9" stroke-linecap="round"><path d="M-70 -150 Q0 -140 70 -150"/><path d="M-74 -128 Q0 -118 74 -128"/><path d="M-70 -106 Q0 -96 70 -106"/></g><circle cx="0" cy="-128" r="10" fill="#d4202a"/>
+   <path d="M-86 -76 Q-56 -92 -24 -78 M24 -78 Q56 -92 86 -76" stroke="${OUT}" stroke-width="8" fill="none" stroke-linecap="round"/>
+   <g id="${p}_eyes"><ellipse cx="-55" cy="-44" rx="24" ry="17" fill="#fff" stroke="${OUT}" stroke-width="4"/><circle cx="-52" cy="-44" r="11" fill="#1a0d06"/><ellipse cx="55" cy="-44" rx="24" ry="17" fill="#fff" stroke="${OUT}" stroke-width="4"/><circle cx="52" cy="-44" r="11" fill="#1a0d06"/></g>
+   <g id="${p}_closed" opacity="0" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"><path d="M-78 -40 Q-55 -26 -32 -40"/><path d="M32 -40 Q55 -26 78 -40"/></g>
+   <path d="M0 -40 Q-16 0 -8 12 Q0 16 10 10" stroke="${C.skinD}" stroke-width="6" fill="none" stroke-linecap="round"/>
+   <path d="M-34 38 Q0 58 34 38" stroke="#6a2a14" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </g>
+  <g id="${p}_hands"><path d="M-110 420 Q-90 300 -20 250 L0 160 L20 250 Q90 300 110 420Z" fill="${C.skin}" stroke="${OUT}" stroke-width="6"/><path d="M0 160 V300" stroke="${OUT}" stroke-width="4"/>
+   <path d="M-110 420 Q-100 360 -60 330 L-120 420Z M110 420 Q100 360 60 330 L120 420Z" fill="${C.kurta}" stroke="${OUT}" stroke-width="5"/></g>
+ </g>`;}
+function updDevoteeFront(p,o){const c=o.closed||0;
+  $(p+'_eyes').setAttribute('opacity',1-c); $(p+'_closed').setAttribute('opacity',c);
+  $(p+'_head').setAttribute('transform',`translate(0,${o.breath||0}) rotate(${o.tilt||0})`);}
+
+function shivBust(p){
+  const beads=(cx,cy,rx,ry,n,r,a0=0.15,a1=0.85)=>[...Array(n)].map((_,i)=>{const a=Math.PI*(a0+(a1-a0)*i/(n-1));return `<circle cx="${cx+rx*Math.cos(a)}" cy="${cy+ry*Math.sin(a)}" r="${r}" fill="#7a3a1a" stroke="#3a1608" stroke-width="2"/>`}).join('');
+  return `<g id="${p}">
+  <path d="M-250 -160 Q-340 120 -330 520 Q-300 560 -250 520 Q-270 200 -170 -60Z M250 -160 Q340 120 330 520 Q300 560 250 520 Q270 200 170 -60Z" fill="#1b1930" stroke="#34305a" stroke-width="5"/>
+  <path d="M-420 760 Q-430 420 -230 330 Q0 270 230 330 Q430 420 420 760Z" fill="${C.shiv}" stroke="${C.shivO}" stroke-width="7"/>
+  <path d="M-250 360 Q-60 520 140 760 L300 760 Q90 480 -170 330Z" fill="${C.tiger}" stroke="${C.shivO}" stroke-width="6"/>
+  ${[[-120,430],[-30,520],[60,600],[140,690],[-180,380],[20,640]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="16" ry="11" fill="${C.tigerD}"/>`).join('')}
+  ${beads(0,300,230,250,22,13)}${beads(0,300,180,170,18,11)}
+  <path d="M-70 200 H70 V320 Q0 350 -70 320Z" fill="${C.shivD}" stroke="${C.shivO}" stroke-width="6"/>
+  <path d="M-150 300 Q-60 250 0 300 Q60 340 150 280 Q170 300 150 320 Q60 380 0 340 Q-60 300 -150 330Z" fill="${C.snake}" stroke="#1f3d22" stroke-width="5"/>
+  <g transform="translate(160,270)"><path d="M0 0 Q30 -40 10 -90 Q50 -100 56 -60 Q60 -20 20 10Z" fill="${C.snake}" stroke="#1f3d22" stroke-width="5"/><circle cx="34" cy="-74" r="5" fill="#ffd34a"/></g>
+  <g id="${p}_head">
+   <path d="M-150 -30 Q-160 -230 0 -236 Q160 -230 150 -30 Q140 150 0 200 Q-140 150 -150 -30Z" fill="${C.shiv}" stroke="${C.shivO}" stroke-width="7"/>
+   <path d="M-160 -20 Q-200 -250 0 -262 Q200 -250 160 -20 Q150 -160 70 -200 Q0 -170 -70 -200 Q-150 -160 -160 -20Z" fill="#2a2640"/>
+   <path d="M-110 -250 Q-120 -420 0 -430 Q120 -420 110 -250 Q0 -280 -110 -250Z" fill="#2a2640" stroke="#4a4470" stroke-width="5"/>
+   ${[-330,-290,-360].map(y=>`<path d="M-104 ${y} Q0 ${y-24} 104 ${y}" stroke="#7a3a1a" stroke-width="12" fill="none" stroke-dasharray="2 14" stroke-linecap="round"/>`).join('')}
+   <g id="${p}_moon" transform="translate(-118,-366)"><circle r="90" fill="url(#glowW)" id="${p}_moonglow"/><path d="M-36 -44 A56 56 0 1 0 40 30 A44 44 0 1 1 -36 -44Z" fill="#fbfbff" stroke="#c9d6f0" stroke-width="3"/></g>
+   <ellipse cx="-158" cy="10" rx="20" ry="38" fill="${C.shivD}" stroke="${C.shivO}" stroke-width="5"/><ellipse cx="158" cy="10" rx="20" ry="38" fill="${C.shivD}" stroke="${C.shivO}" stroke-width="5"/>
+   <circle cx="-160" cy="62" r="20" fill="none" stroke="#e8b33a" stroke-width="8"/><circle cx="160" cy="62" r="20" fill="none" stroke="#e8b33a" stroke-width="8"/>
+   <g stroke="#ffffff" stroke-width="10" stroke-linecap="round"><path d="M-92 -150 Q0 -138 92 -150"/><path d="M-96 -124 Q0 -112 96 -124"/><path d="M-92 -98 Q0 -86 92 -98"/></g>
+   <g id="${p}_third"><ellipse cx="0" cy="-160" rx="40" ry="60" fill="url(#glowY)" opacity="0" id="${p}_thirdglow"/><path d="M0 -196 Q14 -170 0 -140 Q-14 -170 0 -196Z" fill="#d4202a" stroke="#7a0e10" stroke-width="3"/></g>
+   <circle cx="0" cy="-70" r="9" fill="#d4202a"/>
+   <path d="M-104 -66 Q-70 -84 -32 -70 M32 -70 Q70 -84 104 -66" stroke="${C.shivO}" stroke-width="8" fill="none" stroke-linecap="round"/>
+   <g id="${p}_closed" stroke="${C.shivO}" stroke-width="7" fill="none" stroke-linecap="round"><path d="M-100 -28 Q-68 -10 -36 -28"/><path d="M36 -28 Q68 -10 100 -28"/></g>
+   <g id="${p}_open" opacity="0"><ellipse cx="-68" cy="-30" rx="32" ry="18" fill="#fff" stroke="${C.shivO}" stroke-width="5"/><circle cx="-66" cy="-30" r="13" fill="#2a1c12"/><ellipse cx="68" cy="-30" rx="32" ry="18" fill="#fff" stroke="${C.shivO}" stroke-width="5"/><circle cx="66" cy="-30" r="13" fill="#2a1c12"/></g>
+   <path d="M0 -26 Q-18 30 -10 46 Q0 52 12 46" stroke="${C.shivD}" stroke-width="7" fill="none" stroke-linecap="round"/>
+   <path d="M-40 92 Q0 112 40 92" stroke="#3a4a80" stroke-width="8" fill="none" stroke-linecap="round"/>
+  </g>
+ </g>`;}
+function updShiv(p,o){const op=o.open||0;
+  $(p+'_open').setAttribute('opacity',op); $(p+'_closed').setAttribute('opacity',1-op);
+  $(p+'_moonglow').setAttribute('transform',`scale(${o.moon||1})`);
+  $(p+'_thirdglow').setAttribute('opacity',o.third||0);
+  $(p).setAttribute('transform',`scale(${1+(o.breath||0)})`);}
+
+function rays(p,color='#ffd98a',n=18,op=.18){return `<g id="${p}" opacity="${op}">${[...Array(n)].map((_,i)=>`<path d="M0 0 L${Math.cos(i/n*2*Math.PI-.06)*1600} ${Math.sin(i/n*2*Math.PI-.06)*1600} L${Math.cos(i/n*2*Math.PI+.06)*1600} ${Math.sin(i/n*2*Math.PI+.06)*1600}Z" fill="${color}"/>`).join('')}</g>`;}
+function stars(n=90,seed=3){let s='';for(let i=0;i<n;i++){const x=(Math.sin(i*91.7+seed)*0.5+0.5)*1080,y=(Math.sin(i*47.3+seed*2)*0.5+0.5)*1300;s+=`<circle cx="${x}" cy="${y}" r="${1.5+((i*7)%3)}" fill="#fff" opacity="${.3+((i*13)%7)/10}"/>`;}return s;}
+
+// ------------------------------------------------------------------ scene definitions
+const SCENES=[]; // {id,a,b,fi,fo,svg,upd(t,lt)}
+function scene(id,a,b,svg,upd,fi=.35,fo=.35,iris=false){SCENES.push({id,a,b,svg,upd,fi,fo,iris});}
+
+const T=id=>L[id].start, E=id=>L[id].end;
+
+// SC1 full parikrama, top view of a shrine
+scene('sc1',0,T('s02')-.1,`<rect width="1080" height="1920" fill="url(#gTemple)"/>
+ <g id="sc1_cam"><g transform="translate(540,1040)">
+  <circle r="420" fill="#3b2416" stroke="#5a3a22" stroke-width="6"/><circle r="410" fill="none" stroke="#6b4a2c" stroke-width="3" stroke-dasharray="4 18"/>
+  <rect x="-170" y="-170" width="340" height="340" fill="#7a4a2a" stroke="${OUT}" stroke-width="5"/><rect x="-130" y="-130" width="260" height="260" fill="#93603a" stroke="${OUT}" stroke-width="4"/>
+  <rect x="-90" y="-90" width="180" height="180" fill="#b07a48" stroke="${OUT}" stroke-width="4"/><circle r="46" fill="#e0a83a" stroke="${OUT}" stroke-width="4"/><circle r="16" fill="#c0392b"/>
+  <circle r="300" fill="none" stroke="url(#gGoldStroke)" stroke-width="16" stroke-linecap="round" id="sc1_trail" stroke-dasharray="1885" stroke-dashoffset="1885" transform="rotate(180)"/>
+  <g id="sc1_dev"><circle r="34" fill="${C.saff}" stroke="${OUT}" stroke-width="4"/><circle r="20" fill="${C.hair}"/></g>
+ </g></g>`,(t,lt)=>{
+  const p=eio(win(t,.35,3.6)); $('sc1_trail').setAttribute('stroke-dashoffset',1885*(1-p));
+  const a=Math.PI+p*2*Math.PI; $('sc1_dev').setAttribute('transform',`translate(${300*Math.cos(a)},${300*Math.sin(a)})`);
+  $('sc1_cam').setAttribute('transform',`translate(540,1040) scale(${1.0+lt*.02}) translate(-540,-1040)`);
+ },.01,.35);
+
+// SC2a Shivling glamour front
+scene('sc2a',T('s02')-.1,T('s02')+1.3,`${templeBG('sc2a')}
+ <g id="sc2a_cam"><g transform="translate(540,1380) scale(1.05)">${shivlingFront('sc2a_sl')}</g>
+ <g transform="translate(250,1650) scale(.8)">${diya('sc2a_d1')}</g><g transform="translate(830,1650) scale(.8)">${diya('sc2a_d2')}</g></g>`,
+ (t,lt)=>{updDiya('sc2a_d1',t);updDiya('sc2a_d2',t+1);$('sc2a_cam').setAttribute('transform',`translate(540,1300) scale(${1+lt*.06}) translate(-540,-1300)`);},.3,.3);
+
+// SC2b top view half parikrama + क्यों
+const R=300, HALF=Math.PI*R;
+function topHalf(p){return `<g transform="translate(540,1080) scale(1.06)">${shivlingTop(p+'_sl')}
+  <path id="${p}_fw" d="M-300 0 A300 300 0 0 1 297 -40" fill="none" stroke="url(#gGoldStroke)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${HALF} ${HALF}" stroke-dashoffset="${HALF}"/>
+  <path id="${p}_bk" d="M297 -40 A300 300 0 0 0 -300 0" fill="none" stroke="#ff6b4a" stroke-width="10" stroke-linecap="round" stroke-dasharray="${HALF} ${HALF}" stroke-dashoffset="${HALF}" transform="scale(.86)"/>
+  <path id="${p}_cres" d="M-300 0 A300 300 0 0 1 300 0 A300 215 0 0 0 -300 0Z" fill="#f2f6ff" opacity="0"/>
+  <g id="${p}_dev"><circle r="34" fill="${C.saff}" stroke="${OUT}" stroke-width="4"/><circle r="20" fill="${C.hair}"/></g>
+  <g id="${p}_turn" opacity="0" transform="translate(300,-150)"><path d="M0 60 V0 Q0 -50 -50 -50 Q-100 -50 -100 0 V20" fill="none" stroke="#ff5a4a" stroke-width="16" stroke-linecap="round"/><path d="M-124 10 L-100 50 L-76 10Z" fill="#ff5a4a"/></g>
+  <g transform="translate(330,100)"><text x="0" y="0" text-anchor="middle" font-family="Hind" font-weight="700" font-size="40" fill="#9fdcff" id="${p}_lab" opacity="0">जलाधारी</text></g>
+  <g transform="translate(-400,90)"><text x="0" y="0" text-anchor="middle" font-family="Hind" font-weight="700" font-size="38" fill="#f4e6c8" opacity=".85">नंदी</text></g>
+ </g>`;}
+function devOnArc(p,frac,r=R){const a=Math.PI+frac*(Math.PI-0.135);$(p+'_dev').setAttribute('transform',`translate(${r*Math.cos(a)},${r*Math.sin(a)})`);}
+scene('sc2b',T('s02')+1.3,T('s04')-.15,`<rect width="1080" height="1920" fill="url(#gTemple)"/><g id="sc2b_cam">${topHalf('sc2b')}</g>`,(t,lt)=>{
+  const p=eio(win(t,T('s02')+1.35,E('s02')+.1)); $('sc2b_fw').setAttribute('stroke-dashoffset',HALF*(1-p)); devOnArc('sc2b',p);
+  $('sc2b_turn').setAttribute('opacity',win(t,E('s02'),E('s02')+.3));
+  $('sc2b_cam').setAttribute('transform',`translate(540,1080) scale(${1+lt*.03}) translate(-540,-1080)`);
+},.25,.3);
+
+// SC3 the "3" and three diyas
+scene('sc3',T('s04')-.15,T('s06')-.1,`<rect width="1080" height="1920" fill="url(#gDark)"/>
+ <g id="sc3_cam"><g transform="translate(540,900)"><circle r="260" fill="none" stroke="#e8b04a" stroke-width="3" opacity=".5" id="sc3_ring" stroke-dasharray="30 18"/><circle r="300" fill="url(#glowY)" opacity=".35"/></g>
+ ${[300,540,780].map((x,i)=>`<g transform="translate(${x},1420) scale(1.05)" id="sc3_g${i}" opacity=".25">${diya('sc3_d'+i)}</g><rect x="${x-10}" y="1462" width="20" height="230" fill="#c99335" stroke="${OUT}" stroke-width="3"/><ellipse cx="${x}" cy="1700" rx="70" ry="16" fill="#c99335" stroke="${OUT}" stroke-width="3"/>`).join('')}</g>`,(t,lt)=>{
+  [0,1,2].forEach(i=>{updDiya('sc3_d'+i,t+i); const on=win(t,wi('s04','तीन')+i*.35,wi('s04','तीन')+i*.35+.25); $('sc3_g'+i).setAttribute('opacity',.25+.75*on);});
+  const third=win(t,wi('s05','तीसरा'),wi('s05','तीसरा')+.6);
+  $('sc3_g2').setAttribute('transform',`translate(780,1420) scale(${1.05+third*.35})`);
+  $('sc3_ring').setAttribute('transform',`rotate(${lt*20})`);
+  $('sc3_cam').setAttribute('transform',`translate(540,1100) scale(${1+lt*.025}) translate(-540,-1100)`);
+},.15,.05);
+
+// SC4 abhishek side view
+scene('sc4',T('s06')-.1,T('s08')-.2,`${templeBG('sc4',{arch:true})}
+ <g id="sc4_cam"><g transform="translate(640,1380) scale(.82)">${shivlingFront('sc4_sl')}</g>
+ <g transform="translate(230,1440) scale(1.05)">${devoteeSide('sc4_dv',{lota:true})}</g>
+ <path id="sc4_pour" d="M405 1085 Q540 1000 615 1190" stroke="url(#gWater)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="24 12" opacity="0"/>
+ <g transform="translate(320,1630) scale(.7)">${diya('sc4_d')}</g></g>`,(t,lt)=>{
+  const raise=eio(win(t,T('s06')+.2,T('s06')+1.2)), pour=win(t,T('s06')+1.2,T('s06')+1.5);
+  updDevoteeSide('sc4_dv',{armF:-15-80*raise,foreF:-40*raise-10,lota:-75*pour-10*raise,armB:10,blink:blinkAt(t),breath:Math.sin(t*2)*2});
+  const P=$('sc4_pour'); P.setAttribute('opacity',pour*(1-win(t,E('s07')-.3,E('s07')))); P.setAttribute('stroke-dashoffset',-t*120);
+  const wet=win(t,T('s06')+1.5,T('s06')+2.4); $('sc4_sl_wet').setAttribute('opacity',.2*wet); $('sc4_sl_pool').setAttribute('opacity',.55*wet); $('sc4_sl_chan').setAttribute('opacity',wet);
+  const st=win(t,wi('s06','नाली')-.4,wi('s06','नाली')); const S=$('sc4_sl_stream'); S.setAttribute('opacity',st); S.setAttribute('stroke-dashoffset',-t*110);
+  $('sc4_sl_splash').setAttribute('opacity',st*(.5+.3*Math.sin(t*12)));
+  updDiya('sc4_d',t);
+  const z=eio(win(t,T('s07'),T('s07')+1.6)); // push toward spout
+  $('sc4_cam').setAttribute('transform',`translate(${lerp(540,920,z)},${lerp(1350,1480,z)}) scale(${1+.03*lt+z*.75}) translate(${-lerp(540,920,z)},${-lerp(1350,1480,z)})`);
+},.05,.25);
+
+// title card helper
+function titleCard(id,a,b,bg,label,icon){
+  scene(id,a,b,`<rect width="1080" height="1920" fill="url(#${bg})"/>${`<g transform="translate(540,960)">${rays(id+'_rays','#ffd98a',20,.08)}</g>`}
+   <g transform="translate(540,960)"><circle r="330" fill="none" stroke="#f0c25a" stroke-width="5" stroke-dasharray="1300 800" id="${id}_ring"/><circle r="350" fill="none" stroke="#f0c25a" stroke-width="2" opacity=".5"/>
+   <g id="${id}_icon" transform="translate(0,-150)">${icon}</g></g>`,(t,lt)=>{
+    $(id+'_ring').setAttribute('transform',`rotate(${-90+lt*40})`); $(id+'_rays').setAttribute('transform',`rotate(${lt*6})`);
+    const s=eback(win(t,a+.05,a+.55)); $(id+'_icon').setAttribute('transform',`translate(0,-150) scale(${s})`);
+  },.12,.2,true);
+}
+const dropIcon=`<circle r="120" fill="url(#glowB)"/><path d="M0 -90 C40 -30 70 10 70 40 A70 70 0 0 1 -70 40 C-70 10 -40 -30 0 -90Z" fill="#7cc6ff" stroke="#e8f6ff" stroke-width="6"/><path d="M-30 30 Q-30 60 -6 70" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"/>`;
+const moonIcon=`<circle r="130" fill="url(#glowW)"/><path d="M-36 -64 A80 80 0 1 0 64 40 A62 62 0 1 1 -36 -64Z" fill="#fbfbff" stroke="#c9d6f0" stroke-width="4"/>`;
+const turnIcon=`<circle r="120" fill="url(#glowY)" opacity=".7"/><path d="M50 80 V-10 Q50 -70 -10 -70 Q-70 -70 -70 -10 V30" fill="none" stroke="#fff3c8" stroke-width="22" stroke-linecap="round"/><path d="M-102 20 L-70 76 L-38 20Z" fill="#fff3c8"/>`;
+titleCard('tc1',T('s08')-.2,T('s09')-.1,'gRed','पहला रहस्य',dropIcon);
+
+// SC5b spout close-up + Ganga
+scene('sc5b',T('s09')-.1,T('s11')-.15,`${templeBG('sc5b',{arch:false})}
+ <g id="sc5b_sky" opacity="0"><rect width="1080" height="1920" fill="url(#gNight)"/>${stars()}<g transform="translate(540,520) scale(.75)">${shivBust('sc5b_shiv')}</g></g>
+ <g id="sc5b_cam"><g transform="translate(400,1300) scale(1.25)">${shivlingFront('sc5b_sl')}</g>
+ <g id="sc5b_ganga" opacity="0">${[0,1,2,3].map(i=>`<path d="M-200 ${1500+i*55} q135 -40 270 0 t270 0 t270 0 t270 0 t270 0" stroke="${i%2?'#bfe7ff':'#7cc6ff'}" stroke-width="${14-i*2}" fill="none" stroke-linecap="round" id="sc5b_w${i}" opacity=".85"/>`).join('')}</g></g>`,(t,lt)=>{
+  ['sc5b_sl_wet','sc5b_sl_pool','sc5b_sl_chan'].forEach((k,i)=>$(k).setAttribute('opacity',[.2,.55,1][i]));
+  const S=$('sc5b_sl_stream'); S.setAttribute('opacity',1); S.setAttribute('stroke-dashoffset',-t*110); $('sc5b_sl_splash').setAttribute('opacity',.5+.3*Math.sin(t*12));
+  const g=win(t,wi('s10','गंगा')-.3,wi('s10','गंगा')+.4); $('sc5b_ganga').setAttribute('opacity',g);
+  [0,1,2,3].forEach(i=>$('sc5b_w'+i).setAttribute('transform',`translate(${-((t*90*(1+i*.2))%270)},0)`));
+  const sky=win(t,wi('s10','महादेव')-.2,wi('s10','महादेव')+.8); $('sc5b_sky').setAttribute('opacity',sky*.9);
+  updShiv('sc5b_shiv',{breath:Math.sin(t*1.6)*.006,moon:1+.1*Math.sin(t*2)});
+  const z=eio(win(t,T('s09'),T('s09')+4));
+  $('sc5b_cam').setAttribute('transform',`translate(820,1440) scale(${lerp(1.5,1.15,z)}) translate(-820,-1440)`);
+},.3,.3);
+
+// SC5c-1 side walk stop before water channel
+scene('sc5c',T('s11')-.15,T('s12')-.05,`${templeBG('sc5c',{arch:false})}
+ <g id="sc5c_cam"><rect x="0" y="1690" width="1080" height="240" fill="#2a170d"/>
+  <g transform="translate(680,1700)"><rect x="-40" y="-6" width="80" height="26" rx="8" fill="#1a1d24"/><rect x="-30" y="-2" width="60" height="16" rx="6" fill="#7cc6ff" id="sc5c_ch"/><ellipse rx="70" ry="20" fill="url(#glowB)"/></g>
+  <g id="sc5c_dvw">${devoteeSide('sc5c_dv')}</g></g>`,(t,lt)=>{
+  const a=T('s11')-.15, stop=wi('s11','लांघा')-.25; const wp=win(t,a,stop);
+  const x=lerp(160,520,eo(wp)); const walking=t<stop;
+  const back=win(t,stop+.1,stop+.5);
+  $('sc5c_dvw').setAttribute('transform',`translate(${x-back*25},1420) scale(1.05)`);
+  updDevoteeSide('sc5c_dv',{phase:walking?(t-a)*7.5:0,walk:walking?1:0,blink:blinkAt(t,2.6),headTilt:back*8,breath:Math.sin(t*2)*2});
+  $('sc5c_ch').setAttribute('opacity',.7+.3*Math.sin(t*6));
+},.15,.2);
+
+// SC5c-2 top view forward & return
+scene('sc5d',T('s12')-.05,T('s13')-.25,`<rect width="1080" height="1920" fill="url(#gTemple)"/><g id="sc5d_cam">${topHalf('sc5d')}</g>`,(t,lt)=>{
+  const a=T('s12'), m=wi('s12','तक')+.2, r0=wi('s12','लौट')-.3, r1=E('s12')+.2;
+  const f=eio(win(t,a,m)); $('sc5d_fw').setAttribute('stroke-dashoffset',HALF*(1-f));
+  const b=eio(win(t,r0,r1)); $('sc5d_bk').setAttribute('stroke-dashoffset',HALF*(1-b));
+  if(t<r0) devOnArc('sc5d',f); else devOnArc('sc5d',1-b,R*.86);
+  $('sc5d_lab').setAttribute('opacity',win(t,wi('s12','जलाधारी'),wi('s12','जलाधारी')+.3));
+  $('sc5d_turn').setAttribute('opacity',win(t,r0-.2,r0+.2));
+  $('sc5d_cam').setAttribute('transform',`translate(540,1080) scale(${1.05+lt*.02}) translate(-540,-1080)`);
+},.25,.3);
+
+titleCard('tc2',T('s13')-.25,T('s14')-.1,'gNight','दूसरा रहस्य',moonIcon);
+
+// SC6b crescent from path
+scene('sc6b',T('s14')-.1,T('s15')-.05,`<rect width="1080" height="1920" fill="url(#gNight)"/>${stars()}<g id="sc6b_cam">${topHalf('sc6b')}</g>`,(t,lt)=>{
+  const a=T('s14'), m=wi('s14','ज़मीन'), e=wi('s14','आधा');
+  const f=eio(win(t,a,m)); $('sc6b_fw').setAttribute('stroke-dashoffset',HALF*(1-f));
+  const b=eio(win(t,m,e)); $('sc6b_bk').setAttribute('stroke-dashoffset',HALF*(1-b));
+  if(t<m) devOnArc('sc6b',f); else devOnArc('sc6b',1-b,R*.86);
+  $('sc6b_dev').setAttribute('opacity',1-win(t,e,e+.3));
+  const c=win(t,e-.1,e+.5); $('sc6b_cres').setAttribute('opacity',.92*c);
+  $('sc6b_cres').setAttribute('filter',c>0?'':'');
+  $('sc6b_sl').setAttribute('opacity',1-.6*c);
+  $('sc6b_cam').setAttribute('transform',`translate(540,1080) scale(${1+lt*.03}) translate(-540,-1080)`);
+},.3,.15);
+
+// SC6c Shiv ji with moon
+scene('sc6c',T('s15')-.05,T('s16')-.25,`<rect width="1080" height="1920" fill="url(#gNight)"/>${stars(120,7)}
+ <g transform="translate(540,1000)">${rays('sc6c_rays','#bcd4ff',22,.10)}</g>
+ <g id="sc6c_cam"><g transform="translate(540,1150)">${shivBust('sc6c_shiv')}</g>
+ <g id="sc6c_cr"><path d="M-300 0 A300 300 0 0 1 300 0 A300 215 0 0 0 -300 0Z" fill="#f2f6ff"/></g></g>`,(t,lt)=>{
+  const a=T('s15'), m=wi('s15','महादेव'), d=wi('s15','मस्तक');
+  const p=eio(win(t,a,m+.3)); // crescent flies to moon position (422,784)
+  $('sc6c_cr').setAttribute('transform',`translate(${lerp(540,422,p)},${lerp(1080,784,p)}) scale(${lerp(1.06,.17,p)}) rotate(${lerp(0,-35,p)})`);
+  $('sc6c_cr').setAttribute('opacity',1-win(t,m+.2,m+.5));
+  updShiv('sc6c_shiv',{breath:Math.sin(t*1.6)*.006,moon:1+.6*win(t,m+.2,d)+.08*Math.sin(t*3)});
+  $('sc6c_rays').setAttribute('transform',`rotate(${lt*5})`);
+  const z=eio(win(t,d-.3,E('s15')+.4));
+  $('sc6c_cam').setAttribute('transform',`translate(450,800) scale(${1+lt*.01+z*.55}) translate(-450,-800)`);
+},.05,.35);
+
+// SC7 single diya
+scene('sc7',T('s16')-.25,T('s17')-.2,`<rect width="1080" height="1920" fill="#050302"/>
+ <g id="sc7_cam"><g transform="translate(540,1180) scale(1.8)">${diya('sc7_d')}</g></g>`,(t,lt)=>{
+  updDiya('sc7_d',t,1); $('sc7_cam').setAttribute('transform',`translate(540,1100) scale(${1+lt*.06}) translate(-540,-1100)`);
+},.35,.12);
+
+titleCard('tc3',T('s17')-.2,T('s18')-.1,'gTemple','तीसरा रहस्य',turnIcon);
+
+// SC8b/c corridor walk, stop, turn
+function corridor(p){return `<rect width="1080" height="1920" fill="url(#gTemple)"/>
+  <g id="${p}_far" opacity=".55">${[...Array(10)].map((_,i)=>`<rect x="${i*240}" y="560" width="70" height="1140" fill="url(#gPillar)" stroke="${OUT}" stroke-width="3"/><path d="M${i*240+70} 760 Q${i*240+155} 640 ${i*240+240} 760" fill="none" stroke="#5a361f" stroke-width="10"/>`).join('')}</g>
+  <rect x="0" y="1690" width="1080" height="240" fill="#2a170d"/><rect x="0" y="1690" width="1080" height="8" fill="#5a361f"/>
+  <g id="${p}_floor">${[...Array(14)].map((_,i)=>`<rect x="${i*160}" y="1700" width="6" height="220" fill="#1a0d07"/>`).join('')}</g>
+  <g id="${p}_near">${[...Array(6)].map((_,i)=>`<rect x="${i*480}" y="300" width="130" height="1500" fill="url(#gPillar)" stroke="${OUT}" stroke-width="4"/>`).join('')}</g>`;}
+scene('sc8b',T('s18')-.1,T('s20')-.15,`${corridor('sc8b')}<g id="sc8b_cam"><g id="sc8b_dvw">${devoteeSide('sc8b_dv')}</g>
+ <g id="sc8b_turn" opacity="0" transform="translate(470,820) scale(.9)">${turnIcon}</g></g>`,(t,lt)=>{
+  const a=T('s18')-.1, stop=wi('s19','रुकना'), turn=wi('s19','मुड़ना');
+  // distance as integral: speed 1 until stop-0.6, then decelerate to 0 at stop
+  const speed=240; const ds=stop-.6;
+  let dist; if(t<ds) dist=(t-a)*speed; else {const u=clamp(t-ds,0,.6); dist=(ds-a)*speed+speed*(u-u*u/(2*.6));}
+  $('sc8b_far').setAttribute('transform',`translate(${-(dist*.4)%240},0)`);
+  $('sc8b_floor').setAttribute('transform',`translate(${-(dist)%160},0)`);
+  $('sc8b_near').setAttribute('transform',`translate(${-(dist*1.6)%480},0)`);
+  const walking=t<stop; const amp=walking?clamp((stop-t)/.6):0;
+  const tr=eio(win(t,turn-.1,turn+.35)); const sx=Math.cos(tr*Math.PI);
+  $('sc8b_dvw').setAttribute('transform',`translate(470,1420) scale(${1.1*sx},1.1)`);
+  updDevoteeSide('sc8b_dv',{phase:dist/speed*7.5,walk:amp,blink:blinkAt(t,2.8),breath:Math.sin(t*2)*2});
+  $('sc8b_turn').setAttribute('opacity',win(t,turn+.2,turn+.6)*(1-win(t,E('s19')+.2,E('s19')+.5)));
+},.15,.35);
+
+// SC8d front devotee + Shiv behind, night
+scene('sc8d',T('s20')-.15,E('s22')+.3,`<rect width="1080" height="1920" fill="url(#gTemple)"/>
+ <g id="sc8d_night" opacity="0"><rect width="1080" height="1920" fill="url(#gNight)"/>${stars(110,11)}</g>
+ <g transform="translate(540,760)">${rays('sc8d_rays','#bcd4ff',22,.12)}</g>
+ <g id="sc8d_shivw" opacity="0"><g transform="translate(540,700) scale(1.05)">${shivBust('sc8d_shiv')}</g></g>
+ <g id="sc8d_cam"><g transform="translate(540,1480)">${devoteeFront('sc8d_dv')}</g></g>`,(t,lt)=>{
+  const a=T('s20'); const n=win(t,a,a+1.5);
+  $('sc8d_night').setAttribute('opacity',n); $('sc8d_shivw').setAttribute('opacity',.55*win(t,a+.6,a+2.2)+.35*win(t,wi('s22','खुद'),wi('s22','खुद')+.6));
+  const cl=win(t,wi('s20','संदेश'),wi('s20','संदेश')+.4);
+  updDevoteeFront('sc8d_dv',{closed:Math.max(cl,cl<1?blinkAt(t,3.1):0),breath:Math.sin(t*1.8)*3});
+  const op=win(t,wi('s22','खुद')+.2,wi('s22','खुद')+.9);
+  updShiv('sc8d_shiv',{open:op,third:op*.9,breath:Math.sin(t*1.5)*.006,moon:1+.1*Math.sin(t*2)});
+  $('sc8d_rays').setAttribute('transform',`rotate(${lt*6})`);
+  $('sc8d_cam').setAttribute('transform',`translate(540,1400) scale(${1+lt*.035}) translate(-540,-1400)`);
+},.3,.12);
+
+// SC9 recap icons
+scene('sc9',E('s22')+.3,T('s25')-.25,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,900)">${rays('sc9_rays','#fff2c8',24,.22)}</g>
+ <g id="sc9_slw" opacity="0"><g transform="translate(540,1080) scale(.95)">${shivlingFront('sc9_sl')}</g><g transform="translate(220,1340) scale(.8)">${diya('sc9_d1')}</g><g transform="translate(860,1340) scale(.8)">${diya('sc9_d2')}</g></g>
+ ${[dropIcon,moonIcon,turnIcon].map((ic,i)=>`<g id="sc9_i${i}" opacity="0"><circle r="150" fill="#2a1408" opacity=".55"/><circle r="150" fill="none" stroke="#ffe3a0" stroke-width="6"/><g transform="scale(.95)">${ic}</g></g>`).join('')}`,(t,lt)=>{
+  const ts=[wi('s23','जल'),wi('s23','चंद्र'),wi('s23','खुद')]; const row=win(t,T('s24')-.2,T('s24')+.6), rr=eio(row);
+  ts.forEach((ti,i)=>{const s=eback(win(t,ti-.1,ti+.35)); const g=$('sc9_i'+i);
+    const x0=540, y0=620+i*400, x1=220+i*320, y1=1640;
+    g.setAttribute('opacity',win(t,ti-.1,ti+.15)); g.setAttribute('transform',`translate(${lerp(x0,x1,rr)},${lerp(y0,y1,rr)}) scale(${s*lerp(1,.62,rr)})`);});
+  $('sc9_slw').setAttribute('opacity',rr); updDiya('sc9_d1',t); updDiya('sc9_d2',t+.7);
+  $('sc9_rays').setAttribute('transform',`rotate(${lt*5})`);
+  ['sc9_sl_wet','sc9_sl_pool','sc9_sl_chan'].forEach((k,i)=>$(k).setAttribute('opacity',[.18,.5,1][i]));
+},.05,.35);
+
+// SC10 CTA
+scene('sc10',T('s25')-.25,END,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,880)">${rays('sc10_rays','#fff2c8',24,.26)}</g>
+ <g id="sc10_cam"><g transform="translate(540,830) scale(.76)">${shivBust('sc10_shiv')}</g></g>`,(t,lt)=>{
+  $('sc10_rays').setAttribute('transform',`rotate(${lt*5})`);
+  updShiv('sc10_shiv',{open:win(t,T('s26')-.4,T('s26')+.4),third:.5+.4*Math.sin(t*3)*win(t,T('s26'),T('s26')+.5),breath:Math.sin(t*1.5)*.006,moon:1.2+.1*Math.sin(t*2)});
+  $('sc10_cam').setAttribute('transform',`translate(540,900) scale(${1+lt*.02}) translate(-540,-900)`);
+},.35,.01);
+
+// ------------------------------------------------------------------ overlay texts (tags / gold words / labels)
+const OV=[]; // {el, a, b, kind, x,y}
+function ov(kind,html,a,b,x,y,size){const d=document.createElement('div');d.className=kind;d.innerHTML=html;
+  if(size)d.style.fontSize=size+'px'; $('overlay').appendChild(d); OV.push({d,a,b,kind,x,y});}
+function cue(){
+ ov('tag','क्यों?',T('s03')-.05,T('s04')-.2,540,1530,130);
+ ov('gold','3',T('s04')-.05,T('s06')-.2,540,900,420);
+ ov('tag','गहरे रहस्य',wi('s04','गहरे'),E('s04')+.2,540,1230,78);
+ ov('tag','सोच बदल देगा',wi('s05','सोच'),E('s05')+.3,540,1230,78);
+ ov('label','जलाधारी',wi('s07','जलाधारी')-.05,E('s07')+.3,540,560,72);
+ ov('tag','सोमसूत्र',wi('s07','सोमसूत्र')-.05,E('s07')+.3,540,690,84);
+ ov('label','पहला रहस्य',T('s08')-.1,T('s09')-.15,540,1170,58);
+ ov('gold','अभिषेक का जल',wi('s08','अभिषेक')-.1,T('s09')-.15,540,1280,124);
+ ov('shade','',wi('s10','प्रसाद')-.05,wi('s10','गंगा')-.1,540,980);ov('gold','प्रसाद',wi('s10','प्रसाद')-.05,wi('s10','गंगा')-.1,540,980,170);
+ ov('tag','गंगा के समान पवित्र',wi('s10','गंगा'),E('s10')+.3,540,980,74);
+ ov('tag','लांघना नहीं',wi('s11','लांघा')-.1,E('s11')+.15,540,900,96);
+ ov('label','दूसरा रहस्य',T('s13')-.15,T('s14')-.15,540,1170,58);
+ ov('gold','अर्धचंद्र',wi('s13','अर्धचंद्र')-.15,T('s14')-.15,540,1280,170);
+ ov('gold','आधा चाँद',wi('s14','आधा')+.1,E('s14')+.2,540,1560,140);
+ ov('tag','मस्तक पर',wi('s15','मस्तक'),E('s15')+.3,540,1640,80);
+ ov('tag','असली रहस्य',wi('s16','असली'),E('s16')+.3,540,1560,96);
+ ov('label','तीसरा रहस्य',T('s17')-.15,T('s18')-.15,540,1170,58);
+ ov('gold','लौटना',wi('s17','लौटना')-.1,T('s18')-.15,540,1280,190);
+ ov('tag','रुकना',wi('s19','रुकना')-.05,wi('s19','मुड़ना')-.15,540,620,96);
+ ov('tag','मुड़ना',wi('s19','मुड़ना')-.05,E('s19')+.3,540,620,96);
+ ov('tag','हर यात्रा आगे की नहीं',T('s21')-.05,E('s21')+.2,540,620,70);
+ ov('shade','',wi('s22','खुद')-.05,E('s22')+.3,540,1090);ov('gold','खुद की ओर लौटना',wi('s22','खुद')-.05,E('s22')+.3,540,1090,104);
+ ov('pill','जल का सम्मान',wi('s23','जल')+.2,T('s24')-.2,540,820,56);
+ ov('pill','चंद्र का श्रृंगार',wi('s23','चंद्र')+.2,T('s24')-.2,540,1220,56);
+ ov('pill','खुद की ओर वापसी',wi('s23','खुद')+.2,T('s24')-.2,540,1620,56);
+ ov('tag','याद रखिए',wi('s24','याद')-.05,E('s24')+.3,540,560,90);
+ ov('shade','',T('s25')+.2,END,540,1600);ov('pill','कमेंट में लिखिए',T('s25')+.2,END,540,1520,62);
+ ov('gold','ॐ नमः शिवाय',T('s26')-.1,END,540,1660,150);
+}
+
+// ------------------------------------------------------------------ captions
+const KEY=['शिवलिंग','आधी','परिक्रमा','रहस्य','तीसरा','तीन','जलाधारी','सोमसूत्र','अभिषेक','जल','महादेव','प्रसाद','गंगा','पवित्र','लांघा','लौट','अर्धचंद्र','चाँद','चंद्रमा','मस्तक','असली','लौटना','आगे','रुकना','मुड़ना','संदेश','यात्रा','सम्मान','श्रृंगार','वापसी','ख़ुद','कमेंट','ॐ','शिवाय','भगवान','पूरी','क्यों'];
+const CHUNKS=[];
+TIMING.lines.forEach(l=>{const ws=words(l.text);let cur=[],len=0,start=0;
+  ws.forEach((w,i)=>{cur.push(i);len+=w.length+1; const brk=/[,।?—]|\.\.\./.test(w)||len>20||i==ws.length-1;
+    if(brk){CHUNKS.push({id:l.id,idx:cur.slice(),ws});cur=[];len=0;}});});
+CHUNKS.forEach((c,k)=>{c.a=wt(c.id,c.idx[0])-.08; const nx=CHUNKS[k+1]; c.b=(nx&&nx.id===c.id)?wt(nx.id,nx.idx[0])-.08:L[c.id].end+.25;});
+function renderCap(t){const c=CHUNKS.find(c=>t>=c.a&&t<c.b); const el=$('cap');
+  if(!c){el.innerHTML='';return;}
+  const key=c.id+c.idx[0]; if(el.dataset.k!==key){el.dataset.k=key;
+    el.innerHTML=c.idx.map(i=>{const w=c.ws[i];const k=KEY.some(K=>w.includes(K));return `<span data-t="${wt(c.id,i)}" style="color:${k?'#ffc94a':'#fff'}">${w}</span>`}).join(' ');}
+  const pop=eback(win(t,c.a,c.a+.18)); el.style.transform=`scale(${.9+.1*pop})`;
+  [...el.children].forEach(s=>{s.style.opacity=t>=+s.dataset.t-.05?1:.32;});
+}
+
+// ------------------------------------------------------------------ particles
+const PT=[...Array(70)].map((_,i)=>({x:(Math.sin(i*12.9898)*43758.5453%1+1)%1,y:(Math.sin(i*78.233)*12543.13%1+1)%1,r:3+((i*37)%9),s:.02+((i*13)%10)/300,ph:i}));
+function renderFx(t,tint){const c=$('fx').getContext('2d');c.clearRect(0,0,1080,1920);
+  PT.forEach(p=>{const y=((p.y-t*p.s)%1+1)%1*1920, x=p.x*1080+Math.sin(t*.5+p.ph)*30; const a=.18+.18*Math.sin(t*1.3+p.ph);
+    const g=c.createRadialGradient(x,y,0,x,y,p.r*3);g.addColorStop(0,`rgba(${tint},${a})`);g.addColorStop(1,`rgba(${tint},0)`);c.fillStyle=g;c.beginPath();c.arc(x,y,p.r*3,0,6.283);c.fill();});}
+
+// ------------------------------------------------------------------ build + render
+function build(){const root=$('scenes'); $('gdefs').innerHTML=defs();
+  SCENES.forEach(s=>{const d=document.createElement('div');d.className='scene';d.id='W_'+s.id;
+    d.innerHTML=`<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">${s.svg}</svg>`;root.appendChild(d);s.div=d;});
+  cue();}
+function flashAt(t){const pts=[T('s06')-.1,T('s08')-.2,E('s22')+.3,T('s17')-.2];let o=0;pts.forEach(p=>{o=Math.max(o,Math.max(0,1-Math.abs(t-p)/.18))});return o*.85;}
+window.render=function(t){
+  SCENES.forEach(s=>{const o=fadeWin(t,s.a,s.b,s.fi,s.fo); s.div.style.opacity=o; s.div.style.display=o>0?'block':'none';
+    if(s.iris){const ir=win(t,s.a-s.fi,s.a+.25); s.div.style.clipPath=ir<1?`circle(${eo(ir)*1300}px at 50% 50%)`:'none'; s.div.style.opacity=t>s.b?o:1*(ir>0?1:0);}
+    if(o>0) s.upd(t,t-s.a);});
+  OV.forEach(v=>{const o=fadeWin(t,v.a,v.b,.12,.2); v.d.style.opacity=o; if(o<=0){v.d.style.display='none';return;} v.d.style.display='block';
+    const s=(v.kind==='label'||v.kind==='shade')?1:v.kind==='pill'?eo(win(t,v.a-.12,v.a+.2)):eback(win(t,v.a-.12,v.a+.22)); const rot=v.kind==='tag'?-3+Math.sin(t*2)*.6:0;
+    const shake=v.kind==='tag'&&t<v.a+.3?Math.sin(t*60)*4*(1-win(t,v.a,v.a+.3)):0;
+    v.d.style.left=v.x+'px'; v.d.style.top=v.y+'px'; v.d.style.transform=`translate(-50%,-50%) translate(${shake}px,0) rotate(${rot}deg) scale(${s})`;});
+  renderCap(t);
+  const tint=t<T('s13')-.3?'255,190,110':t<T('s16')?'190,215,255':t<E('s22')?'255,200,130':'255,240,200';
+  renderFx(t,tint);
+  $('flash').style.opacity=flashAt(t);
+};
+build();
+window.CUES={ov:OV.map(v=>({a:v.a,kind:v.kind})),scenes:SCENES.map(s=>({id:s.id,a:s.a,b:s.b})),
+ walks:[[T('s11')-.15,wi('s11','लांघा')-.25],[T('s18')-.1,wi('s19','रुकना')]],
+ water:[[T('s06')+1.2,E('s07')+.3],[T('s09')-.1,T('s11')-.15]],ganga:wi('s10','गंगा'),
+ turn:wi('s19','मुड़ना'),crescent:wi('s14','आधा'),moonfly:T('s15'),eyes:wi('s22','खुद')+.2,end:END};
+document.fonts.ready.then(()=>{window.READY=true; render(0);});
+const q=new URLSearchParams(location.search); if(q.get('t')) document.fonts.ready.then(()=>render(+q.get('t')));
+</script>
+</body>
+</html>
