@@ -20,7 +20,11 @@ renders them. Read this before making or changing a video.
 4. **No repeated pop sound on text, and no synthesized background noise.** Sound effects only on
    real actions, each used sparingly. No noise-based ambience beds (crowd murmur, fire crackle,
    crickets, wind, rain hiss); the owner rejected them. Music plus discrete action sounds only.
-5. **Characters in the reference style:** flat colour with no shading, egg-shaped body, very long
+5. **Characters: use the high-detail builder** `the-cook-who-got-paid-in-noise/src/charsHD.js`
+   (`makeChar3` + `drawFaceHD`): 2K crisp faces, outlined eyes with pupils, nose, teeth and tongue,
+   3D cartoon hands, 3D scarf/belt/collar options, fabric folds, and a **static outline with no
+   wobble** (`BOIL.value = 0`; the owner rejected the moving border). Older note follows.
+   **Characters in the reference style:** flat colour with no shading, egg-shaped body, very long
    thin legs, tiny hands, thick dark outline, big simple face. Use `makeChar2` in
    `pipeline/characters.js`. The earlier shaded, short-legged characters were rejected.
 6. **Sets must be detailed and textured** (wood planks, plaster and timber, brick, cobbles). A
@@ -90,7 +94,7 @@ narration audio, use it as-is and build `timing.json` from a Whisper transcript.
 
 | Folder | Video | Status |
 |---|---|---|
-| `the-cook-who-got-paid-in-noise/` | The Cook Who Got Paid in Noise (54 s) | Full video; high-detail sets (courtroom, kitchen, night street); no ambience noise |
+| `the-cook-who-got-paid-in-noise/` | The Cook Who Got Paid in Noise (54 s) | Full video; high-detail sets and high-detail characters; no ambience noise |
 | `the-girl-who-outsmarted-a-greedy-king/` | The Girl Who Outsmarted a Greedy King With a String (68 s, owner's own script and voice) | Full video; gold-mine/Einstein style: white heads (`makeChar3` in its src), real long shadows |
 | `the-worst-plumber-in-london/` | The Worst Plumber in London (53 s) | Approved style; music is "Cool Vibes" |
 | `he-owned-google-for-one-minute/` | He Owned Google for One Minute (57 s) | Music is "Cool Vibes" |
