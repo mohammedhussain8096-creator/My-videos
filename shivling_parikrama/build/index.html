@@ -16,9 +16,10 @@ html,body{margin:0;padding:0;background:#000;overflow:hidden}
 #vignette{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(ellipse 75% 62% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%)}
 #flash{position:absolute;inset:0;background:#fff8e6;opacity:0;pointer-events:none}
-#cap{position:absolute;left:60px;right:60px;top:290px;text-align:center;font-family:Hind;font-weight:700;
-  font-size:62px;line-height:1.25;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 18px rgba(0,0,0,.7)}
+#cap{position:absolute;left:40px;right:40px;top:1390px;text-align:center;font-family:Hind;font-weight:700;transform-origin:50% 50%;
+  font-size:64px;line-height:1.25;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 18px rgba(0,0,0,.7)}
 #cap span{transition:none}
+.capbox{display:inline-block;max-width:960px;background:rgba(12,6,3,.58);border:2px solid rgba(255,214,120,.35);border-radius:24px;padding:12px 30px 4px}
 .tag{position:absolute;font-family:Hind;font-weight:700;color:#fff;background:linear-gradient(#d62a3a,#a3101f);
   border:5px solid #f4c45a;border-radius:14px;padding:6px 30px 0;font-size:84px;line-height:1.25;
   box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 40px rgba(220,40,40,.45);white-space:nowrap;opacity:0;
@@ -465,8 +466,8 @@ scene('sc9',E('s22')+.3,T('s25')-.25,`<rect width="1080" height="1920" fill="url
  ${[dropIcon,moonIcon,turnIcon].map((ic,i)=>`<g id="sc9_i${i}" opacity="0"><circle r="150" fill="#2a1408" opacity=".55"/><circle r="150" fill="none" stroke="#ffe3a0" stroke-width="6"/><g transform="scale(.95)">${ic}</g></g>`).join('')}`,(t,lt)=>{
   const ts=[wi('s23','जल'),wi('s23','चंद्र'),wi('s23','खुद')]; const row=win(t,T('s24')-.2,T('s24')+.6), rr=eio(row);
   ts.forEach((ti,i)=>{const s=eback(win(t,ti-.1,ti+.35)); const g=$('sc9_i'+i);
-    const x0=540, y0=620+i*400, x1=220+i*320, y1=1640;
-    g.setAttribute('opacity',win(t,ti-.1,ti+.15)); g.setAttribute('transform',`translate(${lerp(x0,x1,rr)},${lerp(y0,y1,rr)}) scale(${s*lerp(1,.62,rr)})`);});
+    const x0=540, y0=470+i*310, x1=220+i*320, y1=430;
+    g.setAttribute('opacity',win(t,ti-.1,ti+.15)); g.setAttribute('transform',`translate(${lerp(x0,x1,rr)},${lerp(y0,y1,rr)}) scale(${s*lerp(.8,.58,rr)})`);});
   $('sc9_slw').setAttribute('opacity',rr); updDiya('sc9_d1',t); updDiya('sc9_d2',t+.7);
   $('sc9_rays').setAttribute('transform',`rotate(${lt*5})`);
   ['sc9_sl_wet','sc9_sl_pool','sc9_sl_chan'].forEach((k,i)=>$(k).setAttribute('opacity',[.18,.5,1][i]));
@@ -474,7 +475,7 @@ scene('sc9',E('s22')+.3,T('s25')-.25,`<rect width="1080" height="1920" fill="url
 
 // SC10 CTA
 scene('sc10',T('s25')-.25,END,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,880)">${rays('sc10_rays','#fff2c8',24,.26)}</g>
- <g id="sc10_cam"><g transform="translate(540,830) scale(.76)">${shivBust('sc10_shiv')}</g></g>`,(t,lt)=>{
+ <g id="sc10_cam"><g transform="translate(540,880) scale(.72)">${shivBust('sc10_shiv')}</g></g>`,(t,lt)=>{
   $('sc10_rays').setAttribute('transform',`rotate(${lt*5})`);
   updShiv('sc10_shiv',{open:win(t,T('s26')-.4,T('s26')+.4),third:.5+.4*Math.sin(t*3)*win(t,T('s26'),T('s26')+.5),breath:Math.sin(t*1.5)*.006,moon:1.2+.1*Math.sin(t*2)});
   $('sc10_cam').setAttribute('transform',`translate(540,900) scale(${1+lt*.02}) translate(-540,-900)`);
@@ -485,34 +486,34 @@ const OV=[]; // {el, a, b, kind, x,y}
 function ov(kind,html,a,b,x,y,size){const d=document.createElement('div');d.className=kind;d.innerHTML=html;
   if(size)d.style.fontSize=size+'px'; $('overlay').appendChild(d); OV.push({d,a,b,kind,x,y});}
 function cue(){
- ov('tag','क्यों?',T('s03')-.05,T('s04')-.2,540,1530,130);
+ ov('tag','क्यों?',T('s03')-.05,T('s04')-.2,540,600,130);
  ov('gold','3',T('s04')-.05,T('s06')-.2,540,900,420);
  ov('tag','गहरे रहस्य',wi('s04','गहरे'),E('s04')+.2,540,1230,78);
  ov('tag','सोच बदल देगा',wi('s05','सोच'),E('s05')+.3,540,1230,78);
  ov('label','जलाधारी',wi('s07','जलाधारी')-.05,E('s07')+.3,540,560,72);
  ov('tag','सोमसूत्र',wi('s07','सोमसूत्र')-.05,E('s07')+.3,540,690,84);
- ov('label','पहला रहस्य',T('s08')-.1,T('s09')-.15,540,1170,58);
- ov('gold','अभिषेक का जल',wi('s08','अभिषेक')-.1,T('s09')-.15,540,1280,124);
+ ov('label','पहला रहस्य',T('s08')-.1,T('s09')-.15,540,1120,58);
+ ov('gold','अभिषेक का जल',wi('s08','अभिषेक')-.1,T('s09')-.15,540,1240,124);
  ov('shade','',wi('s10','प्रसाद')-.05,wi('s10','गंगा')-.1,540,980);ov('gold','प्रसाद',wi('s10','प्रसाद')-.05,wi('s10','गंगा')-.1,540,980,170);
  ov('tag','गंगा के समान पवित्र',wi('s10','गंगा'),E('s10')+.3,540,980,74);
  ov('tag','लांघना नहीं',wi('s11','लांघा')-.1,E('s11')+.15,540,900,96);
- ov('label','दूसरा रहस्य',T('s13')-.15,T('s14')-.15,540,1170,58);
- ov('gold','अर्धचंद्र',wi('s13','अर्धचंद्र')-.15,T('s14')-.15,540,1280,170);
- ov('gold','आधा चाँद',wi('s14','आधा')+.1,E('s14')+.2,540,1560,140);
- ov('tag','मस्तक पर',wi('s15','मस्तक'),E('s15')+.3,540,1640,80);
- ov('tag','असली रहस्य',wi('s16','असली'),E('s16')+.3,540,1560,96);
- ov('label','तीसरा रहस्य',T('s17')-.15,T('s18')-.15,540,1170,58);
- ov('gold','लौटना',wi('s17','लौटना')-.1,T('s18')-.15,540,1280,190);
+ ov('label','दूसरा रहस्य',T('s13')-.15,T('s14')-.15,540,1120,58);
+ ov('gold','अर्धचंद्र',wi('s13','अर्धचंद्र')-.15,T('s14')-.15,540,1240,160);
+ ov('gold','आधा चाँद',wi('s14','आधा')+.1,E('s14')+.2,540,560,140);
+ ov('tag','मस्तक पर',wi('s15','मस्तक'),E('s15')+.3,540,560,84);
+ ov('tag','असली रहस्य',wi('s16','असली'),E('s16')+.3,540,820,96);
+ ov('label','तीसरा रहस्य',T('s17')-.15,T('s18')-.15,540,1120,58);
+ ov('gold','लौटना',wi('s17','लौटना')-.1,T('s18')-.15,540,1240,170);
  ov('tag','रुकना',wi('s19','रुकना')-.05,wi('s19','मुड़ना')-.15,540,620,96);
  ov('tag','मुड़ना',wi('s19','मुड़ना')-.05,E('s19')+.3,540,620,96);
  ov('tag','हर यात्रा आगे की नहीं',T('s21')-.05,E('s21')+.2,540,620,70);
  ov('shade','',wi('s22','खुद')-.05,E('s22')+.3,540,1090);ov('gold','खुद की ओर लौटना',wi('s22','खुद')-.05,E('s22')+.3,540,1090,104);
- ov('pill','जल का सम्मान',wi('s23','जल')+.2,T('s24')-.2,540,820,56);
- ov('pill','चंद्र का श्रृंगार',wi('s23','चंद्र')+.2,T('s24')-.2,540,1220,56);
- ov('pill','खुद की ओर वापसी',wi('s23','खुद')+.2,T('s24')-.2,540,1620,56);
- ov('tag','याद रखिए',wi('s24','याद')-.05,E('s24')+.3,540,560,90);
- ov('shade','',T('s25')+.2,END,540,1600);ov('pill','कमेंट में लिखिए',T('s25')+.2,END,540,1520,62);
- ov('gold','ॐ नमः शिवाय',T('s26')-.1,END,540,1660,150);
+ ov('pill','जल का सम्मान',wi('s23','जल')+.2,T('s24')-.2,540,640,50);
+ ov('pill','चंद्र का श्रृंगार',wi('s23','चंद्र')+.2,T('s24')-.2,540,950,50);
+ ov('pill','खुद की ओर वापसी',wi('s23','खुद')+.2,T('s24')-.2,540,1260,50);
+ ov('tag','याद रखिए',wi('s24','याद')-.05,E('s24')+.3,540,640,90);
+ ov('shade','',T('s25')+.2,END,540,360);ov('pill','कमेंट में लिखिए',T('s25')+.2,END,540,250,58);
+ ov('gold','ॐ नमः शिवाय',T('s26')-.1,END,540,400,140);
 }
 
 // ------------------------------------------------------------------ captions
@@ -525,9 +526,9 @@ CHUNKS.forEach((c,k)=>{c.a=wt(c.id,c.idx[0])-.08; const nx=CHUNKS[k+1]; c.b=(nx&
 function renderCap(t){const c=CHUNKS.find(c=>t>=c.a&&t<c.b); const el=$('cap');
   if(!c){el.innerHTML='';return;}
   const key=c.id+c.idx[0]; if(el.dataset.k!==key){el.dataset.k=key;
-    el.innerHTML=c.idx.map(i=>{const w=c.ws[i];const k=KEY.some(K=>w.includes(K));return `<span data-t="${wt(c.id,i)}" style="color:${k?'#ffc94a':'#fff'}">${w}</span>`}).join(' ');}
+    el.innerHTML='<div class="capbox">'+c.idx.map(i=>{const w=c.ws[i];const k=KEY.some(K=>w.includes(K));return `<span data-t="${wt(c.id,i)}" style="color:${k?'#ffc94a':'#fff'}">${w}</span>`}).join(' ')+'</div>';}
   const pop=eback(win(t,c.a,c.a+.18)); el.style.transform=`scale(${.9+.1*pop})`;
-  [...el.children].forEach(s=>{s.style.opacity=t>=+s.dataset.t-.05?1:.32;});
+  [...el.querySelectorAll('span')].forEach(s=>{s.style.opacity=t>=+s.dataset.t-.05?1:.32;});
 }
 
 // ------------------------------------------------------------------ particles
