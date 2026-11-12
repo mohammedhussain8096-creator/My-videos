@@ -88,3 +88,24 @@ Tip: 01, 02, 03, 07 Hindi-native voices hain — inka "रहस्य" uchchara
 ---
 
 **Character aur movement ka frame-by-frame analysis:** [CHARACTER_ANALYSIS.md](CHARACTER_ANALYSIS.md)
+
+---
+
+## PART D — 10 Naye Male Voice Samples (Set 2, `voice_samples_male_set2/`)
+
+Pehla set pasand nahi aaya, isliye ye **alag TTS engines** se hain (Piper, Kokoro, Meta MMS, Microsoft), sirf pitch badli hui purani voices nahi. Sab same hook line, volume barabar (-16 LUFS), koi deep nahi (121–152 Hz).
+
+| # | Character | Engine | Pitch |
+|---|-----------|--------|-------|
+| 11 | Rohan — Sahaj Kathavachak | Piper (Hindi) | 144 Hz |
+| 12 | Pratham — Saaf Awaaz | Piper (Hindi), pitch thodi upar | 126 Hz |
+| 13 | Omega — Thehrav wala Kathavachak | Kokoro (Hindi) | 124 Hz |
+| 14 | Psi — Yuva Sutradhar | Kokoro (Hindi) | 127 Hz |
+| 15 | Mishrit Bhakt Awaaz (Omega + Psi blend) | Kokoro | 126 Hz |
+| 16 | Shant Dhyan Awaaz (Psi, dheema) | Kokoro | 129 Hz |
+| 17 | Desi Saral Kathavachak | Meta MMS (Hindi) | 152 Hz |
+| 18 | Manohar — Pandit Tone | Microsoft (Marathi voice, Hindi text) | 122 Hz |
+| 19 | Prabhat — Hinglish Modern | Microsoft (Indian English, Roman Hinglish) | 121 Hz |
+| 20 | Salman — Hindustani Dastango | Microsoft (Urdu voice) | 121 Hz |
+
+Note: #20 "शिवलिंग" ko thoda "शेव-लिंग" jaisa bolta hai.
