@@ -75,10 +75,20 @@ Known limits: the model cannot hear audio, so sound is placed by measurement and
 check it by ear. YouTube blocks video downloads from this environment; the owner uploads
 reference videos instead. Facts in scripts come from memory unless checked, and should be flagged.
 
+## Style update (12 Nov)
+
+After analysing *Why This Gold Mine Is Worthless* and *Einstein's Math Lesson*
+(`reference-analysis/gold-mine-and-einstein.md`), new videos use that look: big pure-white heads
+with heavy outlines and tall coat bodies (`makeChar3`, in the king video's `src/scene.js`), cuts
+every ~2 s, text on in-world props, a wide lens (fov 50–58) on street shots because the vertical
+frame is narrow, and an ending that loops back into the hook. When the owner supplies their own
+narration audio, use it as-is and build `timing.json` from a Whisper transcript.
+
 ## Videos so far
 
 | Folder | Video | Status |
 |---|---|---|
+| `the-girl-who-outsmarted-a-greedy-king/` | The Girl Who Outsmarted a Greedy King With a String (68 s, owner's own script and voice) | Full video; gold-mine/Einstein style: white heads (`makeChar3` in its src), real long shadows |
 | `the-worst-plumber-in-london/` | The Worst Plumber in London (53 s) | Approved style; music is "Cool Vibes" |
 | `he-owned-google-for-one-minute/` | He Owned Google for One Minute (57 s) | Music is "Cool Vibes" |
 | `the-backwards-bulb/` | The Thief Who Was Beaten by a Light Bulb (52 s) | Early style, superseded |
