@@ -453,11 +453,15 @@ def draw_check(img, sp, t):
         b = 46 * U
         d.rectangle([x, y - b, x + 2 * b, y + b], outline=(235, 225, 205, 255), width=int(5 * U))
         p = ease((t - at - 0.25) / 0.35)
-        if p > 0:
+        if p > 0 and sp.get('tick'):                       # gold tick instead of a red cross
+            c = (240, 190, 70, 255)
+            d.line([(x + 14 * U, y), (x + 14 * U + (b - 14 * U) * min(1, p * 2), y + (b - 20 * U) * min(1, p * 2))], fill=c, width=int(11 * U))
+            if p > 0.5: q = (p - 0.5) * 2; d.line([(x + b, y + b - 20 * U), (x + b + (b - 14 * U) * q, y + b - 20 * U - (2 * b - 10 * U) * q)], fill=c, width=int(11 * U))
+        elif p > 0:
             c = (220, 40, 30, 255)
             d.line([x + 10 * U, y - b + 10 * U, x + 10 * U + (2 * b - 20 * U) * min(1, p * 2), y - b + 10 * U + (2 * b - 20 * U) * min(1, p * 2)], fill=c, width=int(11 * U))
             if p > 0.5: q = (p - 0.5) * 2; d.line([x + 2 * b - 10 * U, y - b + 10 * U, x + 2 * b - 10 * U - (2 * b - 20 * U) * q, y - b + 10 * U + (2 * b - 20 * U) * q], fill=c, width=int(11 * U))
-        ti = text_img(txt, 'bold', 70, fill=(250, 244, 232)); lay.alpha_composite(ti, (int(x + 2 * b + 30 * U), int(y - ti.height / 2)))
+        ti = text_img(txt, 'bold', 70 if n < 4 else 62, fill=(250, 244, 232)); lay.alpha_composite(ti, (int(x + 2 * b + 30 * U), int(y - ti.height / 2)))
         lay.putalpha(lay.getchannel('A').point(lambda v: int(v * a))); img.alpha_composite(lay, (int((1 - a) * -40 * U), 0))
 
 def draw_files(img, sp, t):
@@ -491,6 +495,7 @@ def draw_card(sp, t, dur):
         img = blur_bg(sp['bgimg'], sp.get('grade', 'bw')).copy()
     else:
         img = card_bg(sp.get('tone', 'dark')).copy()
+    if sp.get('clock'): draw_clock(img, t, sp)
     img = img.convert('RGBA')
     if sp.get('doc'): draw_doc(img, sp, t)
     if sp.get('check'): draw_check(img, sp, t)
