@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<title>Shani Ravan Katha</title>
+<style>
+@font-face{font-family:Hind;src:url(fonts/Hind-Bold.ttf);font-weight:700}
+@font-face{font-family:Hind;src:url(fonts/Hind-SemiBold.ttf);font-weight:600}
+@font-face{font-family:Yatra;src:url(fonts/YatraOne-Regular.ttf)}
+html,body{margin:0;padding:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#05040a}
+.scene{position:absolute;inset:0;opacity:0}
+.scene svg{position:absolute;inset:0;width:1080px;height:1920px}
+#fx{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen}
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 62% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.5) 100%)}
+#flash{position:absolute;inset:0;background:#fff8e6;opacity:0;pointer-events:none}
+#cap{position:absolute;left:40px;right:40px;top:1390px;text-align:center;font-family:Hind;font-weight:700;transform-origin:50% 50%;
+  font-size:64px;line-height:1.25;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 18px rgba(0,0,0,.7)}
+.capbox{display:inline-block;max-width:960px;background:rgba(12,6,3,.58);border:2px solid rgba(255,214,120,.35);border-radius:24px;padding:12px 30px 4px}
+.tag{position:absolute;font-family:Hind;font-weight:700;color:#fff;background:linear-gradient(#d62a3a,#a3101f);border:5px solid #f4c45a;border-radius:14px;
+  padding:6px 30px 0;font-size:84px;line-height:1.25;box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 40px rgba(220,40,40,.45);white-space:nowrap;opacity:0}
+.gold{position:absolute;font-family:Yatra;text-align:center;white-space:nowrap;opacity:0;line-height:1.15;
+  background:linear-gradient(180deg,#fff3c4 0%,#ffd36b 35%,#e8a530 62%,#a8661a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 0 #3b1e08) drop-shadow(0 0 26px rgba(255,190,80,.55))}
+.label{position:absolute;font-family:Hind;font-weight:600;color:#ffd77a;font-size:50px;text-align:center;opacity:0;white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.7)}
+.label:after{content:"";display:block;height:4px;margin:6px auto 0;width:80%;background:linear-gradient(90deg,transparent,#ffd77a,transparent)}
+.pill{position:absolute;font-family:Hind;font-weight:700;color:#ffe3a0;font-size:54px;opacity:0;white-space:nowrap;background:rgba(45,18,6,.82);border:3px solid #f0c25a;border-radius:50px;padding:8px 34px 2px}
+.shade{position:absolute;width:1080px;height:300px;opacity:0;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(10,5,20,.7),rgba(10,5,20,0) 100%)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="gdefs" width="0" height="0" style="position:absolute"></svg>
+  <div id="scenes"></div>
+  <canvas id="fx" width="1080" height="1920"></canvas>
+  <div id="vignette"></div>
+  <div id="overlay"></div>
+  <div id="cap"></div>
+  <div id="flash"></div>
+</div>
+<script src="timing.js"></script>
+<script>
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const win=(t,a,b)=>clamp((t-a)/(b-a));
+const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eo=p=>1-Math.pow(1-p,3);
+const ei=p=>p*p*p;
+const eback=p=>{const c1=1.9,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
+const $=id=>document.getElementById(id);
+const A=(id,k,v)=>{const e=$(id); if(e) e.setAttribute(k,v);};
+const noise=(t,s=1)=>Math.sin(t*7.1*s)*.5+Math.sin(t*13.7*s+1.3)*.3+Math.sin(t*23.3*s+2.1)*.2;
+function fadeWin(t,a,b,fi=.4,fo=.4){ if(t<a-fi||t>b+fo) return 0; return Math.min(clamp((t-(a-fi))/fi),clamp(((b+fo)-t)/fo)); }
+const L={}; TIMING.lines.forEach(l=>L[l.id]=l);
+function words(text){return text.split(/\s+/).filter(w=>w.length)}
+function wlen(w){return w.replace(/[।,?!…—.\-]/g,'').length||1}
+function wt(id,i){const l=L[id];const ws=words(l.text);const tot=ws.reduce((s,w)=>s+wlen(w)+1.2,0);
+  let acc=0;for(let k=0;k<i&&k<ws.length;k++)acc+=wlen(ws[k])+1.2;return l.start+(l.end-l.start)*acc/tot;}
+function wi(id,needle,nth=0){const ws=words(L[id].text);let c=-1;for(let i=0;i<ws.length;i++){if(ws[i].includes(needle)){c++;if(c===nth)return wt(id,i);}}return L[id].start;}
+const T=id=>L[id].start, E=id=>L[id].end;
+const END=TIMING.duration+1.2;
+const OUT='#140a06';
+function blinkAt(t,period=3.3,off=0){const x=((t+off)%period);return x<.14?Math.sin(x/.14*Math.PI):0;}
+
+// ============================================================ DEFS
+function defs(){return `<defs>
+ <radialGradient id="gCosmos" cx="50%" cy="38%" r="80%"><stop offset="0" stop-color="#3a2c7a"/><stop offset=".45" stop-color="#1a1645"/><stop offset="1" stop-color="#05040f"/></radialGradient>
+ <radialGradient id="gCourt" cx="50%" cy="40%" r="80%"><stop offset="0" stop-color="#7a2a1a"/><stop offset=".55" stop-color="#3a1009"/><stop offset="1" stop-color="#120403"/></radialGradient>
+ <linearGradient id="gNightSky" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#090c2a"/><stop offset=".6" stop-color="#22265e"/><stop offset="1" stop-color="#5a3a5a"/></linearGradient>
+ <radialGradient id="gSun" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#ffe2a0"/><stop offset=".45" stop-color="#e9a443"/><stop offset="1" stop-color="#7a3d10"/></radialGradient>
+ <radialGradient id="gDark" cx="50%" cy="55%" r="70%"><stop offset="0" stop-color="#2a1a40"/><stop offset="1" stop-color="#040208"/></radialGradient>
+ <radialGradient id="glowY" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffae3e" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b9d0ff" stop-opacity=".9"/><stop offset=".45" stop-color="#5b7cff" stop-opacity=".35"/><stop offset="1" stop-color="#3a4bff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowR" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffb0a0" stop-opacity=".95"/><stop offset=".4" stop-color="#ff3a2a" stop-opacity=".4"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowW" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity="1"/><stop offset=".4" stop-color="#fff2c8" stop-opacity=".5"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gGold" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".45" stop-color="#f2c14e"/><stop offset="1" stop-color="#a86f14"/></linearGradient>
+ <linearGradient id="gGoldV" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#e9b23e"/><stop offset="1" stop-color="#9a6210"/></linearGradient>
+ <linearGradient id="gShani" x1="0" x2="1"><stop offset="0" stop-color="#4c5ca8"/><stop offset=".45" stop-color="#2c3a78"/><stop offset="1" stop-color="#161e48"/></linearGradient>
+ <linearGradient id="gRav" x1="0" x2="1"><stop offset="0" stop-color="#d79868"/><stop offset=".45" stop-color="#b0703f"/><stop offset="1" stop-color="#7a4424"/></linearGradient>
+ <linearGradient id="gHan" x1="0" x2="1"><stop offset="0" stop-color="#ff9a48"/><stop offset=".45" stop-color="#e06a22"/><stop offset="1" stop-color="#a2420e"/></linearGradient>
+ <linearGradient id="gBlueCloth" x1="0" x2="1"><stop offset="0" stop-color="#3a58c0"/><stop offset=".5" stop-color="#22388a"/><stop offset="1" stop-color="#121f52"/></linearGradient>
+ <linearGradient id="gRedCloth" x1="0" x2="1"><stop offset="0" stop-color="#e2443e"/><stop offset=".5" stop-color="#a81b22"/><stop offset="1" stop-color="#5e0d12"/></linearGradient>
+ <linearGradient id="gCape" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6a1018"/><stop offset="1" stop-color="#2a050a"/></linearGradient>
+ <linearGradient id="gHair" x1="0" x2="1"><stop offset="0" stop-color="#2c2a48"/><stop offset="1" stop-color="#0c0b18"/></linearGradient>
+ <linearGradient id="gPillar" x1="0" x2="1"><stop offset="0" stop-color="#5a3a10"/><stop offset=".3" stop-color="#d9a640"/><stop offset=".55" stop-color="#9a6a1c"/><stop offset="1" stop-color="#3a2408"/></linearGradient>
+ <linearGradient id="gWall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a120c"/><stop offset="1" stop-color="#1e0705"/></linearGradient>
+ <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>`;}
+
+// ============================================================ SMALL PARTS
+const gem=(x,y,r,c='#2c55e0')=>`<g transform="translate(${x},${y})"><circle r="${r+4}" fill="url(#gGold)" stroke="${OUT}" stroke-width="2"/><circle r="${r}" fill="${c}"/><circle cx="${-r*.35}" cy="${-r*.35}" r="${r*.35}" fill="#fff" opacity=".75"/></g>`;
+const pearls=(pts,r=5)=>pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff8e6" stroke="#b08a50" stroke-width="1.5"/>`).join('');
+function arcPts(cx,cy,rx,ry,a0,a1,n){return [...Array(n)].map((_,i)=>{const a=a0+(a1-a0)*i/(n-1);return [cx+rx*Math.cos(a),cy+ry*Math.sin(a)]});}
+function stars(n=110,seed=3,h=1600){let s='';for(let i=0;i<n;i++){const x=(Math.sin(i*91.7+seed)*0.5+0.5)*1080,y=(Math.sin(i*47.3+seed*2)*0.5+0.5)*h;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${1.4+((i*7)%3)}" fill="#fff" opacity="${(.3+((i*13)%7)/10).toFixed(2)}"/>`;}return s;}
+function rays(p,color='#ffd98a',n=18,op=.18){return `<g id="${p}" opacity="${op}">${[...Array(n)].map((_,i)=>{const a=i/n*2*Math.PI;return `<path d="M0 0 L${(Math.cos(a-.06)*1700).toFixed(0)} ${(Math.sin(a-.06)*1700).toFixed(0)} L${(Math.cos(a+.06)*1700).toFixed(0)} ${(Math.sin(a+.06)*1700).toFixed(0)}Z" fill="${color}"/>`}).join('')}</g>`;}
+function saturnPlanet(p,r=120){return `<g id="${p}"><circle r="${r*1.8}" fill="url(#glowB)" opacity=".5"/>
+  <path d="M${-r*2} 0 A${r*2} ${r*.5} 0 0 1 ${r*2} 0" fill="none" stroke="#c9b27a" stroke-width="${r*.14}" opacity=".9" transform="rotate(-18)"/>
+  <circle r="${r}" fill="url(#gGold)"/><circle r="${r}" fill="#7a5a30" opacity=".35"/>
+  ${[-.5,-.15,.2,.5].map(k=>`<path d="M${-r*.95} ${r*k} Q0 ${r*k+r*.12} ${r*.95} ${r*k}" stroke="#8a6630" stroke-width="${r*.08}" fill="none" opacity=".6"/>`).join('')}
+  <path d="M${-r*2} 0 A${r*2} ${r*.5} 0 0 0 ${r*2} 0" fill="none" stroke="#e8d6a0" stroke-width="${r*.14}" opacity=".95" transform="rotate(-18)"/></g>`;}
+
+// ============================================================ SHANI (front, full body; origin = feet)
+function shaniFront(p,{chains=false}={}){
+  const arm=(id,side)=>`<g id="${p}_${id}" transform="translate(${side*150},-715)">
+     <path d="M-36 0 Q-44 70 -30 152 L30 152 Q44 70 36 0 Q0 -24 -36 0Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+     <path d="M-38 52 H38 V74 H-38Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,63,7)}
+     <g id="${p}_${id}f" transform="translate(0,148)">
+       <path d="M-28 0 L-22 124 L22 124 L28 0Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+       <path d="M-25 100 H25 V118 H-25Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>
+       <path d="M-24 120 Q-34 182 -6 194 Q4 198 14 192 Q34 178 24 120Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+       <path d="M-12 150 V184 M0 152 V190 M12 150 V184" stroke="${OUT}" stroke-width="2" opacity=".5"/>
+     </g></g>`;
+  const necklace=pearls(arcPts(0,-735,108,120,0.2,Math.PI-0.2,17),6);
+  return `<g id="${p}">
+  <ellipse cx="0" cy="0" rx="230" ry="30" fill="#000" opacity=".45"/>
+  <g id="${p}_halo" transform="translate(0,-860)">
+    <circle r="260" fill="url(#glowB)" id="${p}_haloglow"/>
+    <circle r="165" fill="none" stroke="url(#gGold)" stroke-width="7" opacity=".9"/>
+    <circle r="150" fill="none" stroke="#9fb4ff" stroke-width="2" opacity=".7" stroke-dasharray="6 10" id="${p}_halodash"/>
+    <g transform="rotate(-14)"><ellipse rx="275" ry="66" fill="none" stroke="#c9b27a" stroke-width="18" opacity=".85"/><ellipse rx="275" ry="66" fill="none" stroke="#7d8ee8" stroke-width="5"/><ellipse rx="300" ry="74" fill="none" stroke="#e8d6a0" stroke-width="3" opacity=".6"/></g>
+  </g>
+  <path d="M-102 -940 Q-160 -800 -150 -610 Q-140 -540 -100 -520 L100 -520 Q140 -540 150 -610 Q160 -800 102 -940Z" fill="url(#gHair)" stroke="${OUT}" stroke-width="4"/>
+  <path d="M-130 -760 Q-140 -660 -122 -580 M130 -760 Q140 -660 122 -580" stroke="#3a3866" stroke-width="5" fill="none"/>
+  <!-- uttariya back -->
+  <path d="M-150 -735 Q-205 -600 -188 -400 Q-176 -360 -158 -410 Q-158 -560 -122 -700Z" fill="url(#gBlueCloth)" stroke="${OUT}" stroke-width="4"/>
+  <path d="M150 -735 Q205 -600 188 -400 Q176 -360 158 -410 Q158 -560 122 -700Z" fill="url(#gBlueCloth)" stroke="${OUT}" stroke-width="4"/>
+  <!-- legs -->
+  <path d="M-120 -140 L-68 -140 L-72 -44 L-116 -44Z M120 -140 L68 -140 L72 -44 L116 -44Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-120 -60 H-68 M120 -60 H68" stroke="url(#gGold)" stroke-width="12"/>
+  <ellipse cx="-98" cy="-22" rx="50" ry="22" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/><ellipse cx="98" cy="-22" rx="50" ry="22" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-155 -475 L155 -475 L182 -122 Q120 -92 40 -116 L0 -210 L-40 -116 Q-120 -92 -182 -122Z" fill="url(#gBlueCloth)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-182 -122 Q-120 -92 -40 -116 L0 -210 L40 -116 Q120 -92 182 -122" fill="none" stroke="url(#gGold)" stroke-width="12"/>
+  <path d="M-32 -465 L32 -465 L24 -160 L-24 -160Z" fill="#1a2a6a" stroke="${OUT}" stroke-width="3"/>
+  ${[-14,0,14].map(x=>`<path d="M${x} -460 L${x*0.8} -168" stroke="#e9b23e" stroke-width="3"/>`).join('')}
+  ${[...Array(8)].map((_,i)=>`<circle cx="${-130+i*37}" cy="${-300+((i%2)*30)}" r="6" fill="#e9b23e" opacity=".8"/>`).join('')}
+  <!-- torso -->
+  <g id="${p}_torso">
+  <path d="M-48 -805 L48 -805 L54 -722 L-54 -722Z" fill="#1d2858" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-145 -728 Q-168 -600 -128 -470 L128 -470 Q168 -600 145 -728 Q0 -770 -145 -728Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-100 -650 Q-52 -616 -10 -642 M100 -650 Q52 -616 10 -642" stroke="#121a40" stroke-width="5" fill="none"/>
+  <path d="M-40 -580 Q-20 -572 0 -580 Q20 -572 40 -580 M-36 -530 Q0 -520 36 -530" stroke="#121a40" stroke-width="4" fill="none" opacity=".8"/>
+  <circle cx="0" cy="-500" r="5" fill="#121a40"/>
+  <path d="M-112 -726 Q0 -600 124 -478" stroke="#f2ede0" stroke-width="5" fill="none"/>
+  <path d="M-92 -738 Q0 -660 92 -738" stroke="url(#gGold)" stroke-width="12" fill="none"/>${necklace}
+  <path d="M-60 -710 Q0 -640 60 -710" stroke="url(#gGold)" stroke-width="6" fill="none"/>
+  <g transform="translate(0,-618)"><path d="M0 -22 L18 0 L0 28 L-18 0Z" fill="#2747d0" stroke="url(#gGold)" stroke-width="5"/><path d="M-5 -8 L3 -14" stroke="#fff" stroke-width="3"/></g>
+  <path d="M-165 -490 L165 -490 L160 -460 L-160 -460Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/>${gem(0,-475,11)}
+  </g>
+  ${arm('armL',-1)}${arm('armR',1)}
+  <!-- head -->
+  <g id="${p}_head" transform="translate(0,-860)">
+   <path d="M-84 -30 Q-88 -112 0 -120 Q88 -112 84 -30 Q80 52 42 86 Q0 110 -42 86 Q-80 52 -84 -30Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M30 -100 Q70 -60 70 0 Q66 50 34 82 Q66 30 60 -30 Q56 -76 30 -100Z" fill="#0f1534" opacity=".35"/>
+   <path d="M-90 -40 Q-104 -126 -36 -132 Q-82 -94 -86 4Z M90 -40 Q104 -126 36 -132 Q82 -94 86 4Z" fill="url(#gHair)"/>
+   <ellipse cx="-88" cy="-6" rx="13" ry="26" fill="#25306a" stroke="${OUT}" stroke-width="4"/><ellipse cx="88" cy="-6" rx="13" ry="26" fill="#25306a" stroke="${OUT}" stroke-width="4"/>
+   <g fill="url(#gGold)" stroke="${OUT}" stroke-width="3"><circle cx="-92" cy="34" r="15"/><circle cx="92" cy="34" r="15"/><path d="M-98 46 L-92 76 L-86 46Z M86 46 L92 76 L98 46Z"/></g>
+   <g id="${p}_eyes">
+    ${[-1,1].map(s=>`<path d="M${s*-64} -26 Q${s*-40} -46 ${s*-14} -27 Q${s*-40} -12 ${s*-64} -26Z" fill="#f2f0ea" stroke="${OUT}" stroke-width="3"/>
+     <circle cx="${s*-38}" cy="-28" r="15" fill="#6f95ff" opacity="0" class="${p}_eg"/>
+     <circle cx="${s*-38}" cy="-28" r="10" fill="#141c58"/><circle cx="${s*-38}" cy="-28" r="4.5" fill="#000"/><circle cx="${s*-35}" cy="-31" r="3" fill="#fff"/>
+     <path d="M${s*-66} -28 Q${s*-40} -50 ${s*-12} -29" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"/>`).join('')}
+   </g>
+   <g id="${p}_closed" opacity="0" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"><path d="M-64 -26 Q-40 -14 -14 -26"/><path d="M14 -26 Q40 -14 64 -26"/></g>
+   <path d="M-66 -52 Q-40 -66 -12 -54 M66 -52 Q40 -66 12 -54" stroke="#0c0b18" stroke-width="10" fill="none" stroke-linecap="round"/>
+   <path d="M-5 -98 L5 -98 L4 -58 L-4 -58Z" fill="#0b0b18" stroke="#8c9be0" stroke-width="2"/><circle cx="0" cy="-50" r="6" fill="#d4202a"/>
+   <path d="M-3 -24 Q-12 14 -14 22 Q0 30 14 22" stroke="#141c48" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M4 -20 Q8 0 6 12" stroke="#6f80c8" stroke-width="3" fill="none"/>
+   <path d="M-24 52 Q0 62 24 52" stroke="#0a0e28" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M-12 62 Q0 66 12 62" stroke="#5a6ab8" stroke-width="3" fill="none"/>
+   <!-- crown -->
+   <g stroke="${OUT}" stroke-width="4">
+    <path d="M-92 -108 Q-138 -150 -114 -210 Q-98 -164 -78 -136Z M92 -108 Q138 -150 114 -210 Q98 -164 78 -136Z" fill="url(#gGold)"/>
+    <path d="M-92 -92 L92 -92 L86 -134 L-86 -134Z" fill="url(#gGoldV)"/>
+    <path d="M-78 -134 L78 -134 L62 -206 L-62 -206Z" fill="url(#gGoldV)"/>
+    <path d="M-50 -206 L50 -206 L32 -276 L-32 -276Z" fill="url(#gGoldV)"/>
+    <path d="M-20 -276 L20 -276 L0 -336Z" fill="url(#gGoldV)"/>
+   </g>
+   ${[-70,-46,-23,0,23,46,70].map(x=>`<path d="M${x} -134 L${x*0.8} -160" stroke="#a86f14" stroke-width="2"/>`).join('')}
+   ${pearls([...Array(11)].map((_,i)=>[-80+i*16,-99]),4.5)}
+   ${gem(0,-113,12)}${gem(-50,-113,6)}${gem(50,-113,6)}${gem(0,-170,15)}${gem(-38,-168,7,'#d02a3a')}${gem(38,-168,7,'#d02a3a')}${gem(0,-240,10)}${gem(0,-342,9)}
+  </g>
+  ${chains?`<g id="${p}_chains" stroke="#c9ccd8" stroke-width="13" fill="none">${[...Array(12)].map((_,i)=>`<ellipse cx="${-380+i*28}" cy="${-560+i*6}" rx="16" ry="9"/><ellipse cx="${380-i*28}" cy="${-560+i*6}" rx="16" ry="9"/>`).join('')}
+    <rect x="-200" y="-575" width="60" height="34" rx="6" fill="#5a5e6a" stroke="${OUT}" stroke-width="4"/><rect x="140" y="-575" width="60" height="34" rx="6" fill="#5a5e6a" stroke="${OUT}" stroke-width="4"/></g>`:''}
+ </g>`;}
+function updShaniFront(p,o){
+  const b=o.blink||0, c=o.closed||0;
+  A(p+'_eyes','opacity',c>.5?0:1); A(p+'_closed','opacity',c>.5?1:(b>.6?1:0));
+  if(b>.6&&c<=.5) A(p+'_eyes','opacity',0);
+  document.querySelectorAll('.'+p+'_eg').forEach(e=>e.setAttribute('opacity',o.eyeGlow||0));
+  A(p+'_armL','transform',`translate(-150,-715) rotate(${o.armL!==undefined?o.armL:8})`);
+  A(p+'_armLf','transform',`translate(0,148) rotate(${o.foreL||0})`);
+  A(p+'_armR','transform',`translate(150,-715) rotate(${o.armR!==undefined?o.armR:-8})`);
+  A(p+'_armRf','transform',`translate(0,148) rotate(${o.foreR||0})`);
+  A(p+'_head','transform',`translate(0,${-860+(o.breath||0)*.6}) rotate(${o.tilt||0})`);
+  A(p+'_torso','transform',`translate(0,${(o.breath||0)*.4})`);
+  A(p+'_halo','transform',`translate(0,-860) scale(${o.halo||1})`);
+  A(p+'_halodash','transform',`rotate(${(o.t||0)*20})`);
+  A(p+'_haloglow','opacity',o.haloGlow!==undefined?o.haloGlow:1);
+}
+function trident(p,h=1150){return `<g id="${p}"><path d="M0 0 V${-h}" stroke="url(#gGold)" stroke-width="16" stroke-linecap="round"/><path d="M0 0 V${-h}" stroke="${OUT}" stroke-width="2" opacity=".5"/>
+  <g transform="translate(0,${-h})" stroke="${OUT}" stroke-width="3" fill="url(#gGold)">
+   <path d="M-60 40 Q-70 -20 -50 -70 Q-40 -30 -22 0 Z"/><path d="M60 40 Q70 -20 50 -70 Q40 -30 22 0 Z"/><path d="M-14 20 L0 -110 L14 20Z"/>
+   <path d="M-64 30 H64 V54 H-64Z"/></g>${gem(0,-h+40,8)}
+  <path d="M-14 ${-h+70} Q-40 ${-h+120} -18 ${-h+170}" stroke="#d4202a" stroke-width="10" fill="none"/></g>`;}
+function crow(p){return `<g id="${p}"><path d="M-60 0 Q-70 -60 -10 -80 Q50 -84 70 -40 Q80 0 40 20 Q-20 30 -60 0Z" fill="#141418" stroke="#000" stroke-width="4"/>
+  <path d="M-50 -20 Q-110 -10 -150 30 Q-90 20 -40 10Z" fill="#1d1d24" stroke="#000" stroke-width="3"/>
+  <path d="M-20 -40 Q20 -50 50 -20 Q10 -10 -30 -10Z" fill="#2a2a36"/>
+  <g id="${p}_head" transform="translate(52,-70)"><circle r="32" fill="#141418" stroke="#000" stroke-width="4"/><path d="M26 -6 L74 6 L26 14Z" fill="#3a3a44" stroke="#000" stroke-width="3"/><circle cx="12" cy="-6" r="7" fill="#e8e0c8"/><circle cx="14" cy="-6" r="3.5" fill="#000"/></g>
+  <path d="M-4 18 V54 M24 18 V54" stroke="#3a3a44" stroke-width="6"/><path d="M-14 54 H8 M14 54 H36" stroke="#3a3a44" stroke-width="5"/></g>`;}
+
+// ============================================================ SHANI SIDE (faces +x, origin hip)
+function shaniSide(p){
+  const leg=(id,shade)=>`<g id="${p}_${id}"><path d="M-30 0 H30 L26 132 H-24Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-28 118 H28" stroke="url(#gGold)" stroke-width="8"/>
+    <g id="${p}_${id}k" transform="translate(0,128)"><path d="M-20 0 H20 L17 112 H-15Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="4"/><path d="M-18 96 H18" stroke="url(#gGold)" stroke-width="8"/><path d="M-17 108 H16 Q50 110 54 130 H-20Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="4"/></g></g>`;
+  const arm=(id,shade,extra='')=>`<g id="${p}_${id}" transform="translate(4,-200)"><path d="M-20 -6 Q0 -18 20 -6 L17 104 H-17Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-20 40 H20 V56 H-20Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="2"/>
+    <g id="${p}_${id}f" transform="translate(0,100)"><path d="M-15 0 H15 L13 94 H-13Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-15 76 H15 V88 H-15Z" fill="url(#gGold)"/><circle cx="0" cy="104" r="18" fill="${shade}" stroke="${OUT}" stroke-width="4"/>${extra}</g></g>`;
+  return `<g id="${p}"><g id="${p}_body">
+   <ellipse cx="0" cy="262" rx="100" ry="16" fill="#000" opacity=".4"/>
+   <path d="M-40 -330 Q-120 -260 -110 -120 Q-80 -60 -60 -120 Q-70 -230 -20 -300Z" fill="url(#gHair)"/>
+   <path d="M-46 -214 Q-110 -120 -130 20 Q-110 40 -90 10 Q-80 -110 -30 -190Z" fill="url(#gBlueCloth)" stroke="${OUT}" stroke-width="4" id="${p}_scarf"/>
+   ${arm('armB','#1c2554')}
+   ${leg('legB','#1a2a66')}${leg('legF','url(#gBlueCloth)')}
+   <path d="M-56 -30 L56 -30 L60 40 L-60 40Z" fill="url(#gBlueCloth)" stroke="${OUT}" stroke-width="4"/>
+   <path d="M-48 -214 Q0 -234 48 -214 L56 -22 L-56 -22Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+   <path d="M-40 -212 Q14 -130 52 -30" stroke="#f2ede0" stroke-width="4" fill="none"/>
+   <path d="M-58 -36 H58 V-14 H-58Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>
+   <path d="M-34 -210 Q20 -190 50 -200" stroke="url(#gGold)" stroke-width="9" fill="none"/>
+   <path d="M-12 -244 H14 V-208 H-12Z" fill="#1d2858" stroke="${OUT}" stroke-width="4"/>
+   <g id="${p}_head" transform="translate(2,-298)">
+     <path d="M-50 4 Q-54 -58 4 -62 Q58 -60 60 -6 Q62 18 72 30 Q62 36 58 42 Q50 70 4 72 Q-46 68 -50 4Z" fill="url(#gShani)" stroke="${OUT}" stroke-width="5"/>
+     <path d="M-56 10 Q-64 -60 0 -62 Q-30 -30 -36 30Z" fill="url(#gHair)"/>
+     <ellipse cx="-16" cy="10" rx="11" ry="18" fill="#25306a" stroke="${OUT}" stroke-width="3"/><circle cx="-14" cy="40" r="10" fill="none" stroke="url(#gGold)" stroke-width="5"/>
+     <path d="M30 -10 Q40 -18 54 -12" stroke="#0c0b18" stroke-width="7" fill="none" stroke-linecap="round"/>
+     <g id="${p}_eye"><path d="M30 6 Q42 -2 54 6 Q42 14 30 6Z" fill="#f2f0ea" stroke="${OUT}" stroke-width="2"/><circle cx="46" cy="6" r="5" fill="#141c58"/></g>
+     <path d="M42 44 Q50 48 58 44" stroke="#0a0e28" stroke-width="4" fill="none" stroke-linecap="round"/>
+     <g stroke="${OUT}" stroke-width="3" fill="url(#gGoldV)"><path d="M-48 -52 L50 -52 L44 -84 L-40 -84Z"/><path d="M-34 -84 L38 -84 L24 -140 L-22 -140Z"/><path d="M-14 -140 L18 -140 L2 -190Z"/></g>
+     ${gem(4,-68,8)}${gem(2,-110,9)}
+   </g>
+   ${arm('armF','url(#gShani)')}
+  </g></g>`;}
+function updShaniSide(p,o){
+  const ph=o.phase||0, amp=o.walk||0, limp=o.limp||0, s=Math.sin(ph);
+  A(p+'_legF','transform',`rotate(${(o.legF!==undefined?o.legF:24*s*amp)})`);
+  A(p+'_legB','transform',`rotate(${(o.legB!==undefined?o.legB:-24*s*amp*(1-limp*.5))})`);
+  A(p+'_legFk','transform',`translate(0,128) rotate(${o.kneeF!==undefined?o.kneeF:Math.max(0,-Math.cos(ph))*26*amp})`);
+  A(p+'_legBk','transform',`translate(0,128) rotate(${o.kneeB!==undefined?o.kneeB:Math.max(0,Math.cos(ph))*26*amp*(1-limp*.6)})`);
+  A(p+'_armF','transform',`translate(4,-200) rotate(${o.armF!==undefined?o.armF:-14*s*amp})`);
+  A(p+'_armB','transform',`translate(4,-200) rotate(${o.armB!==undefined?o.armB:14*s*amp})`);
+  A(p+'_armFf','transform',`translate(0,100) rotate(${o.foreF||-12})`);
+  A(p+'_armBf','transform',`translate(0,100) rotate(${o.foreB||-12})`);
+  const dip=limp*Math.max(0,Math.sin(ph))*16*amp;
+  const bob=-Math.abs(Math.cos(ph))*6*amp+dip+(o.breath||0)+(o.drop||0);
+  A(p+'_body','transform',`translate(0,${bob}) rotate(${(o.lean||0)+limp*Math.max(0,Math.sin(ph))*3*amp})`);
+  A(p+'_head','transform',`translate(2,-298) rotate(${o.headTilt||0})`);
+  const bl=o.blink||0; A(p+'_eye','opacity',bl>.6?0:1);
+}
+
+// ============================================================ RAVANA (front, origin feet)
+function ravHead(scale,main){
+  return `<g transform="scale(${scale})">
+   <path d="M-86 -30 Q-92 -118 0 -126 Q92 -118 86 -30 Q84 50 50 88 Q0 116 -50 88 Q-84 50 -86 -30Z" fill="url(#gRav)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-90 -10 Q-100 60 -60 100 Q-80 40 -78 0Z M90 -10 Q100 60 60 100 Q80 40 78 0Z" fill="#1a0d08"/>
+   <ellipse cx="-90" cy="-4" rx="13" ry="26" fill="#9a5a30" stroke="${OUT}" stroke-width="4"/><ellipse cx="90" cy="-4" rx="13" ry="26" fill="#9a5a30" stroke="${OUT}" stroke-width="4"/>
+   <g fill="url(#gGold)" stroke="${OUT}" stroke-width="3"><circle cx="-94" cy="34" r="15"/><circle cx="94" cy="34" r="15"/></g>
+   ${[-1,1].map(s=>`<path d="M${s*-66} -24 Q${s*-40} -44 ${s*-14} -26 Q${s*-40} -10 ${s*-66} -24Z" fill="#fbf2e2" stroke="${OUT}" stroke-width="3"/>
+     <circle cx="${s*-40}" cy="-26" r="15" fill="#ff3a2a" opacity="0" class="ravglow"/>
+     <circle cx="${s*-40}" cy="-26" r="10" fill="#7a1a10"/><circle cx="${s*-40}" cy="-26" r="4.5" fill="#000"/><circle cx="${s*-37}" cy="-29" r="3" fill="#fff"/>
+     <path d="M${s*-72} -58 Q${s*-46} -54 ${s*-12} -38" stroke="#140804" stroke-width="12" fill="none" stroke-linecap="round"/>`).join('')}
+   <g stroke="#fff" stroke-width="7" stroke-linecap="round"><path d="M-46 -100 Q0 -92 46 -100"/><path d="M-48 -84 Q0 -76 48 -84"/><path d="M-46 -68 Q0 -60 46 -68"/></g><circle cx="0" cy="-84" r="7" fill="#d4202a"/>
+   <path d="M-4 -20 Q-14 16 -16 24 Q0 32 16 24" stroke="#5a2a10" stroke-width="6" fill="none" stroke-linecap="round"/>
+   <path d="M0 40 Q-40 30 -70 50 Q-90 60 -96 40 Q-86 70 -60 64 Q-30 56 0 52 Q30 56 60 64 Q86 70 96 40 Q90 60 70 50 Q40 30 0 40Z" fill="#140804" stroke="${OUT}" stroke-width="3"/>
+   <path d="M-22 72 Q0 80 22 72" stroke="#3a0a06" stroke-width="7" fill="none" stroke-linecap="round"/>
+   <path d="M-30 86 Q0 118 30 86 Q20 108 0 112 Q-20 108 -30 86Z" fill="#140804"/>
+   <g stroke="${OUT}" stroke-width="4" fill="url(#gGoldV)">
+    <path d="M-96 -100 L96 -100 L90 -146 L-90 -146Z"/>
+    <path d="M-80 -146 L80 -146 L62 -226 L-62 -226Z"/>
+    ${main?`<path d="M-50 -226 L50 -226 L30 -320 L-30 -320Z"/><path d="M-18 -320 L18 -320 L0 -400Z"/><path d="M-96 -120 Q-150 -170 -120 -240 Q-104 -184 -80 -150Z M96 -120 Q150 -170 120 -240 Q104 -184 80 -150Z"/>`:`<path d="M-40 -226 L40 -226 L0 -300Z"/>`}
+   </g>
+   ${pearls([...Array(11)].map((_,i)=>[-84+i*16.8,-108]),5)}
+   ${gem(0,-124,13,'#d0182a')}${gem(0,-186,15,'#d0182a')}${gem(-42,-184,7,'#2a8a3a')}${gem(42,-184,7,'#2a8a3a')}${main?gem(0,-272,11,'#d0182a')+gem(0,-406,9,'#d0182a'):''}
+  </g>`;}
+function ravana(p){
+  const side=[];for(let k=4;k>=1;k--){for(const s of [-1,1]){const x=s*(k*92+30), y=-950-k*8, sc=1-k*.07;
+    side.push(`<g class="${p}_sh" data-k="${k}" data-s="${s}" transform="translate(${x},${y})">${ravHead(sc*.86,false)}</g>`);}}
+  const arm=(id,side,extra='')=>`<g id="${p}_${id}" transform="translate(${side*205},-770)">
+     <path d="M-46 0 Q-56 80 -38 166 L38 166 Q56 80 46 0 Q0 -30 -46 0Z" fill="url(#gRav)" stroke="${OUT}" stroke-width="6"/>
+     <path d="M-50 60 H50 V86 H-50Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,73,8,'#d0182a')}
+     <g id="${p}_${id}f" transform="translate(0,160)"><path d="M-36 0 L-28 138 L28 138 L36 0Z" fill="url(#gRav)" stroke="${OUT}" stroke-width="6"/>
+       <path d="M-32 112 H32 V132 H-32Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/><circle cx="0" cy="154" r="32" fill="url(#gRav)" stroke="${OUT}" stroke-width="6"/>${extra}</g></g>`;
+  const gada=`<g id="${p}_gada" transform="translate(0,154)"><path d="M0 40 V-300" stroke="url(#gGold)" stroke-width="22" stroke-linecap="round"/>
+     <g transform="translate(0,-360)"><circle r="92" fill="url(#gGold)" stroke="${OUT}" stroke-width="6"/>
+     ${[-60,-30,0,30,60].map(x=>`<path d="M${x} -88 Q${x*1.2} 0 ${x} 88" stroke="#9a6210" stroke-width="5" fill="none"/>`).join('')}
+     <path d="M-10 -92 L0 -140 L10 -92Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,0,14,'#d0182a')}</g>
+     <path d="M-30 -268 H30 V-236 H-30Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/></g>`;
+  return `<g id="${p}">
+  <ellipse cx="0" cy="0" rx="300" ry="36" fill="#000" opacity=".45"/>
+  <path d="M-240 -820 Q-350 -400 -320 0 L320 0 Q350 -400 240 -820Z" fill="url(#gCape)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-320 0 L320 0" stroke="url(#gGold)" stroke-width="10"/>
+  ${side.join('')}
+  <path d="M-150 -150 L-80 -150 L-84 -46 L-146 -46Z M150 -150 L80 -150 L84 -46 L146 -46Z" fill="url(#gRav)" stroke="${OUT}" stroke-width="5"/>
+  <ellipse cx="-115" cy="-22" rx="60" ry="24" fill="url(#gRav)" stroke="${OUT}" stroke-width="5"/><ellipse cx="115" cy="-22" rx="60" ry="24" fill="url(#gRav)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-150 -66 H-80 M150 -66 H80" stroke="url(#gGold)" stroke-width="14"/>
+  <path d="M-190 -500 L190 -500 L215 -130 Q130 -100 50 -126 L0 -230 L-50 -126 Q-130 -100 -215 -130Z" fill="url(#gRedCloth)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-215 -130 Q-130 -100 -50 -126 L0 -230 L50 -126 Q130 -100 215 -130" fill="none" stroke="url(#gGold)" stroke-width="14"/>
+  ${[...Array(9)].map((_,i)=>`<path d="M${-160+i*40} -330 l10 16 l-10 16 l-10 -16z" fill="#f2c14e" opacity=".9"/>`).join('')}
+  <path d="M-40 -490 L40 -490 L30 -170 L-30 -170Z" fill="#7a0e16" stroke="${OUT}" stroke-width="3"/>
+  <g id="${p}_torso">
+  <path d="M-60 -850 L60 -850 L66 -770 L-66 -770Z" fill="#8a5030" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-200 -790 Q-224 -650 -170 -495 L170 -495 Q224 -650 200 -790 Q0 -840 -200 -790Z" fill="url(#gRav)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-170 -782 Q0 -830 170 -782 L156 -610 Q0 -548 -156 -610Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-140 -760 Q0 -800 140 -760 M-150 -690 Q0 -730 150 -690 M-150 -640 Q0 -600 150 -640" stroke="#9a6210" stroke-width="4" fill="none"/>
+  <circle cx="0" cy="-690" r="46" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="5"/><circle cx="0" cy="-690" r="30" fill="none" stroke="#9a6210" stroke-width="4"/>${gem(0,-690,16,'#d0182a')}
+  ${[-1,1].map(s=>`<ellipse cx="${s*206}" cy="-784" rx="66" ry="40" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="5"/><path d="M${s*160} -770 Q${s*206} -740 ${s*252} -770" stroke="#9a6210" stroke-width="4" fill="none"/>${gem(s*206,-790,9,'#d0182a')}`).join('')}
+  <path d="M-180 -515 L180 -515 L176 -478 L-176 -478Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="5"/>${gem(0,-497,14,'#d0182a')}${gem(-90,-497,7,'#2a8a3a')}${gem(90,-497,7,'#2a8a3a')}
+  </g>
+  ${arm('armL',-1,gada)}${arm('armR',1)}
+  <g id="${p}_head" transform="translate(0,-960)">${ravHead(1,true)}</g>
+ </g>`;}
+function updRavana(p,o,t){
+  A(p+'_armL','transform',`translate(-205,-770) rotate(${o.armL!==undefined?o.armL:12})`);
+  A(p+'_armLf','transform',`translate(0,160) rotate(${o.foreL||0})`);
+  A(p+'_armR','transform',`translate(205,-770) rotate(${o.armR!==undefined?o.armR:-20})`);
+  A(p+'_armRf','transform',`translate(0,160) rotate(${o.foreR!==undefined?o.foreR:-50})`);
+  A(p+'_gada','opacity',o.gada?1:0);
+  A(p+'_head','transform',`translate(0,${-960+(o.breath||0)}) rotate(${o.tilt||0})`);
+  document.querySelectorAll('.'+p+'_sh').forEach(g=>{const k=+g.dataset.k,s=+g.dataset.s;
+    g.setAttribute('transform',`translate(${s*(k*92+30)},${-950-k*8+Math.sin(t*2.2+k+s)*4}) rotate(${Math.sin(t*1.7+k*1.3+s)*3})`);});
+  document.querySelectorAll('#'+p+' .ravglow').forEach(e=>e.setAttribute('opacity',o.anger||0));
+}
+
+// ============================================================ HANUMAN (front, origin feet)
+function hanuman(p){
+  const arm=(id,side,extra='')=>`<g id="${p}_${id}" transform="translate(${side*165},-715)">
+     <path d="M-42 0 Q-52 74 -34 156 L34 156 Q52 74 42 0 Q0 -26 -42 0Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>
+     <path d="M-46 56 H46 V78 H-46Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,67,7,'#d0182a')}
+     <g id="${p}_${id}f" transform="translate(0,150)"><path d="M-32 0 L-26 128 L26 128 L32 0Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>
+       <path d="M-29 104 H29 V122 H-29Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/><circle cx="0" cy="146" r="30" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>${extra}</g></g>`;
+  const gada=`<g transform="translate(0,146) rotate(160)"><path d="M0 30 V-300" stroke="url(#gGold)" stroke-width="20" stroke-linecap="round"/>
+     <g transform="translate(0,-360)"><circle r="86" fill="url(#gGold)" stroke="${OUT}" stroke-width="6"/>${[-56,-28,0,28,56].map(x=>`<path d="M${x} -82 Q${x*1.2} 0 ${x} 82" stroke="#9a6210" stroke-width="5" fill="none"/>`).join('')}
+     <path d="M-10 -86 L0 -130 L10 -86Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/></g></g>`;
+  return `<g id="${p}"><g id="${p}_all">
+  <ellipse cx="0" cy="0" rx="230" ry="30" fill="#000" opacity=".45"/>
+  <g id="${p}_tail"><path d="M60 -470 Q300 -480 300 -720 Q300 -930 190 -990 Q160 -1006 150 -970 Q262 -900 258 -720 Q250 -530 60 -430Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M150 -970 Q130 -1010 170 -1020 Q200 -1010 190 -990Z" fill="#a2420e" stroke="${OUT}" stroke-width="4"/></g>
+  <path d="M-128 -140 L-72 -140 L-76 -44 L-124 -44Z M128 -140 L72 -140 L76 -44 L124 -44Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="5"/>
+  <ellipse cx="-100" cy="-22" rx="54" ry="22" fill="url(#gHan)" stroke="${OUT}" stroke-width="5"/><ellipse cx="100" cy="-22" rx="54" ry="22" fill="url(#gHan)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-128 -62 H-72 M128 -62 H72" stroke="url(#gGold)" stroke-width="12"/>
+  <path d="M-160 -478 L160 -478 L188 -150 Q120 -120 40 -140 L0 -240 L-40 -140 Q-120 -120 -188 -150Z" fill="url(#gRedCloth)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-188 -150 Q-120 -120 -40 -140 L0 -240 L40 -140 Q120 -120 188 -150" fill="none" stroke="#ffc83a" stroke-width="14"/>
+  <path d="M-34 -470 L34 -470 L26 -190 L-26 -190Z" fill="#ffc83a" stroke="${OUT}" stroke-width="3"/>
+  <g id="${p}_torso">
+  <path d="M-52 -808 L52 -808 L58 -724 L-58 -724Z" fill="#b8521a" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-165 -730 Q-190 -600 -140 -472 L140 -472 Q190 -600 165 -730 Q0 -776 -165 -730Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-112 -660 Q-58 -620 -10 -650 M112 -660 Q58 -620 10 -650" stroke="#8a3008" stroke-width="6" fill="none"/>
+  <path d="M-46 -585 Q-22 -575 0 -585 Q22 -575 46 -585 M-44 -540 Q-20 -530 0 -540 Q20 -530 44 -540" stroke="#8a3008" stroke-width="5" fill="none"/>
+  <path d="M-120 -728 Q0 -600 140 -480" stroke="#f2ede0" stroke-width="6" fill="none"/>
+  <path d="M-96 -742 Q0 -650 96 -742" stroke="url(#gGold)" stroke-width="12" fill="none"/>${pearls(arcPts(0,-742,100,104,0.25,Math.PI-0.25,13),6)}
+  <path d="M-170 -490 L170 -490 L166 -458 L-166 -458Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/>${gem(0,-474,10,'#d0182a')}
+  </g>
+  <g transform="translate(-205,-430) rotate(-6)"><path d="M0 40 V-300" stroke="url(#gGold)" stroke-width="20" stroke-linecap="round"/><g transform="translate(0,-370)"><circle r="86" fill="url(#gGold)" stroke="${OUT}" stroke-width="6"/>${[-56,-28,0,28,56].map(x=>`<path d="M${x} -82 Q${x*1.2} 0 ${x} 82" stroke="#9a6210" stroke-width="5" fill="none"/>`).join('')}<path d="M-10 -86 L0 -130 L10 -86Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,0,13,'#d0182a')}</g></g>${arm('armL',-1)}${arm('armR',1)}
+  <g id="${p}_head" transform="translate(0,-870)">
+   <path d="M-100 -20 Q-112 -60 -96 -80 Q-120 -40 -122 0 Q-118 40 -96 60 Q-110 20 -100 -20Z M100 -20 Q112 -60 96 -80 Q120 -40 122 0 Q118 40 96 60 Q110 20 100 -20Z" fill="#c25418" stroke="${OUT}" stroke-width="4"/>
+   <path d="M-90 -30 Q-96 -116 0 -124 Q96 -116 90 -30 Q88 50 50 90 Q0 116 -50 90 Q-88 50 -90 -30Z" fill="url(#gHan)" stroke="${OUT}" stroke-width="6"/>
+   <ellipse cx="-110" cy="-6" rx="24" ry="30" fill="#e06a22" stroke="${OUT}" stroke-width="5"/><ellipse cx="110" cy="-6" rx="24" ry="30" fill="#e06a22" stroke="${OUT}" stroke-width="5"/>
+   <ellipse cx="-110" cy="-6" rx="12" ry="16" fill="#f3c08a"/><ellipse cx="110" cy="-6" rx="12" ry="16" fill="#f3c08a"/>
+   <g fill="url(#gGold)" stroke="${OUT}" stroke-width="3"><circle cx="-112" cy="34" r="15"/><circle cx="112" cy="34" r="15"/></g>
+   <path d="M-66 -6 Q-80 70 -36 96 Q0 112 36 96 Q80 70 66 -6 Q40 -26 0 -14 Q-40 -26 -66 -6Z" fill="#f6cf9a" stroke="${OUT}" stroke-width="4"/>
+   ${[-1,1].map(s=>`<path d="M${s*-62} -40 Q${s*-40} -58 ${s*-16} -40 Q${s*-40} -26 ${s*-62} -40Z" fill="#fbf4e6" stroke="${OUT}" stroke-width="3"/>
+     <circle cx="${s*-39}" cy="-41" r="10" fill="#4a2a10"/><circle cx="${s*-39}" cy="-41" r="4.5" fill="#000"/><circle cx="${s*-36}" cy="-44" r="3" fill="#fff"/>
+     <path d="M${s*-66} -62 Q${s*-40} -78 ${s*-12} -64" stroke="#5a1a04" stroke-width="9" fill="none" stroke-linecap="round"/>`).join('')}
+   <g id="${p}_closed" opacity="0" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"><path d="M-62 -40 Q-40 -28 -16 -40"/><path d="M16 -40 Q40 -28 62 -40"/></g>
+   <path d="M-6 -96 L6 -96 L8 -66 L-8 -66Z" fill="#d4202a"/><path d="M-14 -100 L0 -86 L14 -100" stroke="#fff" stroke-width="5" fill="none"/>
+   <ellipse cx="-9" cy="6" rx="6" ry="4" fill="#3a1a08"/><ellipse cx="9" cy="6" rx="6" ry="4" fill="#3a1a08"/>
+   <path d="M-34 48 Q0 70 34 48" stroke="#7a2a08" stroke-width="7" fill="none" stroke-linecap="round"/>
+   <g stroke="${OUT}" stroke-width="4" fill="url(#gGoldV)"><path d="M-94 -96 L94 -96 L86 -140 L-86 -140Z"/><path d="M-76 -140 Q-66 -260 0 -330 Q66 -260 76 -140Z"/></g>
+   ${[-50,-25,0,25,50].map(x=>`<path d="M${x} -140 Q${x*.6} -220 ${x*.2} -300" stroke="#9a6210" stroke-width="3" fill="none"/>`).join('')}
+   ${pearls([...Array(11)].map((_,i)=>[-82+i*16.4,-104]),4.5)}${gem(0,-120,12,'#d0182a')}${gem(0,-200,13,'#2a8a3a')}${gem(0,-335,8,'#d0182a')}
+  </g>
+ </g></g>`;}
+function updHanuman(p,o,t){
+  A(p+'_all','transform',`translate(0,${o.y||0}) scale(${1/(o.squash||1)},${o.squash||1})`);
+  A(p+'_armL','transform',`translate(-165,-715) rotate(${o.armL!==undefined?o.armL:10})`);
+  A(p+'_armLf','transform',`translate(0,150) rotate(${o.foreL||0})`);
+  A(p+'_armR','transform',`translate(165,-715) rotate(${o.armR!==undefined?o.armR:-10})`);
+  A(p+'_armRf','transform',`translate(0,150) rotate(${o.foreR!==undefined?o.foreR:0})`);
+  A(p+'_tail','transform',`rotate(${Math.sin(t*1.6)*2.5},60,-470)`);
+  A(p+'_head','transform',`translate(0,${-870+(o.breath||0)}) rotate(${o.tilt||0})`);
+  A(p+'_closed','opacity',(o.blink||0)>.6?1:0);
+}
+
+// ============================================================ PROPS
+function cradle(p){return `<g id="${p}">
+  <path d="M-220 -330 H220" stroke="url(#gGold)" stroke-width="18" stroke-linecap="round"/>
+  <g id="${p}_sw">
+   <path d="M-170 -330 L-150 -40 M170 -330 L150 -40" stroke="#c99a3a" stroke-width="7" stroke-dasharray="14 8"/>
+   <circle r="230" cy="-20" fill="url(#glowY)" id="${p}_glow" opacity=".7"/>
+   <path d="M-200 -50 Q-180 70 0 80 Q180 70 200 -50Z" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-200 -50 Q0 -20 200 -50" stroke="#fff2b0" stroke-width="6" fill="none"/>
+   ${[-120,-60,0,60,120].map(x=>gem(x,10,8,'#d0182a')).join('')}
+   <path d="M-210 -60 Q-250 -90 -230 -130 Q-210 -100 -190 -66Z M210 -60 Q250 -90 230 -130 Q210 -100 190 -66Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/>
+   <ellipse cx="10" cy="-58" rx="150" ry="30" fill="#fbf2e2" stroke="${OUT}" stroke-width="4"/>
+   <g transform="translate(-70,-74)"><circle r="40" fill="#c98a5a" stroke="${OUT}" stroke-width="4"/><path d="M-40 -6 Q-36 -40 0 -42 Q30 -40 38 -14 Q10 -30 -40 -6Z" fill="#1a0d08"/>
+     <g id="${p}_eyes"><path d="M-20 4 Q-12 10 -4 4 M6 4 Q14 10 22 4" stroke="${OUT}" stroke-width="4" fill="none" stroke-linecap="round"/></g>
+     <circle cx="0" cy="-34" r="5" fill="#d4202a"/><path d="M-6 22 Q0 26 6 22" stroke="#7a2a10" stroke-width="3" fill="none"/></g>
+  </g></g>`;}
+function cage(p,color,ring=false){return `<g id="${p}"><path d="M0 -400 V-110" stroke="#8b8f9c" stroke-width="6" stroke-dasharray="16 8"/>
+  <path d="M-70 -110 Q-70 -170 0 -180 Q70 -170 70 -110 V60 H-70Z" fill="none" stroke="url(#gGold)" stroke-width="7"/>
+  ${[-46,-23,0,23,46].map(x=>`<path d="M${x} -165 V60" stroke="url(#gGold)" stroke-width="5"/>`).join('')}
+  <path d="M-80 60 H80" stroke="url(#gGold)" stroke-width="12"/><path d="M-74 -110 H74" stroke="url(#gGold)" stroke-width="6"/>
+  <g id="${p}_orb"><circle cy="-20" r="72" fill="${color}" opacity=".35" filter="url(#blur6)"/><circle cy="-20" r="38" fill="${color}" stroke="#fff" stroke-width="3"/>
+  <circle cx="-12" cy="-32" r="11" fill="#fff" opacity=".6"/>${ring?`<ellipse cy="-20" rx="62" ry="15" fill="none" stroke="#e8d6a0" stroke-width="6" transform="rotate(-15,0,-20)"/>`:''}</g></g>`;}
+const GRAHA=[['सूर्य','#ffb02e'],['चंद्र','#f2f4ff'],['मंगल','#e8402e'],['बुध','#3fc06a'],['गुरु','#ffd84a'],['शुक्र','#ffd6ee'],['शनि','#3a56d8'],['राहु','#8a8aa0'],['केतु','#a8683a']];
+function orb(p,color,r=34,ring=false){return `<g id="${p}"><circle r="${r*2}" fill="${color}" opacity=".3" filter="url(#blur6)"/><circle r="${r}" fill="${color}" stroke="#fff" stroke-width="3"/><circle cx="${-r*.32}" cy="${-r*.32}" r="${r*.3}" fill="#fff" opacity=".6"/>${ring?`<ellipse rx="${r*1.7}" ry="${r*.42}" fill="none" stroke="#e8d6a0" stroke-width="5" transform="rotate(-15)"/>`:''}</g>`;}
+// north-indian chart: square 140..940 x 600..1400
+const HC={1:[540,800],2:[340,667],3:[207,800],4:[340,1000],5:[207,1200],6:[340,1333],7:[540,1200],8:[740,1333],9:[873,1200],10:[740,1000],11:[873,800],12:[740,667]};
+function chart(p){return `<g id="${p}">
+  <rect x="140" y="600" width="800" height="800" fill="#2a0a08" opacity=".7" stroke="url(#gGold)" stroke-width="10"/>
+  <path d="M140 600 L940 1400 M940 600 L140 1400 M540 600 L940 1000 L540 1400 L140 1000Z" fill="none" stroke="url(#gGold)" stroke-width="8"/>
+  <path id="${p}_h11" d="M940 1000 L940 600 L740 800Z" fill="#ffd27a" opacity="0"/>
+  <path id="${p}_h12" d="M940 600 L540 600 L740 800Z" fill="#7a9cff" opacity="0"/>
+  ${Object.entries(HC).map(([h,[x,y]])=>`<text x="${x}" y="${y+12}" text-anchor="middle" font-family="Hind" font-weight="700" font-size="34" fill="#f2c14e" opacity=".55">${h}</text>`).join('')}
+  ${GRAHA.map(([n,c],i)=>`<g id="${p}_g${i}">${orb(p+'_o'+i,c,i==6?30:26,i==6)}</g>`).join('')}
+ </g>`;}
+function chartPos(i){ // cluster positions inside house 11 (+shani)
+  const base=HC[11]; const ang=i/9*2*Math.PI; const r=i==6?0:52; return [base[0]-8+Math.cos(ang)*r*.9,base[1]+Math.sin(ang)*r*1.4];}
+function lankaCity(p){
+  const domes=[[120,1180,90],[300,1080,130],[540,960,180],[780,1080,130],[960,1180,90],[420,1240,70],[660,1240,70]];
+  return `<rect width="1080" height="1920" fill="url(#gNightSky)"/>${stars(140,5,1100)}
+   <g transform="translate(820,330)"><circle r="150" fill="url(#glowW)" opacity=".5"/><circle r="70" fill="#fff6dc"/><circle cx="-18" cy="-10" r="12" fill="#e8dcb8"/><circle cx="20" cy="18" r="9" fill="#e8dcb8"/></g>
+   <g id="${p}_city">
+   ${domes.map(([x,y,r])=>`<g transform="translate(${x},${y})"><rect x="${-r*.8}" y="0" width="${r*1.6}" height="${1500-y}" fill="url(#gPillar)" stroke="${OUT}" stroke-width="4"/>
+     <path d="M${-r*.85} 0 Q${-r*.85} ${-r*1.1} 0 ${-r*1.4} Q${r*.85} ${-r*1.1} ${r*.85} 0Z" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="4"/>
+     <path d="M0 ${-r*1.4} V${-r*1.8}" stroke="url(#gGold)" stroke-width="6"/><path d="M0 ${-r*1.8} l30 10 l-30 10z" fill="#d0182a"/>
+     ${[...Array(3)].map((_,k)=>`<path d="M${-r*.5+k*r*.5-14} ${r*.4} v${r*.5} h28 v${-r*.5} q-14 -24 -28 0z" fill="#ffcf6a" opacity=".85"/>`).join('')}</g>`).join('')}
+   </g>
+   <rect x="0" y="1500" width="1080" height="420" fill="#0a1030"/>${[...Array(8)].map((_,i)=>`<path d="M0 ${1530+i*45} q135 -16 270 0 t270 0 t270 0 t270 0" stroke="#3a4a8a" stroke-width="4" fill="none" opacity=".6"/>`).join('')}`;}
+function court(p,{throne=true}={}){return `<rect width="1080" height="1920" fill="url(#gCourt)"/>
+  <rect x="0" y="0" width="1080" height="260" fill="url(#gWall)"/>
+  ${[0,1,2,3].map(i=>`<path d="M${i*300-60} 260 Q${i*300+90} 120 ${i*300+240} 260" fill="none" stroke="url(#gGold)" stroke-width="10"/>`).join('')}
+  ${[30,1050].map(x=>`<rect x="${x-60}" y="200" width="120" height="1500" fill="url(#gPillar)" stroke="${OUT}" stroke-width="4"/>${[400,800,1200].map(y=>`<rect x="${x-74}" y="${y}" width="148" height="30" rx="6" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="3"/>`).join('')}`).join('')}
+  <path d="M60 220 Q200 520 120 900 L60 900Z M1020 220 Q880 520 960 900 L1020 900Z" fill="#8a0e18" stroke="${OUT}" stroke-width="4"/>
+  ${throne?`<g transform="translate(540,1180)" opacity=".55"><path d="M-170 0 V-420 Q0 -560 170 -420 V0Z" fill="#6a0e14" stroke="url(#gGold)" stroke-width="12"/><circle cy="-380" r="60" fill="url(#gGoldV)"/></g>`:''}
+  <rect x="0" y="1700" width="1080" height="220" fill="#2a0806"/><rect x="0" y="1700" width="1080" height="10" fill="#c99a3a"/>
+  ${[...Array(9)].map((_,i)=>`<path d="M${i*130} 1710 L${i*130+65} 1920" stroke="#4a140c" stroke-width="3"/>`).join('')}`;}
+function cosmosBG(){return `<rect width="1080" height="1920" fill="url(#gCosmos)"/>${stars(150,9,1920)}`;}
+
+// ============================================================ SCENES
+const SCENES=[]; function scene(id,a,b,svg,upd,fi=.3,fo=.3,iris=false){SCENES.push({id,a,b,svg,upd,fi,fo,iris});}
+
+// SH1 Shani hero close-up -> pull back
+scene('sh1',0,T('l03')-.15,`${cosmosBG()}<g transform="translate(860,330)">${saturnPlanet('sh1_sat',70)}</g>
+ <g id="sh1_cam"><g transform="translate(540,1760)">${shaniFront('sh1_s')}<g transform="translate(-235,0)">${trident('sh1_tri')}</g><g transform="translate(250,-10) scale(1.1)">${crow('sh1_crow')}</g></g></g>`,(t,lt)=>{
+  const z=eio(win(t,0,T('l03')-.2));
+  const s=lerp(2.3,1.0,z), fy=lerp(900,1100,z); // focus head (540,900) at start
+  A('sh1_cam','transform',`translate(540,${fy}) scale(${s}) translate(-540,${-lerp(900,1100,z)})`);
+  updShaniFront('sh1_s',{t,blink:blinkAt(t,2.9,.4),eyeGlow:win(t,wi('l02','डरती')-.2,wi('l02','डरती')+.3)*(.6+.3*Math.sin(t*8)),breath:Math.sin(t*1.8)*4,haloGlow:.8+.2*Math.sin(t*2)});
+  A('sh1_crow_head','transform',`translate(52,-70) rotate(${Math.sin(t*3)*8})`);
+  A('sh1_sat','transform',`rotate(${t*4})`);
+},.01,.25);
+
+// SH2 limping walk
+scene('sh2',T('l03')-.15,T('l04')-.15,`${cosmosBG()}<g id="sh2_far">${[...Array(6)].map((_,i)=>`<g transform="translate(${i*420+120},${560+(i%2)*160})">${saturnPlanet('sh2_p'+i,24+(i%3)*10)}</g>`).join('')}</g>
+ <path d="M-100 1700 Q540 1660 1180 1700 V1920 H-100Z" fill="#120c30"/><path id="sh2_road" d="M-100 1700 Q540 1660 1180 1700" stroke="#7d8ee8" stroke-width="6" fill="none" stroke-dasharray="40 30" opacity=".7"/>
+ <g id="sh2_w">${shaniSide('sh2_s')}<g transform="translate(118,262)">${trident('sh2_tri',560)}</g></g>`,(t,lt)=>{
+  const ph=lt*5.2; const dist=lt*170;
+  A('sh2_far','transform',`translate(${-(dist*.3)%420},0)`); A('sh2_road','stroke-dashoffset',dist);
+  const x=lerp(380,560,eio(win(lt,0,3.5)));
+  A('sh2_w','transform',`translate(${x},1420) scale(1.15)`);
+  updShaniSide('sh2_s',{phase:ph,walk:1,limp:1,blink:blinkAt(t,2.7),armF:-42,foreF:-58});
+  A('sh2_tri','transform',`translate(${Math.sin(ph)*8},0)`);
+},.25,.25);
+
+// SH3a Lanka city
+scene('sh3a',T('l04')-.15,T('l05')-.15,`${lankaCity('sh3a')}`,(t,lt)=>{
+  A('sh3a_city','transform',`translate(540,1300) scale(${1+lt*.05}) translate(-540,-1300)`);
+},.3,.3);
+
+// SH3b cages with nine grahas
+scene('sh3b',T('l05')-.15,T('l06')-.15,`${court('sh3b')}<g id="sh3b_cam">
+ ${GRAHA.map(([n,c],i)=>{const col=i%3,row=Math.floor(i/3);const x=220+col*320,y=640+row*360;return `<g transform="translate(${x},${y}) scale(.95)" id="sh3b_c${i}">${cage('sh3b_cg'+i,c,i==6)}<text y="130" text-anchor="middle" font-family="Hind" font-weight="700" font-size="40" fill="#ffe3a0" stroke="#000" stroke-width="6" paint-order="stroke">${n}</text></g>`}).join('')}
+ </g>`,(t,lt)=>{
+  GRAHA.forEach((_,i)=>{const col=i%3,row=Math.floor(i/3);const x=220+col*320,y=640+row*360;const sw=Math.sin(t*1.6+i)*3;
+    A('sh3b_c'+i,'transform',`translate(${x},${y}) rotate(${sw},0,-400) scale(.95)`);
+    A('sh3b_cg'+i+'_orb','opacity',.75+.25*Math.sin(t*3+i));});
+  A('sh3b_cam','transform',`translate(540,1000) scale(${1.05-lt*.02}) translate(-540,-1000)`);
+},.3,.15);
+
+// SH4 cradle
+scene('sh4',T('l06')-.15,T('l07')-.15,`${court('sh4',{throne:false})}<g transform="translate(540,640)">${rays('sh4_rays','#ffd98a',20,.12)}</g>
+ <g id="sh4_cam"><g transform="translate(540,1080) scale(1.5)">${cradle('sh4_cr')}</g></g>`,(t,lt)=>{
+  A('sh4_cr_sw','transform',`rotate(${Math.sin(t*2)*4},0,-330)`); A('sh4_rays','transform',`rotate(${lt*6})`);
+  A('sh4_cam','transform',`translate(540,1000) scale(${1+lt*.04}) translate(-540,-1000)`);
+},.15,.25);
+
+// SH5 Ravana command
+scene('sh5',T('l07')-.15,wi('l08','सारे')-.2,`${court('sh5')}<g id="sh5_cam"><g transform="translate(540,1760) scale(.98)">${ravana('sh5_r')}</g></g>`,(t,lt)=>{
+  const pt=eback(win(t,T('l07')+.1,T('l07')+.6));
+  updRavana('sh5_r',{armR:lerp(-20,-95,pt),foreR:lerp(-50,-20,pt),armL:12,gada:true,anger:.6+.3*Math.sin(t*6),breath:Math.sin(t*2)*3,tilt:Math.sin(t*1.3)*1.5},t);
+  A('sh5_cam','transform',`translate(540,900) scale(${1.06+lt*.05}) translate(-540,-900)`);
+},.3,.25);
+
+// SH6 chart: grahas into house 11, tremble
+scene('sh6',wi('l08','सारे')-.2,T('l10')-.15,`<rect width="1080" height="1920" fill="url(#gDark)"/>${stars(90,2)}<g id="sh6_cam">${chart('sh6_ch')}</g>`,(t,lt)=>{
+  const a=wi('l08','सारे'); const fear=win(t,T('l09')-.1,T('l09')+.2);
+  GRAHA.forEach((_,i)=>{const p=eio(win(t,a+i*.12,a+i*.12+.9)); const ang=i/9*2*Math.PI;
+    const sx=540+Math.cos(ang)*560, sy=1000+Math.sin(ang)*700; const [ex,ey]=chartPos(i);
+    const sh=fear*Math.sin(t*50+i*2)*5;
+    A('sh6_ch_g'+i,'transform',`translate(${lerp(sx,ex,p)+sh},${lerp(sy,ey,p)})`);});
+  A('sh6_ch_h11','opacity',.35*win(t,wi('l08','ग्यारहवें'),wi('l08','ग्यारहवें')+.4));
+  A('sh6_cam','transform',`translate(800,800) scale(${1+.25*eio(win(t,T('l09')-.3,T('l09')+.6))}) translate(-800,-800)`);
+},.25,.2);
+
+// SH7 Shani justice
+scene('sh7',T('l10')-.15,T('l11')-.15,`${cosmosBG()}<g transform="translate(540,800)">${rays('sh7_rays','#9fb4ff',22,.14)}</g>
+ <g id="sh7_cam"><g transform="translate(540,1750)">${shaniFront('sh7_s')}<g transform="translate(-235,0)">${trident('sh7_tri')}</g></g></g>`,(t,lt)=>{
+  const g=win(t,wi('l10','न्याय')-.2,wi('l10','न्याय')+.4);
+  updShaniFront('sh7_s',{t,blink:blinkAt(t,3.1),eyeGlow:g*.8,breath:Math.sin(t*1.8)*4,halo:1+g*.12,haloGlow:.6+g*.6});
+  A('sh7_rays','transform',`rotate(${lt*8})`);
+  A('sh7_cam','transform',`translate(540,1000) scale(${1.25+lt*.04}) translate(-540,-1000)`);
+},.15,.15);
+
+// SH8 first breath
+scene('sh8',T('l11')-.15,T('l12')-.15,`${court('sh8',{throne:false})}<g transform="translate(540,1000)"><g id="sh8_burst" opacity="0">${rays('sh8_rays','#fff2c8',26,.5)}<circle r="420" fill="url(#glowW)"/></g></g>
+ <g id="sh8_cam"><g transform="translate(540,1080) scale(1.5)">${cradle('sh8_cr')}</g></g>`,(t,lt)=>{
+  const b=win(t,wi('l11','साँस')-.2,wi('l11','साँस')+.3)*(1-win(t,E('l11'),E('l11')+.4));
+  A('sh8_burst','opacity',b); A('sh8_rays','transform',`rotate(${lt*10})`);
+  A('sh8_cr_sw','transform',`rotate(${Math.sin(t*2)*3},0,-330)`); A('sh8_cr_glow','opacity',.6+b*.4);
+  A('sh8_cam','transform',`translate(540,1000) scale(${1.05+lt*.05}) translate(-540,-1000)`);
+},.25,.2);
+
+// SH9 Shani moves to house 12
+scene('sh9',T('l12')-.15,T('l13')-.15,`<rect width="1080" height="1920" fill="url(#gDark)"/>${stars(90,4)}<g id="sh9_cam">${chart('sh9_ch')}
+ <g id="sh9_foot" opacity="0" transform="translate(800,700) rotate(-30)"><ellipse rx="22" ry="36" fill="#9fb4ff"/>${[-14,-4,6,15].map((x,i)=>`<circle cx="${x}" cy="${-46+Math.abs(i-1.5)*4}" r="7" fill="#9fb4ff"/>`).join('')}</g></g>`,(t,lt)=>{
+  const m=eio(win(t,wi('l12','पैर')-.1,wi('l12','बारहवें')+.3));
+  GRAHA.forEach((_,i)=>{let [x,y]=chartPos(i); if(i==6){x=lerp(x,HC[12][0]+20,m);y=lerp(y,HC[12][1]-10,m);} A('sh9_ch_g'+i,'transform',`translate(${x},${y}) scale(${i==6?1+.4*Math.sin(m*Math.PI):1})`);});
+  A('sh9_ch_h11','opacity',.3); A('sh9_ch_h12','opacity',.5*win(t,wi('l12','बारहवें')-.1,wi('l12','बारहवें')+.3));
+  A('sh9_foot','opacity',win(t,wi('l12','बारहवें'),wi('l12','बारहवें')+.3)*.8);
+  A('sh9_cam','transform',`translate(780,760) scale(${1.25+lt*.05}) translate(-780,-760)`);
+},.2,.2);
+
+// SH10 immortality shield shatters
+function shards(p,n=14){return [...Array(n)].map((_,i)=>{const a=i/n*2*Math.PI;return `<path id="${p}_s${i}" d="M0 0 L${Math.cos(a)*120} ${Math.sin(a)*120} L${Math.cos(a+.45)*120} ${Math.sin(a+.45)*120}Z" fill="#ffe08a" stroke="#fff6c8" stroke-width="3" opacity=".95"/>`}).join('');}
+scene('sh10',T('l13')-.15,T('l14')-.15,`${court('sh10',{throne:false})}<g id="sh10_cam"><g transform="translate(540,1250) scale(1.25)">${cradle('sh10_cr')}</g>
+ <g transform="translate(540,700)"><g id="sh10_shield"><circle r="190" fill="url(#glowY)"/><circle r="130" fill="none" stroke="url(#gGold)" stroke-width="14"/>
+  <text y="30" text-anchor="middle" font-family="Yatra" font-size="96" fill="#fff2c0" stroke="#7a4a10" stroke-width="3">अमर</text>
+  <path id="sh10_crack" d="M-20 -130 L10 -60 L-30 0 L20 60 L-10 130" stroke="#3a1a04" stroke-width="8" fill="none" opacity="0"/></g>
+  <g id="sh10_sh" opacity="0">${shards('sh10')}</g></g></g>`,(t,lt)=>{
+  const c=win(t,wi('l13','अमरता')-.1,wi('l13','अमरता')+.25), br=win(t,wi('l13','टूट')-.1,wi('l13','टूट')+.4);
+  A('sh10_crack','opacity',c); A('sh10_shield','opacity',1-br); A('sh10_sh','opacity',br>0?1-win(t,wi('l13','टूट')+.3,E('l13')+.3):0);
+  for(let i=0;i<14;i++){const a=i/14*2*Math.PI; const d=eo(br)*380; A('sh10_s'+i,'transform',`translate(${Math.cos(a+.2)*d},${Math.sin(a+.2)*d+br*br*200}) rotate(${br*200*(i%2?1:-1)}) scale(${1-br*.5})`);}
+  A('sh10_cr_sw','transform',`rotate(${Math.sin(t*2)*3},0,-330)`); A('sh10_cr_glow','opacity',.7*(1-br));
+  const sh=br>0&&br<1?Math.sin(t*70)*8*(1-br):0;
+  A('sh10_cam','transform',`translate(${sh},0)`);
+},.2,.2);
+
+// SH11 Ravana strikes Shani
+scene('sh11',T('l14')-.15,T('l16')-.1,`${court('sh11')}<g id="sh11_cam">
+ <g transform="translate(330,1730) scale(.66)">${ravana('sh11_r')}</g>
+ <g id="sh11_sw" transform="translate(800,1430) scale(-1.05,1.05)">${shaniSide('sh11_s')}</g>
+ <g id="sh11_imp" opacity="0" transform="translate(735,1610)"><circle r="160" fill="url(#glowW)"/>${[0,1,2].map(i=>`<circle id="sh11_ring${i}" r="60" fill="none" stroke="#fff2c8" stroke-width="10"/>`).join('')}
+  ${[...Array(10)].map((_,i)=>{const a=i/10*2*Math.PI;return `<path d="M${Math.cos(a)*70} ${Math.sin(a)*70} L${Math.cos(a)*190} ${Math.sin(a)*190}" stroke="#ffe08a" stroke-width="8" stroke-linecap="round"/>`}).join('')}</g></g>`,(t,lt)=>{
+  const up=eio(win(t,wi('l14','गदा')-.3,wi('l14','उठाई')+.3)); const hit=wi('l15','तोड़'); const sw=ei(win(t,hit-.22,hit));
+  const armL=lerp(lerp(12,-168,up),-55,sw); const foreL=lerp(lerp(0,-10,up),20,sw);
+  updRavana('sh11_r',{armL,foreL,gada:true,armR:-15,foreR:-60,anger:.5+.5*up,breath:Math.sin(t*2)*3,tilt:up*3-sw*4},t);
+  const k=eo(win(t,hit,hit+.35));
+  updShaniSide('sh11_s',{legF:lerp(0,-75,k),kneeF:lerp(0,80,k),legB:lerp(0,15,k),kneeB:lerp(0,95,k),drop:lerp(0,95,k),lean:lerp(0,10,k),armF:lerp(-10,40,k),foreF:lerp(-12,-60,k),armB:lerp(10,30,k),headTilt:lerp(0,14,k),blink:k>.3?1:blinkAt(t,2.5)});
+  const im=win(t,hit-.02,hit+.08)*(1-win(t,hit+.3,hit+.9)); A('sh11_imp','opacity',im);
+  [0,1,2].forEach(i=>{const r=eo(win(t,hit+i*.08,hit+i*.08+.6)); A('sh11_ring'+i,'transform',`scale(${1+r*4})`); A('sh11_ring'+i,'opacity',1-r);});
+  const shk=t>hit&&t<hit+.5?Math.sin(t*80)*14*(1-win(t,hit,hit+.5)):0;
+  A('sh11_cam','transform',`translate(${shk},${shk*.5}) translate(540,1250) scale(${1.04+lt*.02}) translate(-540,-1250)`);
+},.2,.25);
+
+// SH12 Shanaishchara slow walk
+scene('sh12',T('l16')-.1,T('l18')-.15,`${cosmosBG()}<g transform="translate(540,620)">${saturnPlanet('sh12_sat',160)}</g>
+ <path d="M-100 1700 Q540 1660 1180 1700 V1920 H-100Z" fill="#120c30"/><path id="sh12_road" d="M-100 1700 Q540 1660 1180 1700" stroke="#7d8ee8" stroke-width="6" fill="none" stroke-dasharray="40 30" opacity=".7"/>
+ <g id="sh12_w">${shaniSide('sh12_s')}<g transform="translate(118,262)">${trident('sh12_tri',560)}</g></g>`,(t,lt)=>{
+  const ph=lt*3.2; A('sh12_road','stroke-dashoffset',lt*80);
+  A('sh12_w','transform',`translate(${lerp(300,620,win(lt,0,4.6))},1420) scale(1.15)`);
+  updShaniSide('sh12_s',{phase:ph,walk:1,limp:1,blink:blinkAt(t,3),armF:-42,foreF:-58});
+  A('sh12_tri','transform',`translate(${Math.sin(ph)*8},0)`);
+  A('sh12_sat','transform',`rotate(${lt*3}) scale(${1+lt*.02})`);
+},.25,.15);
+
+// SH13 Hanuman frees Shani, then vow
+scene('sh13',T('l18')-.15,T('l22')-.15,`${court('sh13',{throne:false})}<g transform="translate(540,900)"><g id="sh13_gl" opacity="0">${rays('sh13_rays','#ffe7a8',24,.35)}</g></g>
+ <g id="sh13_cam">
+ <g transform="translate(770,1720) scale(.62)">${shaniFront('sh13_s',{chains:true})}</g>
+ <g id="sh13_hw" transform="translate(300,1720) scale(.62)">${hanuman('sh13_h')}</g>
+ <g id="sh13_dust" opacity="0" transform="translate(300,1720)"><ellipse rx="260" ry="40" fill="none" stroke="#e8c88a" stroke-width="14"/><ellipse rx="180" ry="26" fill="#e8c88a" opacity=".4"/></g>
+ <g id="sh13_links">${[...Array(16)].map((_,i)=>`<ellipse id="sh13_l${i}" rx="10" ry="6" fill="none" stroke="#a8acb8" stroke-width="6" opacity="0"/>`).join('')}</g>
+ </g>`,(t,lt)=>{
+  const land=wi('l18','हनुमान')+.15; const fall=win(t,land-.55,land);
+  const sq=t<land?1:1-.18*Math.sin(clamp((t-land)/.35)*Math.PI);
+  A('sh13_hw','transform',`translate(${lerp(-150,300,eo(fall))},${lerp(400,1720,ei(fall))}) scale(.62)`);
+  const dd=win(t,land,land+.6); A('sh13_dust','opacity',(1-dd)*(dd>0?1:0)); A('sh13_dust','transform',`translate(300,1720) scale(${1+dd*1.4})`);
+  const brk=wi('l19','आज़ाद')-.15; const fist=eback(win(t,brk-.5,brk-.1)); const freed=win(t,brk,brk+.3);
+  const bless=eback(win(t,wi('l20','वचन')-.3,wi('l20','वचन')+.2));
+  const fold=win(t,wi('l21','भक्त')-.2,wi('l21','भक्त')+.3);
+  updHanuman('sh13_h',{squash:sq,armL:10,armR:lerp(lerp(-10,-155,fist),28,fold),foreR:lerp(lerp(0,-15,fist),125,fold),breath:Math.sin(t*2)*3,blink:blinkAt(t,3.2)},t);
+  A('sh13_s_chains','opacity',1-freed);
+  for(let i=0;i<16;i++){const a=i/16*2*Math.PI;const d=eo(freed)*420;A('sh13_l'+i,'transform',`translate(${770+Math.cos(a)*d*.9},${1720-560*.62+Math.sin(a)*d*.6+freed*freed*260}) rotate(${freed*300})`);A('sh13_l'+i,'opacity',freed>0?1-win(t,brk+.3,brk+.9):0);}
+  updShaniFront('sh13_s',{t,blink:blinkAt(t,2.8),eyeGlow:freed*.6*(1-win(t,brk+1,brk+2)),breath:Math.sin(t*1.8)*4,halo:1+freed*.1,haloGlow:.4+freed*.6,armR:lerp(-8,-150,bless),foreR:lerp(0,-20,bless),armL:8});
+  A('sh13_gl','opacity',win(t,brk,brk+.4)*.6+bless*.4); A('sh13_rays','transform',`rotate(${lt*6})`);
+  const z=eio(win(t,T('l20')-.3,T('l20')+.8));
+  A('sh13_cam','transform',`translate(540,1300) scale(${1+z*.35+lt*.008}) translate(-540,-1300)`);
+},.25,.3);
+
+// SH14 CTA
+scene('sh14',T('l22')-.15,END,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,1000)">${rays('sh14_rays','#fff2c8',24,.26)}</g>
+ <g id="sh14_cam"><g transform="translate(320,1700) scale(.6)">${hanuman('sh14_h')}</g><g transform="translate(770,1700) scale(.6)">${shaniFront('sh14_s')}</g></g>`,(t,lt)=>{
+  A('sh14_rays','transform',`rotate(${lt*5})`);
+  updHanuman('sh14_h',{armL:10,armR:28,foreR:125,breath:Math.sin(t*2)*3,blink:blinkAt(t,3.4)},t);
+  updShaniFront('sh14_s',{t,blink:blinkAt(t,3,1),breath:Math.sin(t*1.8)*4,armR:-150,foreR:-20,haloGlow:.8});
+  A('sh14_cam','transform',`translate(540,1300) scale(${1.02+lt*.015}) translate(-540,-1300)`);
+},.3,.01);
+
+// ============================================================ OVERLAYS
+const OV=[]; function ov(kind,html,a,b,x,y,size){const d=document.createElement('div');d.className=kind;d.innerHTML=html;if(size)d.style.fontSize=size+'px';$('overlay').appendChild(d);OV.push({d,a,b,kind,x,y});}
+function cue(){
+ ov('tag','लंगड़ाकर क्यों?',wi('l03','लंगड़ाकर')-.05,E('l03')+.2,540,560,88);
+ ov('gold','लंका',T('l04')+.1,E('l04')+.2,540,560,170);
+ ov('tag','नवग्रह बंदी',wi('l05','बंदी')-.1,E('l05')+.1,540,300,88);
+ ov('label','मेघनाद',T('l06')+.3,E('l06')+.1,540,560,64);
+ ov('tag','रावण का हुक्म',T('l07'),E('l07')+.1,540,300,86);
+ ov('pill','11वाँ घर',wi('l08','ग्यारहवें'),E('l08')+.2,540,470,54);
+ ov('gold','अमर',wi('l08','अमर')-.1,E('l08')+.25,540,1260,150);
+ ov('tag','सब डर गए',T('l09'),E('l09')+.15,540,470,86);
+ ov('gold','न्याय',wi('l10','न्याय')-.1,E('l10')+.1,540,300,170);
+ ov('label','पहली साँस',wi('l11','साँस')-.2,E('l11')+.1,540,560,64);
+ ov('tag','बारहवाँ घर',wi('l12','बारहवें')-.05,E('l12')+.15,540,470,86);
+ ov('tag','अमरता टूटी',wi('l13','टूट')-.05,E('l13')+.15,540,1200,92);
+ ov('tag','पैर तोड़ दिया',wi('l15','तोड़')+.05,E('l15')+.3,540,420,90);
+ ov('gold','शनैश्चर',wi('l17','शनैश्चर')-.15,T('l18')-.25,540,1100,170);
+ ov('label','धीरे चलने वाला',wi('l17','शनैश्चर')+.25,T('l18')-.25,540,1250,58);
+ ov('gold','हनुमान',wi('l18','हनुमान')-.05,E('l18')+.3,540,330,150);
+ ov('tag','आज़ाद',wi('l19','आज़ाद')-.05,E('l19')+.2,540,330,96);
+ ov('gold','वचन',wi('l20','वचन')-.1,E('l20')+.2,540,330,170);
+ ov('shade','',T('l21'),E('l21')+.2,540,330);
+ ov('tag','शनि नहीं सताएगा',wi('l21','शनि')-.1,E('l21')+.2,540,330,80);
+ ov('pill','कमेंट में लिखिए',T('l22')+.05,END,540,250,58);
+ ov('gold','जय हनुमान',T('l23')-.05,END,540,400,130);
+ ov('gold','जय शनिदेव',wi('l23','जय',1)-.05,END,540,560,130);
+}
+
+// ============================================================ CAPTIONS
+const KEY=['शनि','रावण','लंका','ग्रहों','ग्रह','बंदी','मेघनाद','हुक्म','ग्यारहवें','अमर','न्याय','साँस','बारहवें','अमरता','गदा','पैर','धीरे','शनैश्चर','हनुमान','आज़ाद','वचन','भक्त','सताएगा','कमेंट','जय','शनिदेव','लंगड़ाकर','डरती'];
+const CHUNKS=[];
+TIMING.lines.forEach(l=>{const ws=words(l.text);let cur=[],len=0;
+  ws.forEach((w,i)=>{cur.push(i);len+=w.length+1; const brk=/[,।?—]|\.\.\./.test(w)||len>20||i==ws.length-1;
+    if(brk){CHUNKS.push({id:l.id,idx:cur.slice(),ws});cur=[];len=0;}});});
+CHUNKS.forEach((c,k)=>{c.a=wt(c.id,c.idx[0])-.08; const nx=CHUNKS[k+1]; c.b=(nx&&nx.id===c.id)?wt(nx.id,nx.idx[0])-.08:L[c.id].end+.25;});
+function renderCap(t){const c=CHUNKS.find(c=>t>=c.a&&t<c.b); const el=$('cap');
+  if(!c){el.innerHTML='';el.dataset.k='';return;}
+  const key=c.id+c.idx[0]; if(el.dataset.k!==key){el.dataset.k=key;
+    el.innerHTML='<div class="capbox">'+c.idx.map(i=>{const w=c.ws[i];const k=KEY.some(K=>w.includes(K));return `<span data-t="${wt(c.id,i)}" style="color:${k?'#ffc94a':'#fff'}">${w}</span>`}).join(' ')+'</div>';}
+  const pop=eback(win(t,c.a,c.a+.18)); el.style.transform=`scale(${.9+.1*pop})`;
+  [...el.querySelectorAll('span')].forEach(s=>{s.style.opacity=t>=+s.dataset.t-.05?1:.32;});
+}
+// ============================================================ PARTICLES
+const PT=[...Array(70)].map((_,i)=>({x:(Math.sin(i*12.9898)*43758.5453%1+1)%1,y:(Math.sin(i*78.233)*12543.13%1+1)%1,r:3+((i*37)%9),s:.02+((i*13)%10)/300,ph:i}));
+function renderFx(t,tint){const c=$('fx').getContext('2d');c.clearRect(0,0,1080,1920);
+  PT.forEach(p=>{const y=((p.y-t*p.s)%1+1)%1*1920, x=p.x*1080+Math.sin(t*.5+p.ph)*30; const a=.16+.16*Math.sin(t*1.3+p.ph);
+    const g=c.createRadialGradient(x,y,0,x,y,p.r*3);g.addColorStop(0,`rgba(${tint},${a})`);g.addColorStop(1,`rgba(${tint},0)`);c.fillStyle=g;c.beginPath();c.arc(x,y,p.r*3,0,6.283);c.fill();});}
+// ============================================================ BUILD/RENDER
+function build(){$('gdefs').innerHTML=defs(); const root=$('scenes');
+  SCENES.forEach(s=>{const d=document.createElement('div');d.className='scene';d.id='W_'+s.id;
+    d.innerHTML=`<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">${s.svg}</svg>`;root.appendChild(d);s.div=d;});
+  cue();}
+const FLASH=()=>[T('l06')-.15,wi('l11','साँस')-.05,wi('l15','तोड़'),wi('l18','हनुमान')+.15,T('l22')-.15];
+function flashAt(t){let o=0;FLASH().forEach(p=>{o=Math.max(o,Math.max(0,1-Math.abs(t-p)/.16))});return o*.8;}
+window.render=function(t){
+  SCENES.forEach(s=>{const o=fadeWin(t,s.a,s.b,s.fi,s.fo); s.div.style.opacity=o; s.div.style.display=o>0?'block':'none'; if(o>0) s.upd(t,t-s.a);});
+  OV.forEach(v=>{const o=fadeWin(t,v.a,v.b,.12,.2); v.d.style.opacity=o; if(o<=0){v.d.style.display='none';return;} v.d.style.display='block';
+    const s=(v.kind==='label'||v.kind==='shade')?1:v.kind==='pill'?eo(win(t,v.a-.12,v.a+.2)):eback(win(t,v.a-.12,v.a+.22)); const rot=v.kind==='tag'?-3+Math.sin(t*2)*.6:0;
+    const shake=v.kind==='tag'&&t<v.a+.3?Math.sin(t*60)*4*(1-win(t,v.a,v.a+.3)):0;
+    v.d.style.left=v.x+'px'; v.d.style.top=v.y+'px'; v.d.style.transform=`translate(-50%,-50%) translate(${shake}px,0) rotate(${rot}deg) scale(${s})`;});
+  renderCap(t);
+  const tint=t<T('l04')?'170,190,255':t<T('l16')-.1?'255,190,120':t<T('l18')?'170,190,255':'255,215,150';
+  renderFx(t,tint); $('flash').style.opacity=flashAt(t);
+};
+build();
+window.CUES={ov:OV.map(v=>({a:v.a,kind:v.kind})),scenes:SCENES.map(s=>({id:s.id,a:s.a,b:s.b})),
+ walks:[[T('l03')-.1,T('l04')-.2,0.6],[T('l16'),T('l18')-.2,0.98]],water:[],
+ impact:wi('l15','तोड़'),shatter:wi('l13','टूट'),chain:wi('l19','आज़ाद')-.15,land:wi('l18','हनुमान')+.15,
+ drums:[T('l05'),T('l07'),wi('l12','बारहवें'),wi('l18','हनुमान')+.15],end:END};
+document.fonts.ready.then(()=>{window.READY=true; render(0);});
+</script>
+</body>
+</html>
