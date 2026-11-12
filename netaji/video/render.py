@@ -297,7 +297,7 @@ def draw_map(sp, t, dur):
         gr = [cam.proj(*q) for q in g]
         shp = [tuple(cam.proj(q[0], q[1], 0)[:2]) for q in g]
         col = FILL[rt.get('col', 'red')] + (255,)
-        d.line(shp, fill=(0, 0, 0, 110), width=int(7 * U), joint='curve')                 # ground shadow
+        d.line(shp, fill=(0, 0, 0, 45), width=int(5 * U), joint='curve')                 # ground shadow
         air = [(q[0], q[1]) for q in gr]
         d.line(air, fill=(20, 12, 8, 200), width=int(12 * U), joint='curve'); d.line(air, fill=col, width=int(6 * U), joint='curve')
         ic = rt.get('icon')
