@@ -84,3 +84,7 @@ Files: `voice_samples/` — sab normal/halke pitch ke, koi bhi deep nahi.
 | 10 | Rishi Kumar — Calm | Calm young male | 129 Hz |
 
 Tip: 01, 02, 03, 07 Hindi-native voices hain — inka "रहस्य" uchcharan sabse saaf hai. Baaki voices "रहस्य" ko thoda "रहे-से" bolti hain; agar aap inme se koi chunenge to final video mein spelling tweak karke theek kar dunga.
+
+---
+
+**Character aur movement ka frame-by-frame analysis:** [CHARACTER_ANALYSIS.md](CHARACTER_ANALYSIS.md)
