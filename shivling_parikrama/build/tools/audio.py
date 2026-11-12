@@ -49,6 +49,7 @@ def whoosh(d=.7):
     e=np.sin(np.linspace(0,np.pi,n))**2; return (w*e).astype(np.float32)
 W=whoosh(); W=lp(W,0.35)  # softer top end
 WG=float(sys.argv[6]) if len(sys.argv)>6 else 0.45
+WAT=float(sys.argv[7]) if len(sys.argv)>7 else 0.07
 for s in cues["scenes"][1:]: place(sfx,W,max(0,s["a"]-.45),WG)
 # --- shimmer for gold, pop for tags
 def chime():
@@ -68,7 +69,7 @@ for a,b in cues['water']:
     n=int((b-a)*SR); w=rng.standard_normal(n).astype(np.float32); w=lp(w,0.25)-lp(w,0.05)
     mod=0.6+0.4*np.abs(np.sin(np.arange(n)/SR*9))*np.abs(np.sin(np.arange(n)/SR*3.7))
     e=np.minimum(1,np.minimum(np.arange(n)/(.4*SR),(n-np.arange(n))/(.4*SR)))
-    place(sfx,(w*mod*e).astype(np.float32),a,.22)
+    place(sfx,(w*mod*e).astype(np.float32),a,WAT)
 # --- footsteps (step every ~0.42s)
 def step():
     n=int(.12*SR); x=np.arange(n)/SR; w=rng.standard_normal(n); w=lp(w.astype(np.float32),0.15)

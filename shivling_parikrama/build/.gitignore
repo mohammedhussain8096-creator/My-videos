@@ -1,2 +1,4 @@
 audio/*.wav
 vo/s*.wav
+vo_user/*.wav
+!vo_user/user_vo.wav
