@@ -14,3 +14,8 @@
 ## Netaji_Thumb1–5
 Photos: "Subhas Chandra Bose NRB.jpg", "Subash Chandra Bose standing in Indian National Army uniform.jpg", "Ki-21 97juubaku.jpg"
 (public domain, Wikimedia Commons). Maps, fire, case files and stamps: original (Natural Earth relief, public domain).
+
+## Netaji_HD1–5 (netaji/thumbnails)
+Photos: "Subhas Chandra Bose NRB.jpg", "Subash Chandra Bose standing in Indian National Army uniform.jpg", "Ki-21 97juubaku.jpg",
+declassified file "Netaji Papers MEA TOK-551-1-81.pdf" and "Netaji Papers PMO 2(67)-56-71-PM (Volume II).pdf" (public domain, Wikimedia Commons),
+upscaled x2 with Real-ESRGAN. Maps, stamps and text: original (Natural Earth relief, public domain).

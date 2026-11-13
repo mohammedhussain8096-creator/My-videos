@@ -15,7 +15,12 @@ The words on the thumbnail and the title complete each other instead of repeatin
 Thumbnails are in `thumbnails/`: Netaji_Thumb1_zinda_the.jpg, Netaji_Thumb2_hadsa_hua_hi_nahi.jpg, Netaji_Thumb3_3_jaanch_2_jawab.jpg,
 Netaji_Thumb4_gumnami_baba.jpg, Netaji_Thumb5_80_saal_asthiyan.jpg (1280x720).
 
-## Modern thumbnails (recommended)
+## HD thumbnails, 1920x1080 (best, recommended)
+Netaji_HD2_hadsa_hua_tha.jpg → title 1 · Netaji_HD1_zinda_the.jpg → title 2 · Netaji_HD3_gumnami_baba.jpg → title 3 ·
+Netaji_HD5_kiski_asthiyan.jpg → title 4 · Netaji_HD4_gupt_files.jpg → title 5 (in `netaji/thumbnails/`).
+Netaji's face is a Real-ESRGAN x2 upscale of the public-domain photo, so it stays sharp at full size.
+
+## Modern thumbnails (older set)
 Netaji_Modern1_zinda_the.jpg → title 2 · Netaji_Modern2_gumnami_baba.jpg → title 3 · Netaji_Modern3_hadsa_hua_hi_nahi.jpg → title 1 ·
 Netaji_Modern4_3_jaanch_2_jawab.jpg → title 5 · Netaji_Modern5_dna_asthiyan.jpg → title 4 (all in `netaji/thumbnails/`, 1280x720).
 
