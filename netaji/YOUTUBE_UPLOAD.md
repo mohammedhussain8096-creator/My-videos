@@ -15,6 +15,10 @@ The words on the thumbnail and the title complete each other instead of repeatin
 Thumbnails are in `thumbnails/`: Netaji_Thumb1_zinda_the.jpg, Netaji_Thumb2_hadsa_hua_hi_nahi.jpg, Netaji_Thumb3_3_jaanch_2_jawab.jpg,
 Netaji_Thumb4_gumnami_baba.jpg, Netaji_Thumb5_80_saal_asthiyan.jpg (1280x720).
 
+## Modern thumbnails (recommended)
+Netaji_Modern1_zinda_the.jpg → title 2 · Netaji_Modern2_gumnami_baba.jpg → title 3 · Netaji_Modern3_hadsa_hua_hi_nahi.jpg → title 1 ·
+Netaji_Modern4_3_jaanch_2_jawab.jpg → title 5 · Netaji_Modern5_dna_asthiyan.jpg → title 4 (all in `netaji/thumbnails/`, 1280x720).
+
 ## Description (copy everything inside the box)
 
 ```
