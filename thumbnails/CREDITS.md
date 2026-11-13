@@ -10,3 +10,7 @@
   graphic effect added on top; the face and expression are otherwise unchanged.
 - Chernobyl_Thumb4: view of Pripyat with the plant on the horizon (public domain), colour-graded; glow, ring, arrow and
   radiation symbol drawn in code.
+
+## Netaji_Thumb1–5
+Photos: "Subhas Chandra Bose NRB.jpg", "Subash Chandra Bose standing in Indian National Army uniform.jpg", "Ki-21 97juubaku.jpg"
+(public domain, Wikimedia Commons). Maps, fire, case files and stamps: original (Natural Earth relief, public domain).
