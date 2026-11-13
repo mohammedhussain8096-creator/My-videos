@@ -1,0 +1,145 @@
+import json, sys, numpy as np, soundfile as sf
+SR=44100
+cues=json.load(open(sys.argv[1])); vo,vsr=sf.read(sys.argv[2],dtype='float32'); out=sys.argv[3]
+N=int(cues['end']*SR)+SR; rng=np.random.default_rng(7)
+t=np.arange(N)/SR
+def env(n,a,d):  # attack secs, exp decay secs
+    x=np.arange(n)/SR; e=np.minimum(1,x/max(a,1e-4))*np.exp(-x/d); return e
+def place(buf,sig,at,g=1.0):
+    if at<0: return
+    i=int(at*SR); 
+    if i>=len(buf): return
+    j=min(len(buf),i+len(sig)); buf[i:j]+=sig[:j-i]*g
+from scipy.signal import lfilter
+def lp(x,a): return lfilter([a],[1,-(1-a)],x).astype(np.float32)
+music=np.zeros(N,np.float32); sfx=np.zeros(N,np.float32)
+# --- tanpura drone (D): Pa Sa Sa Sa(low) plucks every 0.65s, rich harmonics
+base={'P':110.0,'S':146.83,'s':73.42}
+seq=['P','S','S','s']; dur=4.0
+pl=int(dur*SR); x=np.arange(pl)/SR
+def pluck(f):
+    s=np.zeros(pl)
+    for h in range(1,14):
+        amp=(1/h)*(1.0 if h%2 else .8)*np.exp(-x*(0.35+h*0.09))
+        s+=amp*np.sin(2*np.pi*f*h*x*(1+0.0007*h)+h)
+    return (s*np.minimum(1,x/0.02)).astype(np.float32)
+P={k:pluck(f) for k,f in base.items()}
+k=0; tt=0.0
+while tt<cues['end']+1: place(music,P[seq[k%4]],tt,0.05); k+=1; tt+=0.65
+# --- pad: D A D F# (soft), slow swell with LFO
+for f,g in [(293.66,.022),(440.0,.016),(587.33,.012),(349.23,.010),(220.0,.018)]:
+    music+= (g*np.sin(2*np.pi*f*t+np.sin(2*np.pi*.13*t)*.6)*(0.6+0.4*np.sin(2*np.pi*.05*t+f))).astype(np.float32)
+# section mood: darker pad dip in sc7 / louder at end
+scen={s['id']:s for s in cues['scenes']}
+def ramp(a,b,v0,v1):
+    g=np.ones(N,np.float32); i,j=int(a*SR),int(b*SR); g[:i]=v0; g[i:j]=np.linspace(v0,v1,j-i); g[j:]=v1; return g
+m=np.ones(N,np.float32)
+m*=ramp(cues['end']-2.5,cues['end'],1,0)*ramp(0,1.0,0.0,1.0)
+music*=m
+# --- bell
+def bell(f=520,d=3.5,g=1):
+    n=int((d+1)*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for r,a,dd in [(1,1,d),(2.76,.5,d*.6),(5.40,.3,d*.35),(8.93,.15,d*.2),(0.5,.35,d*1.2)]:
+        s+=a*np.sin(2*np.pi*f*r*x)*np.exp(-x/dd)
+    return (s*np.minimum(1,x/0.004)*g).astype(np.float32)
+for at in [0.05]+[scen[i]['a'] for i in ['sk3','sk6','sk11','sk12']]: place(sfx,bell(),at+.05,.16)
+# --- whoosh at scene starts
+def whoosh(d=.7):
+    n=int(d*SR); w=rng.standard_normal(n).astype(np.float32); w=lp(w,0.08)-lp(w,0.01)
+    e=np.sin(np.linspace(0,np.pi,n))**2; return (w*e).astype(np.float32)
+W=whoosh(); W=lp(W,0.35)  # softer top end
+WG=float(sys.argv[6]) if len(sys.argv)>6 else 0.45
+WAT=float(sys.argv[7]) if len(sys.argv)>7 else 0.07
+for s in cues["scenes"][1:]: place(sfx,W,max(0,s["a"]-.45),WG)
+# --- shimmer for gold, pop for tags
+def chime():
+    n=int(1.6*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for i,f in enumerate([1318.5,1760,2349.3,2637]):
+        d=i*0.06; xi=np.clip(x-d,0,None); s+=np.where(x>d,np.sin(2*np.pi*f*xi)*np.exp(-xi/0.5),0)*.25
+    return s.astype(np.float32)
+def pop():
+    n=int(.25*SR); x=np.arange(n)/SR; f=220*np.exp(-x*18)+160
+    return (np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-x/0.06)).astype(np.float32)
+CH,PO=chime(),pop()
+for o in cues['ov']:
+    if o['kind']=='gold': place(sfx,CH,o['a']-.05,.35)
+    if o['kind']=='tag': place(sfx,PO,o['a']-.08,.55)
+# --- water
+for a,b in cues['water']:
+    n=int((b-a)*SR); w=rng.standard_normal(n).astype(np.float32); w=lp(w,0.25)-lp(w,0.05)
+    mod=0.6+0.4*np.abs(np.sin(np.arange(n)/SR*9))*np.abs(np.sin(np.arange(n)/SR*3.7))
+    e=np.minimum(1,np.minimum(np.arange(n)/(.4*SR),(n-np.arange(n))/(.4*SR)))
+    place(sfx,(w*mod*e).astype(np.float32),a,WAT)
+# --- footsteps (step every ~0.42s)
+def step():
+    n=int(.12*SR); x=np.arange(n)/SR; w=rng.standard_normal(n); w=lp(w.astype(np.float32),0.15)
+    return (w*np.exp(-x/0.025)).astype(np.float32)
+for w in cues['walks']:
+    a,b=w[0],w[1]; dt=w[2] if len(w)>2 else .42; tt=a+.2; k=0
+    while tt<b: place(sfx,step(),tt,.55 if k%2==0 else .3); tt+=dt; k+=1
+# --- impact (gada), shatter, chain, landing, drums
+def boom(f0=90,d=.9,g=1):
+    n=int(d*SR); x=np.arange(n)/SR; f=f0*np.exp(-x*3)+40
+    s=np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-x/0.25)
+    nz=lp(rng.standard_normal(n).astype(np.float32),0.2)*np.exp(-x/0.05)
+    return ((s+nz*.8)*g).astype(np.float32)
+def glass(d=1.2):
+    n=int(d*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for k in range(18):
+        st=rng.uniform(0,.35); f=rng.uniform(2500,7000); xi=np.clip(x-st,0,None)
+        s+=np.where(x>st,np.sin(2*np.pi*f*xi)*np.exp(-xi/rng.uniform(.05,.25)),0)*.15
+    nz=(rng.standard_normal(n)-lp(rng.standard_normal(n).astype(np.float32),.1))*np.exp(-x/0.08)*.4
+    return (s+nz).astype(np.float32)
+def clank(d=1.0):
+    n=int(d*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for k in range(6):
+        st=k*0.07+rng.uniform(0,.03); xi=np.clip(x-st,0,None)
+        for f in [1180,1730,2610,3420]: s+=np.where(x>st,np.sin(2*np.pi*f*rng.uniform(.9,1.1)*xi)*np.exp(-xi/.12),0)*.08
+    return s.astype(np.float32)
+def drum():
+    n=int(.8*SR); x=np.arange(n)/SR; f=110*np.exp(-x*8)+55
+    return (np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-x/0.18)+lp(rng.standard_normal(n).astype(np.float32),.3)*np.exp(-x/.02)*.5).astype(np.float32)
+def ting(f=2400):
+    n=int(.6*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for r,g in [(1,1),(2.71,.5),(4.1,.3)]: s+=np.sin(2*np.pi*f*r*x)*np.exp(-x/(.18/r))*g
+    return (s*.5).astype(np.float32)
+for i,at in enumerate(cues['arrows']): place(sfx,ting(2200+i*180),at,.7)
+def shing():
+    n=int(1.0*SR); x=np.arange(n)/SR; w=rng.standard_normal(n).astype(np.float32); w=w-lp(w,.2)
+    sw=np.sin(2*np.pi*(3000+2000*x)*x)*np.exp(-x/.35)*.5
+    return ((w*np.exp(-x/.12)*.6+sw)).astype(np.float32)
+place(sfx,shing(),cues['slash'],.9)
+for at in cues['shimmer']: place(sfx,CH,at-.05,.45)
+place(sfx,CH,cues['dream'],.5)
+def clatter(d=1.4):
+    n=int(d*SR); s=np.zeros(n,np.float32)
+    for k in range(9):
+        st=int((k*0.12+rng.uniform(0,.05))*(0.6+k*.08)*SR)
+        if st>=n: break
+        m=min(n-st,int(.08*SR)); x=np.arange(m)/SR
+        hit=(rng.standard_normal(m)*np.exp(-x/0.012)+np.sin(2*np.pi*rng.uniform(900,1600)*x)*np.exp(-x/.03))*(1-k/10)
+        s[st:st+m]+=hit.astype(np.float32)*.6
+    return s
+for at in cues.get('dice',[]): place(sfx,clatter(),at+.2,.8)
+def clang():
+    n=int(1.6*SR); x=np.arange(n)/SR; s=np.zeros(n)
+    for f,g in [(180,1),(412,.6),(733,.4),(1190,.25)]: s+=np.sin(2*np.pi*f*x)*np.exp(-x/.5)*g
+    s+=lp(rng.standard_normal(n).astype(np.float32),.3)*np.exp(-x/.03)
+    return (s*.5).astype(np.float32)
+place(sfx,clang(),cues.get('bars',-1)+.3,1.0)
+def dhum():
+    n=int(1.5*SR); x=np.arange(n)/SR; f=60*np.exp(-x*1.5)+35
+    return (np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-x/.5)).astype(np.float32)
+place(sfx,dhum(),cues.get('bali',-1)-.1,1.2)
+for d in cues['drums']: place(sfx,drum(),d-.05,.9)
+# --- final mix
+vo=np.interp(np.arange(int(len(vo)*SR/vsr))*vsr/SR,np.arange(len(vo)),vo).astype(np.float32)
+V=np.zeros(N,np.float32); V[:len(vo)]=vo[:N]
+# ducking: music lower while voice present
+envv=np.convolve(np.abs(V),np.ones(4410)/4410,mode='same'); duck=np.where(envv>0.01,0.55,1.0).astype(np.float32)
+duck=np.convolve(duck,np.ones(8820)/8820,mode='same').astype(np.float32)
+MG=float(sys.argv[4]) if len(sys.argv)>4 else 1.0; SG=float(sys.argv[5]) if len(sys.argv)>5 else .8
+sf.write(out.replace('.wav','_music.wav'),music*duck*MG,SR); sf.write(out.replace('.wav','_sfx.wav'),sfx*SG,SR)
+mix=V*1.0+music*duck*MG+sfx*SG
+sf.write(out,np.stack([mix,mix],1),SR)
+print('ok',N/SR)
