@@ -94,6 +94,7 @@ narration audio, use it as-is and build `timing.json` from a Whisper transcript.
 
 | Folder | Video | Status |
 |---|---|---|
+| `the-gold-in-the-jar/` | The Gold the Nazis Couldn't See (59 s, owner's ElevenLabs voice, pauses tightened from 68 s, no speed-up) | Full video; true story (Hevesy dissolving two Nobel medals, 1940), based on Segment Zero's 5.5M-view Short; detailed lab with ~130 labelled bottles, Copenhagen canal street, tank, yard; blue explainer with beaker, disguised medal, sugar in tea |
 | `the-matchstick-farmer/` | The Farmer Who Set His Own Field on Fire (60 s, owner's ElevenLabs voice tightened from 76 s, no lines cut) | Full video; Comicron style farm and village with a full detail pass (grass, flowers, windows, barn planks, props, birds), royal-blue explainer with a flame character and a car |
 | `the-puddle-general/` | The Puddle General (60 s, owner's voice tightened from 85 s) | Full video; Comicron style, desert sandstone citadel (owner picked option 3 of 3 looks) |
 | `why-mountain-roads-zigzag/` | Why Mountain Roads Zigzag (60 s, owner's ElevenLabs voice tightened from 82 s) | Full video; spike-video style: skin-coloured heads, 3D mountain world, in-world explainer, crash payoff |
