@@ -94,6 +94,7 @@ narration audio, use it as-is and build `timing.json` from a Whisper transcript.
 
 | Folder | Video | Status |
 |---|---|---|
+| `the-puddle-general/` | The Puddle General (60 s, owner's voice tightened from 85 s) | Full video; Comicron style, desert sandstone citadel (owner picked option 3 of 3 looks) |
 | `why-mountain-roads-zigzag/` | Why Mountain Roads Zigzag (60 s, owner's ElevenLabs voice tightened from 82 s) | Full video; spike-video style: skin-coloured heads, 3D mountain world, in-world explainer, crash payoff |
 | `the-cook-who-got-paid-in-noise/` | The Cook Who Got Paid in Noise (54 s) | Full video; high-detail sets and high-detail characters; no ambience noise |
 | `the-girl-who-outsmarted-a-greedy-king/` | The Girl Who Outsmarted a Greedy King With a String (68 s, owner's own script and voice) | Full video; gold-mine/Einstein style: white heads (`makeChar3` in its src), real long shadows |
