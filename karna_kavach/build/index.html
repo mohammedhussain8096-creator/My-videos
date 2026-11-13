@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<title>Karna Kavach Daan</title>
+<style>
+@font-face{font-family:Hind;src:url(fonts/Hind-Bold.ttf);font-weight:700}
+@font-face{font-family:Hind;src:url(fonts/Hind-SemiBold.ttf);font-weight:600}
+@font-face{font-family:Yatra;src:url(fonts/YatraOne-Regular.ttf)}
+html,body{margin:0;padding:0;background:#000;overflow:hidden}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#05040a}
+.scene{position:absolute;inset:0;opacity:0}
+.scene svg{position:absolute;inset:0;width:1080px;height:1920px}
+#fx{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen}
+#vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 62% at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.5) 100%)}
+#flash{position:absolute;inset:0;background:#fff8e6;opacity:0;pointer-events:none}
+#cap{position:absolute;left:40px;right:40px;top:1390px;text-align:center;font-family:Hind;font-weight:700;transform-origin:50% 50%;
+  font-size:64px;line-height:1.25;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.55),0 0 18px rgba(0,0,0,.7)}
+.capbox{display:inline-block;max-width:960px;background:rgba(12,6,3,.58);border:2px solid rgba(255,214,120,.35);border-radius:24px;padding:12px 30px 4px}
+.tag{position:absolute;font-family:Hind;font-weight:700;color:#fff;background:linear-gradient(#d62a3a,#a3101f);border:5px solid #f4c45a;border-radius:14px;
+  padding:6px 30px 0;font-size:84px;line-height:1.25;box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 40px rgba(220,40,40,.45);white-space:nowrap;opacity:0}
+.gold{position:absolute;font-family:Yatra;text-align:center;white-space:nowrap;opacity:0;line-height:1.15;
+  background:linear-gradient(180deg,#fff3c4 0%,#ffd36b 35%,#e8a530 62%,#a8661a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 0 #3b1e08) drop-shadow(0 0 26px rgba(255,190,80,.55))}
+.label{position:absolute;font-family:Hind;font-weight:600;color:#ffd77a;font-size:50px;text-align:center;opacity:0;white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.7)}
+.label:after{content:"";display:block;height:4px;margin:6px auto 0;width:80%;background:linear-gradient(90deg,transparent,#ffd77a,transparent)}
+.pill{position:absolute;font-family:Hind;font-weight:700;color:#ffe3a0;font-size:54px;opacity:0;white-space:nowrap;background:rgba(45,18,6,.82);border:3px solid #f0c25a;border-radius:50px;padding:8px 34px 2px}
+.shade{position:absolute;width:1080px;height:300px;opacity:0;background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(10,5,20,.7),rgba(10,5,20,0) 100%)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="gdefs" width="0" height="0" style="position:absolute"></svg>
+  <div id="scenes"></div>
+  <canvas id="fx" width="1080" height="1920"></canvas>
+  <div id="vignette"></div>
+  <div id="overlay"></div>
+  <div id="cap"></div>
+  <div id="flash"></div>
+</div>
+<script src="timing.js"></script>
+<script>
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const win=(t,a,b)=>clamp((t-a)/(b-a));
+const eio=p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const eo=p=>1-Math.pow(1-p,3);
+const ei=p=>p*p*p;
+const eback=p=>{const c1=1.9,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
+const $=id=>document.getElementById(id);
+const A=(id,k,v)=>{const e=$(id); if(e) e.setAttribute(k,v);};
+const noise=(t,s=1)=>Math.sin(t*7.1*s)*.5+Math.sin(t*13.7*s+1.3)*.3+Math.sin(t*23.3*s+2.1)*.2;
+function fadeWin(t,a,b,fi=.4,fo=.4){ if(t<a-fi||t>b+fo) return 0; return Math.min(clamp((t-(a-fi))/fi),clamp(((b+fo)-t)/fo)); }
+const L={}; TIMING.lines.forEach(l=>L[l.id]=l);
+function words(text){return text.split(/\s+/).filter(w=>w.length)}
+function wlen(w){return w.replace(/[।,?!…—.\-]/g,'').length||1}
+function wt(id,i){const l=L[id];const ws=words(l.text);const tot=ws.reduce((s,w)=>s+wlen(w)+1.2,0);
+  let acc=0;for(let k=0;k<i&&k<ws.length;k++)acc+=wlen(ws[k])+1.2;return l.start+(l.end-l.start)*acc/tot;}
+function wi(id,needle,nth=0){const ws=words(L[id].text);let c=-1;for(let i=0;i<ws.length;i++){if(ws[i].includes(needle)){c++;if(c===nth)return wt(id,i);}}return L[id].start;}
+const T=id=>L[id].start, E=id=>L[id].end;
+const END=TIMING.duration+1.2;
+const OUT='#140a06';
+function blinkAt(t,period=3.3,off=0){const x=((t+off)%period);return x<.14?Math.sin(x/.14*Math.PI):0;}
+
+// ============================================================ DEFS
+function defs(){return `<defs>
+ <radialGradient id="gCosmos" cx="50%" cy="38%" r="80%"><stop offset="0" stop-color="#3a2c7a"/><stop offset=".45" stop-color="#1a1645"/><stop offset="1" stop-color="#05040f"/></radialGradient>
+ <radialGradient id="gCourt" cx="50%" cy="40%" r="80%"><stop offset="0" stop-color="#7a2a1a"/><stop offset=".55" stop-color="#3a1009"/><stop offset="1" stop-color="#120403"/></radialGradient>
+ <linearGradient id="gNightSky" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#090c2a"/><stop offset=".6" stop-color="#22265e"/><stop offset="1" stop-color="#5a3a5a"/></linearGradient>
+ <radialGradient id="gSun" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#ffe2a0"/><stop offset=".45" stop-color="#e9a443"/><stop offset="1" stop-color="#7a3d10"/></radialGradient>
+ <radialGradient id="gDark" cx="50%" cy="55%" r="70%"><stop offset="0" stop-color="#2a1a40"/><stop offset="1" stop-color="#040208"/></radialGradient>
+ <radialGradient id="glowY" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".95"/><stop offset=".35" stop-color="#ffae3e" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a00" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#b9d0ff" stop-opacity=".9"/><stop offset=".45" stop-color="#5b7cff" stop-opacity=".35"/><stop offset="1" stop-color="#3a4bff" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowR" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffb0a0" stop-opacity=".95"/><stop offset=".4" stop-color="#ff3a2a" stop-opacity=".4"/><stop offset="1" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+ <radialGradient id="glowW" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffffff" stop-opacity="1"/><stop offset=".4" stop-color="#fff2c8" stop-opacity=".5"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient>
+ <linearGradient id="gGold" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff0a8"/><stop offset=".45" stop-color="#f2c14e"/><stop offset="1" stop-color="#a86f14"/></linearGradient>
+ <linearGradient id="gGoldV" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff2b0"/><stop offset=".5" stop-color="#e9b23e"/><stop offset="1" stop-color="#9a6210"/></linearGradient>
+ <linearGradient id="gShani" x1="0" x2="1"><stop offset="0" stop-color="#4c5ca8"/><stop offset=".45" stop-color="#2c3a78"/><stop offset="1" stop-color="#161e48"/></linearGradient>
+ <linearGradient id="gRav" x1="0" x2="1"><stop offset="0" stop-color="#d79868"/><stop offset=".45" stop-color="#b0703f"/><stop offset="1" stop-color="#7a4424"/></linearGradient>
+ <linearGradient id="gHan" x1="0" x2="1"><stop offset="0" stop-color="#ff9a48"/><stop offset=".45" stop-color="#e06a22"/><stop offset="1" stop-color="#a2420e"/></linearGradient>
+ <linearGradient id="gBlueCloth" x1="0" x2="1"><stop offset="0" stop-color="#3a58c0"/><stop offset=".5" stop-color="#22388a"/><stop offset="1" stop-color="#121f52"/></linearGradient>
+ <linearGradient id="gRedCloth" x1="0" x2="1"><stop offset="0" stop-color="#e2443e"/><stop offset=".5" stop-color="#a81b22"/><stop offset="1" stop-color="#5e0d12"/></linearGradient>
+ <linearGradient id="gCape" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6a1018"/><stop offset="1" stop-color="#2a050a"/></linearGradient>
+ <linearGradient id="gHair" x1="0" x2="1"><stop offset="0" stop-color="#2c2a48"/><stop offset="1" stop-color="#0c0b18"/></linearGradient>
+ <linearGradient id="gPillar" x1="0" x2="1"><stop offset="0" stop-color="#5a3a10"/><stop offset=".3" stop-color="#d9a640"/><stop offset=".55" stop-color="#9a6a1c"/><stop offset="1" stop-color="#3a2408"/></linearGradient>
+ <linearGradient id="gWall" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4a120c"/><stop offset="1" stop-color="#1e0705"/></linearGradient>
+ <filter id="blur6"><feGaussianBlur stdDeviation="6"/></filter>
+</defs>`;}
+
+// ============================================================ SMALL PARTS
+const gem=(x,y,r,c='#2c55e0')=>`<g transform="translate(${x},${y})"><circle r="${r+4}" fill="url(#gGold)" stroke="${OUT}" stroke-width="2"/><circle r="${r}" fill="${c}"/><circle cx="${-r*.35}" cy="${-r*.35}" r="${r*.35}" fill="#fff" opacity=".75"/></g>`;
+const pearls=(pts,r=5)=>pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff8e6" stroke="#b08a50" stroke-width="1.5"/>`).join('');
+function arcPts(cx,cy,rx,ry,a0,a1,n){return [...Array(n)].map((_,i)=>{const a=a0+(a1-a0)*i/(n-1);return [cx+rx*Math.cos(a),cy+ry*Math.sin(a)]});}
+function stars(n=110,seed=3,h=1600){let s='';for(let i=0;i<n;i++){const x=(Math.sin(i*91.7+seed)*0.5+0.5)*1080,y=(Math.sin(i*47.3+seed*2)*0.5+0.5)*h;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${1.4+((i*7)%3)}" fill="#fff" opacity="${(.3+((i*13)%7)/10).toFixed(2)}"/>`;}return s;}
+function rays(p,color='#ffd98a',n=18,op=.18){return `<g id="${p}" opacity="${op}">${[...Array(n)].map((_,i)=>{const a=i/n*2*Math.PI;return `<path d="M0 0 L${(Math.cos(a-.06)*1700).toFixed(0)} ${(Math.sin(a-.06)*1700).toFixed(0)} L${(Math.cos(a+.06)*1700).toFixed(0)} ${(Math.sin(a+.06)*1700).toFixed(0)}Z" fill="${color}"/>`}).join('')}</g>`;}
+function saturnPlanet(p,r=120){return `<g id="${p}"><circle r="${r*1.8}" fill="url(#glowB)" opacity=".5"/>
+  <path d="M${-r*2} 0 A${r*2} ${r*.5} 0 0 1 ${r*2} 0" fill="none" stroke="#c9b27a" stroke-width="${r*.14}" opacity=".9" transform="rotate(-18)"/>
+  <circle r="${r}" fill="url(#gGold)"/><circle r="${r}" fill="#7a5a30" opacity=".35"/>
+  ${[-.5,-.15,.2,.5].map(k=>`<path d="M${-r*.95} ${r*k} Q0 ${r*k+r*.12} ${r*.95} ${r*k}" stroke="#8a6630" stroke-width="${r*.08}" fill="none" opacity=".6"/>`).join('')}
+  <path d="M${-r*2} 0 A${r*2} ${r*.5} 0 0 0 ${r*2} 0" fill="none" stroke="#e8d6a0" stroke-width="${r*.14}" opacity=".95" transform="rotate(-18)"/></g>`;}
+
+// ============================================================ EXTRA DEFS (Karna)
+function defs2(){return `<defs>
+ <linearGradient id="gKarna" x1="0" x2="1"><stop offset="0" stop-color="#f6c992"/><stop offset=".45" stop-color="#dc9c62"/><stop offset="1" stop-color="#a8683a"/></linearGradient>
+ <linearGradient id="gSurya" x1="0" x2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset=".5" stop-color="#f29a2e"/><stop offset="1" stop-color="#b8601a"/></linearGradient>
+ <linearGradient id="gIndra" x1="0" x2="1"><stop offset="0" stop-color="#ffe2c4"/><stop offset=".5" stop-color="#ecbf96"/><stop offset="1" stop-color="#b98a62"/></linearGradient>
+ <linearGradient id="gBrah" x1="0" x2="1"><stop offset="0" stop-color="#d9a070"/><stop offset=".5" stop-color="#b47a4a"/><stop offset="1" stop-color="#7e5030"/></linearGradient>
+ <linearGradient id="gMaroon" x1="0" x2="1"><stop offset="0" stop-color="#b03048"/><stop offset=".5" stop-color="#7a1428"/><stop offset="1" stop-color="#420816"/></linearGradient>
+ <linearGradient id="gSaffron" x1="0" x2="1"><stop offset="0" stop-color="#ffb04a"/><stop offset=".5" stop-color="#e8801e"/><stop offset="1" stop-color="#a8500e"/></linearGradient>
+ <linearGradient id="gWhiteCloth" x1="0" x2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e8e2d4"/><stop offset="1" stop-color="#b8b0a0"/></linearGradient>
+ <linearGradient id="gDawn" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2a2a6a"/><stop offset=".35" stop-color="#b8507a"/><stop offset=".62" stop-color="#ffa04a"/><stop offset="1" stop-color="#ffd890"/></linearGradient>
+ <linearGradient id="gDusk" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3a1a4a"/><stop offset=".5" stop-color="#d8603a"/><stop offset="1" stop-color="#ffc070"/></linearGradient>
+ <linearGradient id="gWar" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#5a2a1a"/><stop offset=".6" stop-color="#c8743a"/><stop offset="1" stop-color="#e8a860"/></linearGradient>
+ <linearGradient id="gRiver" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffb870"/><stop offset=".3" stop-color="#5a6aa8"/><stop offset="1" stop-color="#1a2050"/></linearGradient>
+ <linearGradient id="gWood" x1="0" x2="1"><stop offset="0" stop-color="#8a5a2a"/><stop offset="1" stop-color="#4a2a10"/></linearGradient>
+ <radialGradient id="gSunDisc" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".55" stop-color="#ffd860"/><stop offset="1" stop-color="#ff9a20"/></radialGradient>
+</defs>`;}
+
+const sunEmblem=(r=40)=>`<g><circle r="${r*1.5}" fill="url(#glowY)" opacity=".6"/>${[...Array(12)].map((_,i)=>{const a=i/12*2*Math.PI;return `<path d="M${(Math.cos(a-.12)*r).toFixed(1)} ${(Math.sin(a-.12)*r).toFixed(1)} L${(Math.cos(a)*r*1.55).toFixed(1)} ${(Math.sin(a)*r*1.55).toFixed(1)} L${(Math.cos(a+.12)*r).toFixed(1)} ${(Math.sin(a+.12)*r).toFixed(1)}Z" fill="#fff0a8" stroke="#a86f14" stroke-width="2"/>`}).join('')}<circle r="${r}" fill="url(#gSunDisc)" stroke="#a86f14" stroke-width="3"/><circle r="${r*.55}" fill="none" stroke="#c88a20" stroke-width="2"/></g>`;
+function sword(){return `<g><path d="M-8 0 H8 V-40 H-8Z" fill="#5a2a10" stroke="${OUT}" stroke-width="3"/><path d="M-34 -40 H34 V-52 H-34Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>
+  <path d="M-12 -52 L12 -52 L8 -330 L0 -360 L-8 -330Z" fill="#dfe6f0" stroke="${OUT}" stroke-width="3"/><path d="M0 -60 V-340" stroke="#9aa6b8" stroke-width="3"/></g>`;}
+function lota(){return `<g><path d="M-40 -6 Q-56 40 0 50 Q56 40 40 -6 Q20 -16 0 -16 Q-20 -16 -40 -6Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/><path d="M-24 -14 Q0 -26 24 -14 L28 -28 Q0 -40 -28 -28Z" fill="#e9b23e" stroke="${OUT}" stroke-width="4"/></g>`;}
+
+// ============================================================ KARNA FRONT (origin feet)
+function karnaFront(p){
+  const arm=(id,side,extra='')=>`<g id="${p}_${id}" transform="translate(${side*155},-715)">
+     <path d="M-38 0 Q-46 72 -32 154 L32 154 Q46 72 38 0 Q0 -24 -38 0Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+     <path d="M-40 54 H40 V76 H-40Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,65,7,'#d0182a')}
+     <g id="${p}_${id}f" transform="translate(0,150)"><path d="M-30 0 L-24 126 L24 126 L30 0Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+       <path d="M-27 96 H27 V120 H-27Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>
+       <path d="M-26 122 Q-34 182 -6 194 Q4 198 14 192 Q34 178 26 122Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>${extra}</g></g>`;
+  const kund=(s)=>`<g id="${p}_k${s>0?'R':'L'}" transform="translate(${s*94},40)"><circle r="46" fill="url(#glowY)" class="${p}_kg"/>${[...Array(10)].map((_,i)=>{const a=i/10*2*Math.PI;return `<path d="M${Math.cos(a)*18} ${Math.sin(a)*18} L${Math.cos(a)*30} ${Math.sin(a)*30}" stroke="#fff0a8" stroke-width="4"/>`}).join('')}<circle r="20" fill="url(#gSunDisc)" stroke="#a86f14" stroke-width="3"/><path d="M0 20 L-6 40 L0 50 L6 40Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="2"/></g>`;
+  return `<g id="${p}">
+  <ellipse cx="0" cy="0" rx="230" ry="30" fill="#000" opacity=".45"/>
+  <g transform="translate(110,-640) rotate(18)"><rect x="-34" y="-260" width="68" height="300" rx="14" fill="url(#gWood)" stroke="${OUT}" stroke-width="5"/>${[-20,0,20].map(x=>`<path d="M${x} -260 V-330" stroke="#5a3a1a" stroke-width="5"/><path d="M${x-10} -330 L${x} -352 L${x+10} -330Z" fill="#c8c8d0" stroke="${OUT}" stroke-width="2"/>`).join('')}<path d="M-34 -200 H34 M-34 -40 H34" stroke="url(#gGold)" stroke-width="8"/></g>
+  <path d="M-100 -950 Q-170 -800 -160 -600 Q-150 -540 -110 -520 L110 -520 Q150 -540 160 -600 Q170 -800 100 -950Z" fill="url(#gHair)" stroke="${OUT}" stroke-width="4"/>
+  <path d="M-120 -140 L-68 -140 L-72 -44 L-116 -44Z M120 -140 L68 -140 L72 -44 L116 -44Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-120 -60 H-68 M120 -60 H68" stroke="url(#gGold)" stroke-width="12"/>
+  <ellipse cx="-98" cy="-22" rx="50" ry="22" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/><ellipse cx="98" cy="-22" rx="50" ry="22" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-158 -478 L158 -478 L184 -122 Q120 -92 40 -116 L0 -210 L-40 -116 Q-120 -92 -184 -122Z" fill="url(#gMaroon)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-184 -122 Q-120 -92 -40 -116 L0 -210 L40 -116 Q120 -92 184 -122" fill="none" stroke="url(#gGold)" stroke-width="12"/>
+  <path d="M-32 -468 L32 -468 L24 -160 L-24 -160Z" fill="#ffc83a" stroke="${OUT}" stroke-width="3"/>
+  ${[...Array(8)].map((_,i)=>`<path d="M${-130+i*37} -300 l8 12 l-8 12 l-8 -12z" fill="#f2c14e"/>`).join('')}
+  <g id="${p}_torso">
+   <path d="M-48 -805 L48 -805 L54 -722 L-54 -722Z" fill="#c4844e" stroke="${OUT}" stroke-width="5"/>
+   <path d="M-150 -728 Q-172 -600 -132 -470 L132 -470 Q172 -600 150 -728 Q0 -770 -150 -728Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-100 -650 Q-52 -616 -10 -642 M100 -650 Q52 -616 10 -642" stroke="#8a5028" stroke-width="5" fill="none"/>
+   <path d="M-40 -580 Q-20 -572 0 -580 Q20 -572 40 -580 M-36 -530 Q0 -520 36 -530" stroke="#8a5028" stroke-width="4" fill="none"/>
+   <path d="M-112 -726 Q0 -600 124 -478" stroke="#f2ede0" stroke-width="5" fill="none"/>
+   <path id="${p}_scar" d="M-110 -690 Q0 -640 110 -560" stroke="#ffe08a" stroke-width="6" fill="none" opacity="0"/>
+   <path d="M-165 -490 L165 -490 L160 -460 L-160 -460Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="4"/>${gem(0,-475,11,'#d0182a')}
+  </g>
+  <g id="${p}_kav">
+   <clipPath id="${p}_kclip"><path d="M-156 -735 Q0 -790 156 -735 Q170 -600 140 -500 Q0 -470 -140 -500 Q-170 -600 -156 -735Z"/></clipPath>
+   <circle cx="0" cy="-620" r="300" fill="url(#glowY)" id="${p}_kavglow" opacity=".6"/>
+   <path d="M-156 -735 Q0 -790 156 -735 Q170 -600 140 -500 Q0 -470 -140 -500 Q-170 -600 -156 -735Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="6"/>
+   <g clip-path="url(#${p}_kclip)">${[...Array(7)].map((_,r)=>[...Array(9)].map((_,c)=>`<path d="M${-170+c*42+(r%2)*21} ${-740+r*40} q21 30 42 0" fill="none" stroke="#a86f14" stroke-width="3"/>`).join('')).join('')}
+    <path id="${p}_shine" d="M-300 -800 L-240 -800 L-360 -400 L-420 -400Z" fill="#fff" opacity=".55"/></g>
+   <g transform="translate(0,-640)">${sunEmblem(42)}</g>
+   ${[-1,1].map(s=>`<ellipse cx="${s*165}" cy="-735" rx="58" ry="36" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="5"/>${gem(s*165,-740,8,'#d0182a')}`).join('')}
+  </g>
+  ${arm('armL',-1)}${arm('armR',1,`<g id="${p}_sword" opacity="0" transform="translate(0,170)">${sword()}</g>`)}
+  <g id="${p}_head" transform="translate(0,-860)">
+   <path d="M-84 -30 Q-88 -112 0 -120 Q88 -112 84 -30 Q80 52 42 86 Q0 110 -42 86 Q-80 52 -84 -30Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M30 -100 Q70 -60 70 0 Q66 50 34 82 Q66 30 60 -30 Q56 -76 30 -100Z" fill="#8a5028" opacity=".25"/>
+   <path d="M-92 -40 Q-108 -128 -30 -134 Q-84 -94 -88 10Z M92 -40 Q108 -128 30 -134 Q84 -94 88 10Z" fill="url(#gHair)"/>
+   <ellipse cx="-88" cy="-6" rx="13" ry="26" fill="#c4844e" stroke="${OUT}" stroke-width="4"/><ellipse cx="88" cy="-6" rx="13" ry="26" fill="#c4844e" stroke="${OUT}" stroke-width="4"/>
+   ${kund(-1)}${kund(1)}
+   <g id="${p}_eyes">${[-1,1].map(s=>`<path d="M${s*-64} -26 Q${s*-40} -46 ${s*-14} -27 Q${s*-40} -12 ${s*-64} -26Z" fill="#f8f4ec" stroke="${OUT}" stroke-width="3"/>
+     <circle cx="${s*-38}" cy="-28" r="10" fill="#5a2a10"/><circle cx="${s*-38}" cy="-28" r="4.5" fill="#000"/><circle cx="${s*-35}" cy="-31" r="3" fill="#fff"/>
+     <path d="M${s*-66} -28 Q${s*-40} -50 ${s*-12} -29" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"/>`).join('')}</g>
+   <g id="${p}_closed" opacity="0" stroke="${OUT}" stroke-width="6" fill="none" stroke-linecap="round"><path d="M-64 -26 Q-40 -14 -14 -26"/><path d="M14 -26 Q40 -14 64 -26"/></g>
+   <path d="M-66 -54 Q-40 -66 -12 -56 M66 -54 Q40 -66 12 -56" stroke="#1a0d08" stroke-width="10" fill="none" stroke-linecap="round"/>
+   <path d="M-12 -100 L0 -60 L12 -100" stroke="#d4202a" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="0" cy="-52" r="6" fill="#ffb02e"/>
+   <path d="M-3 -24 Q-12 14 -14 22 Q0 30 14 22" stroke="#8a5028" stroke-width="5" fill="none" stroke-linecap="round"/>
+   <path d="M-34 40 Q-16 32 0 40 Q16 32 34 40 Q20 46 0 44 Q-20 46 -34 40Z" fill="#1a0d08"/>
+   <path id="${p}_mouth" d="M-22 58 Q0 64 22 58" stroke="#6a2a10" stroke-width="6" fill="none" stroke-linecap="round"/>
+   <path id="${p}_smile" d="M-26 54 Q0 74 26 54" stroke="#6a2a10" stroke-width="6" fill="none" stroke-linecap="round" opacity="0"/>
+   <g stroke="${OUT}" stroke-width="4" fill="url(#gGoldV)"><path d="M-92 -92 L92 -92 L86 -136 L-86 -136Z"/><path d="M-70 -136 L70 -136 L50 -214 L-50 -214Z"/><path d="M-26 -214 L26 -214 L0 -262Z"/>
+    <path d="M-92 -104 Q-132 -140 -110 -196 Q-96 -156 -78 -136Z M92 -104 Q132 -140 110 -196 Q96 -156 78 -136Z"/></g>
+   ${pearls([...Array(11)].map((_,i)=>[-80+i*16,-100]),4.5)}<g transform="translate(0,-170) scale(.55)">${sunEmblem(40)}</g>${gem(0,-114,10,'#d0182a')}
+  </g>
+ </g>`;}
+function updKarna(p,o){
+  const c=o.closed||0,b=o.blink||0;
+  A(p+'_eyes','opacity',(c>.5||b>.6)?0:1); A(p+'_closed','opacity',(c>.5||b>.6)?1:0);
+  A(p+'_armL','transform',`translate(-155,-715) rotate(${o.armL!==undefined?o.armL:10})`); A(p+'_armLf','transform',`translate(0,150) rotate(${o.foreL||0})`);
+  A(p+'_armR','transform',`translate(155,-715) rotate(${o.armR!==undefined?o.armR:-10})`); A(p+'_armRf','transform',`translate(0,150) rotate(${o.foreR||0})`);
+  A(p+'_sword','opacity',o.sword||0);
+  A(p+'_head','transform',`translate(0,${-860+(o.breath||0)*.6}) rotate(${o.tilt||0})`);
+  A(p+'_torso','transform',`translate(0,${(o.breath||0)*.4})`);
+  const kv=o.kav!==undefined?o.kav:1; A(p+'_kav','opacity',kv);
+  A(p+'_kav','transform',`translate(${o.kavX||0},${(o.kavY||0)+(o.breath||0)*.4})`);
+  A(p+'_kavglow','opacity',(o.kavGlow!==undefined?o.kavGlow:.6));
+  A(p+'_shine','transform',`translate(${o.shine!==undefined?o.shine*700:-400},0)`);
+  const kd=o.kundOff||0; A(p+'_kL','transform',`translate(${-94-kd*80},${40-kd*30})`); A(p+'_kR','transform',`translate(${94+kd*80},${40-kd*30})`);
+  A(p+'_kL','opacity',o.kund!==undefined?o.kund:1); A(p+'_kR','opacity',o.kund!==undefined?o.kund:1);
+  document.querySelectorAll('.'+p+'_kg').forEach(e=>e.setAttribute('opacity',o.kundGlow!==undefined?o.kundGlow:.7));
+  A(p+'_smile','opacity',o.smile||0); A(p+'_mouth','opacity',1-(o.smile||0));
+  A(p+'_scar','opacity',o.scar||0);
+}
+// ============================================================ KARNA SIDE (faces +x, origin hip)
+function karnaSide(p){
+  const leg=(id,shade)=>`<g id="${p}_${id}"><path d="M-30 0 H30 L26 132 H-24Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-28 118 H28" stroke="url(#gGold)" stroke-width="8"/>
+    <g id="${p}_${id}k" transform="translate(0,128)"><path d="M-20 0 H20 L17 112 H-15Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="4"/><path d="M-18 96 H18" stroke="url(#gGold)" stroke-width="8"/><path d="M-17 108 H16 Q50 110 54 130 H-20Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="4"/></g></g>`;
+  const arm=(id,shade,extra='')=>`<g id="${p}_${id}" transform="translate(4,-200)"><path d="M-20 -6 Q0 -18 20 -6 L17 104 H-17Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-20 40 H20 V56 H-20Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="2"/>
+    <g id="${p}_${id}f" transform="translate(0,100)"><path d="M-15 0 H15 L13 94 H-13Z" fill="${shade}" stroke="${OUT}" stroke-width="4"/><path d="M-15 76 H15 V88 H-15Z" fill="url(#gGold)"/><circle cx="0" cy="104" r="18" fill="${shade}" stroke="${OUT}" stroke-width="4"/>${extra}</g></g>`;
+  return `<g id="${p}"><g id="${p}_body">
+   <ellipse cx="0" cy="262" rx="100" ry="16" fill="#000" opacity=".3"/>
+   <path d="M-40 -330 Q-130 -260 -116 -110 Q-86 -50 -64 -116 Q-74 -230 -20 -300Z" fill="url(#gHair)"/>
+   ${arm('armB','#b87a48',`<g transform="translate(0,118) rotate(180)">${lota()}</g>`)}
+   ${leg('legB','#5e1020')}${leg('legF','url(#gMaroon)')}
+   <path d="M-56 -30 L56 -30 L60 40 L-60 40Z" fill="url(#gMaroon)" stroke="${OUT}" stroke-width="4"/>
+   <path d="M-48 -214 Q0 -234 48 -214 L56 -22 L-56 -22Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+   <g id="${p}_kav"><path d="M-50 -214 Q10 -236 54 -210 L58 -40 L-54 -40Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="5"/>
+    ${[...Array(4)].map((_,r)=>`<path d="M-44 ${-190+r*40} q20 26 40 0 q20 26 40 0" fill="none" stroke="#a86f14" stroke-width="3"/>`).join('')}<g transform="translate(14,-130) scale(.55)">${sunEmblem(40)}</g></g>
+   <path d="M-58 -36 H58 V-14 H-58Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>
+   <path d="M-12 -244 H14 V-208 H-12Z" fill="#c4844e" stroke="${OUT}" stroke-width="4"/>
+   <g id="${p}_head" transform="translate(2,-298)">
+     <path d="M-50 4 Q-54 -58 4 -62 Q58 -60 60 -6 Q62 18 72 30 Q62 36 58 42 Q50 70 4 72 Q-46 68 -50 4Z" fill="url(#gKarna)" stroke="${OUT}" stroke-width="5"/>
+     <path d="M-56 10 Q-64 -60 0 -62 Q-30 -30 -36 30Z" fill="url(#gHair)"/>
+     <ellipse cx="-16" cy="10" rx="11" ry="18" fill="#c4844e" stroke="${OUT}" stroke-width="3"/>
+     <g transform="translate(-14,46) scale(.7)"><circle r="40" fill="url(#glowY)"/><circle r="20" fill="url(#gSunDisc)" stroke="#a86f14" stroke-width="3"/></g>
+     <path d="M30 -10 Q40 -18 54 -12" stroke="#1a0d08" stroke-width="7" fill="none" stroke-linecap="round"/>
+     <g id="${p}_eye"><path d="M30 6 Q42 -2 54 6 Q42 14 30 6Z" fill="#f8f4ec" stroke="${OUT}" stroke-width="2"/><circle cx="46" cy="6" r="5" fill="#5a2a10"/></g>
+     <path d="M44 30 Q56 26 66 32" stroke="#1a0d08" stroke-width="5" fill="none"/><path d="M42 46 Q50 50 58 46" stroke="#6a2a10" stroke-width="4" fill="none" stroke-linecap="round"/>
+     <g stroke="${OUT}" stroke-width="3" fill="url(#gGoldV)"><path d="M-48 -52 L50 -52 L44 -84 L-40 -84Z"/><path d="M-30 -84 L36 -84 L20 -136 L-16 -136Z"/></g>${gem(4,-68,8,'#d0182a')}
+   </g>
+   ${arm('armF','url(#gKarna)',`<g transform="translate(0,118) rotate(180)">${lota()}</g>`)}
+  </g></g>`;}
+function updKarnaSide(p,o){
+  A(p+'_legF','transform',`rotate(${o.legF||6})`); A(p+'_legB','transform',`rotate(${o.legB||-6})`);
+  A(p+'_legFk','transform','translate(0,128)'); A(p+'_legBk','transform','translate(0,128)');
+  A(p+'_armF','transform',`translate(4,-200) rotate(${o.armF!==undefined?o.armF:-10})`); A(p+'_armFf','transform',`translate(0,100) rotate(${o.foreF||0})`);
+  A(p+'_armB','transform',`translate(4,-200) rotate(${o.armB!==undefined?o.armB:-10})`); A(p+'_armBf','transform',`translate(0,100) rotate(${o.foreB||0})`);
+  A(p+'_body','transform',`translate(0,${o.breath||0})`); A(p+'_head','transform',`translate(2,-298) rotate(${o.headTilt||0})`);
+  A(p+'_eye','opacity',(o.blink||0)>.6?0:1);
+}
+// ============================================================ SURYA BUST (origin chest centre)
+function surya(p){return `<g id="${p}">
+  <g id="${p}_disc"><circle r="420" fill="url(#glowY)"/>${[...Array(24)].map((_,i)=>{const a=i/24*2*Math.PI,r1=250,r2=i%2?380:440;return `<path d="M${(Math.cos(a-.07)*r1).toFixed(0)} ${(Math.sin(a-.07)*r1-300).toFixed(0)} L${(Math.cos(a)*r2).toFixed(0)} ${(Math.sin(a)*r2-300).toFixed(0)} L${(Math.cos(a+.07)*r1).toFixed(0)} ${(Math.sin(a+.07)*r1-300).toFixed(0)}Z" fill="#ffe27a" stroke="#c87a14" stroke-width="3"/>`}).join('')}
+   <circle cy="-300" r="260" fill="url(#gSunDisc)" stroke="#c87a14" stroke-width="6"/><circle cy="-300" r="230" fill="none" stroke="#fff6c8" stroke-width="4" stroke-dasharray="10 12"/></g>
+  <path d="M-380 420 Q-390 120 -200 40 Q0 -10 200 40 Q390 120 380 420Z" fill="url(#gSurya)" stroke="${OUT}" stroke-width="7"/>
+  <path d="M-120 60 Q0 200 120 60" stroke="url(#gGold)" stroke-width="18" fill="none"/>${pearls(arcPts(0,60,140,150,0.2,Math.PI-0.2,15),8)}${gem(0,190,18,'#d0182a')}
+  ${[-1,1].map(s=>`<ellipse cx="${s*260}" cy="80" rx="90" ry="50" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="5"/>${gem(s*260,76,10,'#d0182a')}`).join('')}
+  <path d="M-60 -60 H60 V60 Q0 90 -60 60Z" fill="#d07a2a" stroke="${OUT}" stroke-width="6"/>
+  <g id="${p}_head" transform="translate(0,-300)">
+   <path d="M-140 -40 Q-150 -200 0 -210 Q150 -200 140 -40 Q134 90 70 150 Q0 190 -70 150 Q-134 90 -140 -40Z" fill="url(#gSurya)" stroke="${OUT}" stroke-width="7"/>
+   <ellipse cx="-146" cy="-6" rx="20" ry="40" fill="#d07a2a" stroke="${OUT}" stroke-width="5"/><ellipse cx="146" cy="-6" rx="20" ry="40" fill="#d07a2a" stroke="${OUT}" stroke-width="5"/>
+   <g transform="translate(-150,60) scale(.9)">${sunEmblem(22)}</g><g transform="translate(150,60) scale(.9)">${sunEmblem(22)}</g>
+   ${[-1,1].map(s=>`<path d="M${s*-104} -40 Q${s*-66} -72 ${s*-24} -42 Q${s*-66} -18 ${s*-104} -40Z" fill="#fffaf0" stroke="${OUT}" stroke-width="4"/><circle cx="${s*-64}" cy="-44" r="16" fill="#8a3a0a"/><circle cx="${s*-64}" cy="-44" r="7" fill="#000"/><circle cx="${s*-59}" cy="-49" r="5" fill="#fff"/>
+     <path d="M${s*-110} -82 Q${s*-66} -104 ${s*-20} -86" stroke="#5a2008" stroke-width="12" fill="none" stroke-linecap="round"/>`).join('')}
+   <path d="M-12 -150 L0 -96 L12 -150" stroke="#d4202a" stroke-width="9" fill="none" stroke-linecap="round"/>
+   <path d="M-6 -36 Q-20 30 -22 40 Q0 52 22 40" stroke="#a8500e" stroke-width="7" fill="none" stroke-linecap="round"/>
+   <path d="M-44 90 Q0 112 44 90" stroke="#7a2a08" stroke-width="9" fill="none" stroke-linecap="round"/>
+   <g stroke="${OUT}" stroke-width="5" fill="url(#gGoldV)"><path d="M-150 -150 L150 -150 L140 -220 L-140 -220Z"/><path d="M-120 -220 L120 -220 L90 -340 L-90 -340Z"/><path d="M-60 -340 L60 -340 L30 -440 L-30 -440Z"/><path d="M-14 -440 L14 -440 L0 -500Z"/></g>
+   ${pearls([...Array(15)].map((_,i)=>[-134+i*19.1,-160]),6)}${gem(0,-186,18,'#d0182a')}${gem(0,-280,22,'#d0182a')}${gem(-60,-276,10,'#2a8a3a')}${gem(60,-276,10,'#2a8a3a')}${gem(0,-390,14,'#d0182a')}
+  </g></g>`;}
+// ============================================================ BRAHMIN (front, origin feet)
+function brahmin(p){
+  const arm=(id,side,extra='')=>`<g id="${p}_${id}" transform="translate(${side*130},-680)"><path d="M-30 0 Q-36 70 -24 146 L24 146 Q36 70 30 0 Q0 -20 -30 0Z" fill="url(#gWhiteCloth)" stroke="${OUT}" stroke-width="5"/>
+     <g id="${p}_${id}f" transform="translate(0,142)"><path d="M-22 0 L-18 120 L18 120 L22 0Z" fill="url(#gBrah)" stroke="${OUT}" stroke-width="5"/><circle cx="0" cy="136" r="24" fill="url(#gBrah)" stroke="${OUT}" stroke-width="5"/>${extra}</g></g>`;
+  return `<g id="${p}"><g id="${p}_all">
+  <ellipse cx="0" cy="0" rx="200" ry="28" fill="#000" opacity=".4"/>
+  <path d="M-110 -130 L-64 -130 L-68 -44 L-106 -44Z M110 -130 L64 -130 L68 -44 L106 -44Z" fill="url(#gBrah)" stroke="${OUT}" stroke-width="5"/>
+  <ellipse cx="-88" cy="-20" rx="44" ry="20" fill="url(#gBrah)" stroke="${OUT}" stroke-width="5"/><ellipse cx="88" cy="-20" rx="44" ry="20" fill="url(#gBrah)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-140 -450 L140 -450 L164 -110 Q100 -84 30 -104 L0 -190 L-30 -104 Q-100 -84 -164 -110Z" fill="url(#gSaffron)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-164 -110 Q-100 -84 -30 -104 L0 -190 L30 -104 Q100 -84 164 -110" fill="none" stroke="#8a3a08" stroke-width="8"/>
+  <path d="M-130 -700 Q-150 -580 -120 -440 L120 -440 Q150 -580 130 -700 Q0 -740 -130 -700Z" fill="url(#gBrah)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-140 -704 Q-60 -600 40 -440 L130 -440 Q40 -620 -60 -716Z" fill="url(#gWhiteCloth)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-100 -700 Q0 -560 110 -450" stroke="#f2ede0" stroke-width="5" fill="none"/>
+  ${pearls(arcPts(0,-700,70,80,0.2,Math.PI-0.2,11).map(([x,y])=>[x,y]),8).replace(/#fff8e6/g,'#6a3a1a')}
+  <path d="M-44 -770 L44 -770 L50 -696 L-50 -696Z" fill="#9a6a40" stroke="${OUT}" stroke-width="5"/>
+  ${arm('armL',-1)}${arm('armR',1,`<g transform="translate(0,170)"><path d="M-40 -10 Q-56 40 0 54 Q56 40 40 -10Z" fill="url(#gWood)" stroke="${OUT}" stroke-width="4"/><path d="M40 0 Q70 -10 74 -40" stroke="#4a2a10" stroke-width="8" fill="none"/></g>`)}
+  <g id="${p}_head" transform="translate(0,-820)">
+   <path d="M-78 -30 Q-82 -110 0 -116 Q82 -110 78 -30 Q74 50 40 82 Q0 104 -40 82 Q-74 50 -78 -30Z" fill="url(#gBrah)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-6 -114 Q-30 -150 -10 -176 Q0 -150 14 -170 Q20 -140 6 -114Z" fill="#f4f4f4" stroke="#9a9a9a" stroke-width="2"/>
+   <path d="M-80 -20 Q-90 -60 -76 -70 M80 -20 Q90 -60 76 -70" stroke="#f4f4f4" stroke-width="12" fill="none" stroke-linecap="round"/>
+   <ellipse cx="-80" cy="-4" rx="12" ry="24" fill="#9a6a40" stroke="${OUT}" stroke-width="4"/><ellipse cx="80" cy="-4" rx="12" ry="24" fill="#9a6a40" stroke="${OUT}" stroke-width="4"/>
+   <g stroke="#fff" stroke-width="7" stroke-linecap="round"><path d="M-50 -90 Q0 -82 50 -90"/><path d="M-52 -74 Q0 -66 52 -74"/><path d="M-50 -58 Q0 -50 50 -58"/></g><circle cx="0" cy="-74" r="6" fill="#d4202a"/>
+   <path d="M-60 -40 Q-36 -52 -12 -42 M60 -40 Q36 -52 12 -42" stroke="#f4f4f4" stroke-width="9" fill="none" stroke-linecap="round"/>
+   <g id="${p}_eyes"><path d="M-56 -22 Q-36 -32 -16 -22" stroke="${OUT}" stroke-width="5" fill="none"/><circle cx="-36" cy="-20" r="7" fill="#3a2010"/><path d="M56 -22 Q36 -32 16 -22" stroke="${OUT}" stroke-width="5" fill="none"/><circle cx="36" cy="-20" r="7" fill="#3a2010"/></g>
+   <path d="M-2 -18 Q-10 12 -12 18 Q0 24 12 18" stroke="#7e5030" stroke-width="5" fill="none"/>
+   <path d="M-70 10 Q-80 120 -30 200 Q0 230 30 200 Q80 120 70 10 Q40 40 0 36 Q-40 40 -70 10Z" fill="#f6f6f2" stroke="#a8a8a0" stroke-width="3"/>
+   <path d="M-36 34 Q0 20 36 34" stroke="#f6f6f2" stroke-width="16" fill="none" stroke-linecap="round"/>
+   ${[-40,-20,0,20,40].map(x=>`<path d="M${x} 60 Q${x*1.1} 130 ${x*.6} 190" stroke="#c8c8c0" stroke-width="2" fill="none"/>`).join('')}
+  </g>
+  <g transform="translate(-200,0)"><path d="M0 0 V-980" stroke="url(#gWood)" stroke-width="18" stroke-linecap="round"/><path d="M0 -980 q-20 -30 0 -50" stroke="#4a2a10" stroke-width="10" fill="none"/></g>
+ </g></g>`;}
+function updBrahmin(p,o){
+  A(p+'_armL','transform',`translate(-130,-680) rotate(${o.armL!==undefined?o.armL:6})`); A(p+'_armLf','transform',`translate(0,142) rotate(${o.foreL||0})`);
+  A(p+'_armR','transform',`translate(130,-680) rotate(${o.armR!==undefined?o.armR:-6})`); A(p+'_armRf','transform',`translate(0,142) rotate(${o.foreR||0})`);
+  A(p+'_head','transform',`translate(0,${-820+(o.breath||0)}) rotate(${o.tilt||0})`);
+}
+// ============================================================ INDRA (front bust-ish, origin feet)
+function indra(p){return `<g id="${p}">
+  <circle cy="-860" r="300" fill="url(#glowW)" opacity=".7"/>
+  <path d="M-150 -470 L150 -470 L176 -120 Q100 -90 0 -110 Q-100 -90 -176 -120Z" fill="url(#gWhiteCloth)" stroke="${OUT}" stroke-width="5"/>
+  <path d="M-176 -120 Q-100 -90 0 -110 Q100 -90 176 -120" fill="none" stroke="url(#gGold)" stroke-width="12"/>
+  <path d="M-140 -728 Q-162 -600 -126 -470 L126 -470 Q162 -600 140 -728 Q0 -770 -140 -728Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="6"/>
+  <path d="M-130 -720 Q0 -640 130 -720 L120 -660 Q0 -580 -120 -660Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="5"/>${gem(0,-640,14,'#2c55e0')}${pearls(arcPts(0,-720,110,110,0.25,Math.PI-0.25,13),6)}
+  <path d="M-44 -800 L44 -800 L50 -722 L-50 -722Z" fill="#d8a880" stroke="${OUT}" stroke-width="5"/>
+  ${[-1,1].map(s=>`<ellipse cx="${s*160}" cy="-725" rx="50" ry="32" fill="url(#gGoldV)" stroke="${OUT}" stroke-width="5"/>`).join('')}
+  <g id="${p}_arm" transform="translate(150,-715)"><path d="M-34 0 Q-40 70 -28 150 L28 150 Q40 70 34 0 Q0 -22 -34 0Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/>
+   <g id="${p}_armf" transform="translate(0,146)"><path d="M-26 0 L-20 120 L20 120 L26 0Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/><circle cx="0" cy="136" r="26" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/>
+    <g transform="translate(0,140)"><path d="M0 -90 V90" stroke="url(#gGold)" stroke-width="16"/>${[-1,1].map(s=>`<path d="M0 ${s*90} q-30 ${s*20} -24 ${s*60} M0 ${s*90} q30 ${s*20} 24 ${s*60} M0 ${s*90} v${s*66}" stroke="url(#gGold)" stroke-width="10" fill="none"/>`).join('')}<circle r="22" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/></g></g></g>
+  <g transform="translate(-150,-715) rotate(14)"><path d="M-34 0 Q-40 70 -28 150 L28 150 Q40 70 34 0 Q0 -22 -34 0Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/><g transform="translate(0,146)"><path d="M-26 0 L-20 120 L20 120 L26 0Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/><circle cx="0" cy="136" r="26" fill="url(#gIndra)" stroke="${OUT}" stroke-width="5"/></g></g>
+  <g id="${p}_head" transform="translate(0,-860)">
+   <path d="M-84 -30 Q-88 -112 0 -120 Q88 -112 84 -30 Q80 52 42 86 Q0 110 -42 86 Q-80 52 -84 -30Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="6"/>
+   <path d="M-90 -40 Q-104 -126 -36 -132 Q-82 -94 -86 4Z M90 -40 Q104 -126 36 -132 Q82 -94 86 4Z" fill="#3a2a1a"/>
+   <ellipse cx="-88" cy="-6" rx="13" ry="26" fill="#d8a880" stroke="${OUT}" stroke-width="4"/><ellipse cx="88" cy="-6" rx="13" ry="26" fill="#d8a880" stroke="${OUT}" stroke-width="4"/>
+   <g fill="url(#gGold)" stroke="${OUT}" stroke-width="3"><circle cx="-92" cy="34" r="15"/><circle cx="92" cy="34" r="15"/></g>
+   <g id="${p}_eyes">${[-1,1].map(s=>`<path d="M${s*-64} -26 Q${s*-40} -46 ${s*-14} -27 Q${s*-40} -12 ${s*-64} -26Z" fill="#fbf6ee" stroke="${OUT}" stroke-width="3"/><circle cx="${s*-38}" cy="-24" r="10" fill="#3a5a8a"/><circle cx="${s*-38}" cy="-24" r="4.5" fill="#000"/>`).join('')}</g>
+   <g id="${p}_lids" opacity="0">${[-1,1].map(s=>`<path d="M${s*-66} -28 Q${s*-40} -48 ${s*-12} -29 L${s*-14} -24 Q${s*-40} -30 ${s*-64} -24Z" fill="url(#gIndra)" stroke="${OUT}" stroke-width="4"/>`).join('')}</g>
+   <path d="M-66 -52 Q-40 -62 -12 -54 M66 -52 Q40 -62 12 -54" stroke="#3a2a1a" stroke-width="9" fill="none" stroke-linecap="round"/>
+   <path d="M0 -98 V-60" stroke="#d4202a" stroke-width="8" stroke-linecap="round"/>
+   <path d="M-3 -24 Q-12 14 -14 22 Q0 30 14 22" stroke="#b98a62" stroke-width="5" fill="none" stroke-linecap="round"/>
+   <path d="M-22 56 Q0 60 22 56" stroke="#7a3a1a" stroke-width="6" fill="none" stroke-linecap="round"/>
+   <g stroke="${OUT}" stroke-width="4" fill="url(#gGoldV)"><path d="M-92 -92 L92 -92 L86 -136 L-86 -136Z"/><path d="M-80 -136 L80 -136 L64 -230 L-64 -230Z"/><path d="M-52 -230 L52 -230 L34 -330 L-34 -330Z"/><path d="M-20 -330 L20 -330 L0 -400Z"/></g>
+   ${pearls([...Array(11)].map((_,i)=>[-80+i*16,-100]),5)}${pearls([...Array(9)].map((_,i)=>[-64+i*16,-224]),4.5)}${gem(0,-116,12,'#2c55e0')}${gem(0,-180,16,'#2c55e0')}${gem(0,-280,12,'#ffffff')}${gem(0,-404,9,'#2c55e0')}
+  </g></g>`;}
+function updIndra(p,o){A(p+'_head','transform',`translate(0,${-860+(o.breath||0)}) rotate(${o.tilt||0})`); A(p+'_lids','opacity',o.lower||0);
+  A(p+'_arm','transform',`translate(150,-715) rotate(${o.arm!==undefined?o.arm:-10})`); A(p+'_armf','transform',`translate(0,146) rotate(${o.fore||0})`);}
+function shakti(p){return `<g id="${p}"><circle r="200" fill="url(#glowB)"/><path d="M0 330 V-260" stroke="url(#gGold)" stroke-width="16" stroke-linecap="round"/>
+  <path d="M0 -440 Q46 -360 30 -270 L0 -240 L-30 -270 Q-46 -360 0 -440Z" fill="#e8f2ff" stroke="#6f95ff" stroke-width="5"/><path d="M0 -420 V-260" stroke="#9fb4ff" stroke-width="4"/>
+  <path d="M-40 -250 H40 V-226 H-40Z" fill="url(#gGold)" stroke="${OUT}" stroke-width="3"/>${gem(0,-238,9,'#2c55e0')}
+  <path id="${p}_bolt" d="M-120 -380 L-60 -300 L-100 -280 L-20 -180 M120 -360 L70 -290 L110 -270 L30 -170" stroke="#cfe0ff" stroke-width="6" fill="none" opacity=".9"/></g>`;}
+function arrow(){return `<g><path d="M-200 0 H50" stroke="#1a0d06" stroke-width="14"/><path d="M-200 0 H50" stroke="#f0d8a0" stroke-width="8"/><path d="M44 -20 L100 0 L44 20Z" fill="#e8eef8" stroke="${OUT}" stroke-width="4"/><path d="M-200 0 l-34 -20 h26 l26 20 l-26 20 h-26z" fill="#e8402e" stroke="${OUT}" stroke-width="3"/></g>`;}
+function warBG(){return `<rect width="1080" height="1920" fill="url(#gWar)"/><circle cx="540" cy="760" r="160" fill="#ffe2a0" opacity=".55"/>
+  ${[...Array(9)].map((_,i)=>{const x=40+i*125,h=180+((i*37)%90);return `<g transform="translate(${x},1300)"><path d="M0 0 V${-h}" stroke="#3a1a0a" stroke-width="6"/><path d="M0 ${-h} l60 18 l-60 18z" fill="${i%2?'#a81b22':'#e9a020'}" opacity=".85"/><path d="M-50 0 h100 l-20 -60 h-60z" fill="#3a1a0a" opacity=".7"/></g>`}).join('')}
+  <rect x="0" y="1300" width="1080" height="620" fill="#6a3a1a"/><rect x="0" y="1300" width="1080" height="10" fill="#8a5028"/>`;}
+function tentBG(){return `<rect width="1080" height="1920" fill="url(#gNightSky)"/>${stars(120,8,900)}<path d="M-100 1800 L540 300 L1180 1800Z" fill="#3a2a4a" stroke="#1a1020" stroke-width="8"/>
+  <path d="M540 300 L360 1800 M540 300 L720 1800" stroke="#2a1a3a" stroke-width="10"/><path d="M380 1800 Q540 900 700 1800Z" fill="#1a1030"/>
+  <rect x="0" y="1700" width="1080" height="220" fill="#1a1020"/>`;}
+function riverBG(p){return `<rect width="1080" height="1920" fill="url(#gDawn)"/>
+  <g id="${p}_sun" transform="translate(800,1060)"><circle r="380" fill="url(#glowY)"/><circle r="170" fill="url(#gSunDisc)"/></g>
+  ${[...Array(6)].map((_,i)=>`<path d="M${i*200-40} 1120 q50 -70 100 -10 q40 -90 100 0Z" fill="#5a2a4a" opacity=".7"/>`).join('')}
+  <rect x="0" y="1120" width="1080" height="800" fill="url(#gRiver)"/>
+  <g id="${p}_waves">${[...Array(10)].map((_,i)=>`<path d="M-200 ${1160+i*70} q90 -14 180 0 t180 0 t180 0 t180 0 t180 0 t180 0 t180 0" stroke="${i<3?'#ffd8a0':'#8a9ad8'}" stroke-width="${5-i*.3}" fill="none" opacity=".6"/>`).join('')}</g>
+  <path d="M780 1130 L820 1130 L860 1700 L740 1700Z" fill="#ffe2a0" opacity=".25"/>`;}
+function sunsetBG(p){return `<rect width="1080" height="1920" fill="url(#gDusk)"/><g transform="translate(540,1180)">${rays(p+'_rays','#fff2c8',24,.16)}<circle r="420" fill="url(#glowY)"/><circle r="220" fill="url(#gSunDisc)"/></g>
+  <path d="M0 1500 Q270 1440 540 1480 Q810 1440 1080 1500 V1920 H0Z" fill="#3a1a2a"/>`;}
+
+// ============================================================ SCENES
+const SCENES=[]; function scene(id,a,b,svg,upd,fi=.3,fo=.3){SCENES.push({id,a,b,svg,upd,fi,fo});}
+
+// KS1 hero reveal
+scene('ks1',0,T('k04')-.2,`<rect width="1080" height="1920" fill="url(#gDawn)"/><g transform="translate(540,780)">${rays('ks1_rays','#fff2c8',24,.2)}<circle r="300" fill="url(#gSunDisc)" opacity=".9"/></g>
+ <g id="ks1_cam"><g transform="translate(540,1760)">${karnaFront('ks1_k')}</g></g>`,(t,lt)=>{
+  const z=eio(win(t,0,T('k04')-.3));
+  A('ks1_cam','transform',`translate(540,${lerp(880,1050,z)}) scale(${lerp(2.2,1.0,z)}) translate(-540,${-lerp(900,1100,z)})`);
+  const sh=win(t,wi('k03','कवच')-.1,wi('k03','कवच')+.7), kg=win(t,wi('k03','कुंडल')-.1,wi('k03','कुंडल')+.3);
+  updKarna('ks1_k',{blink:blinkAt(t,3.1,.5),breath:Math.sin(t*1.8)*4,shine:sh,kavGlow:.5+.5*sh,kundGlow:.6+.4*kg+.2*Math.sin(t*4)});
+  A('ks1_rays','transform',`rotate(${t*6})`);
+},.01,.25);
+
+// KS2 invincible: arrows bounce
+scene('ks2',T('k04')-.2,T('k06')-.2,`${warBG()}<g id="ks2_cam"><g transform="translate(560,1760) scale(.95)">${karnaFront('ks2_k')}</g>
+ ${[0,1,2,3,4].map(i=>`<g id="ks2_a${i}">${arrow()}</g><g id="ks2_sp${i}" opacity="0">${[...Array(8)].map((_,k)=>{const a=k/8*2*Math.PI;return `<path d="M${Math.cos(a)*14} ${Math.sin(a)*14} L${Math.cos(a)*50} ${Math.sin(a)*50}" stroke="#fff2a0" stroke-width="6" stroke-linecap="round"/>`}).join('')}<circle r="30" fill="url(#glowW)"/></g>`).join('')}</g>`,(t,lt)=>{
+  const a0=T('k04')+.1; const dim=win(t,wi('k05','दान')-.1,wi('k05','दान')+.6);
+  [0,1,2,3,4].forEach(i=>{const st=a0+i*.55, p=win(t,st,st+.35), y=[1080,1180,1000,1250,1120][i], tx=[520,560,540,580,500][i];
+    let x,ang,yy; if(p<1){x=lerp(-200,tx-70,p);yy=y;ang=0;} else {const q=win(t,st+.35,st+1.2);x=tx-70-q*260;yy=y+q*q*500;ang=-120*q-20;}
+    A('ks2_a'+i,'transform',`translate(${x},${yy}) rotate(${ang})`); A('ks2_a'+i,'opacity',t<st?0:1-win(t,st+.9,st+1.2));
+    const sp=win(t,st+.33,st+.6); A('ks2_sp'+i,'opacity',sp>0&&sp<1?1-sp:0); A('ks2_sp'+i,'transform',`translate(${tx},${y}) scale(${.5+sp})`);});
+  updKarna('ks2_k',{blink:blinkAt(t,2.9),breath:Math.sin(t*1.8)*4,kavGlow:lerp(.9,.2,dim)+.1*Math.sin(t*6),armR:-30,foreR:-30,kundGlow:lerp(.9,.3,dim),tilt:dim*-4});
+  A('ks2_cam','transform',`translate(540,1100) scale(${1.05+lt*.02}) translate(-540,-1100)`);
+},.25,.2);
+
+// KS3 night tent, dream
+scene('ks3',T('k06')-.2,T('k08')-.2,`${tentBG()}<g transform="translate(260,1580) scale(.9)"><circle r="160" fill="url(#glowY)" id="ks3_lamp"/><path d="M-50 0 Q0 30 50 0 Q30 10 -50 0Z" fill="#b5562a"/><path d="M40 -4 C30 -20 36 -50 40 -70 C44 -50 50 -20 40 -4Z" fill="#ffd27a" id="ks3_fl"/></g>
+ <g id="ks3_cam"><g transform="translate(560,1820) scale(.95)">${karnaFront('ks3_k')}</g>
+ <g id="ks3_dream" opacity="0" transform="translate(540,560)"><circle r="300" fill="#fff2c8" opacity=".25"/><circle r="300" fill="none" stroke="#fff2c8" stroke-width="6" stroke-dasharray="20 14" id="ks3_ring"/>
+  <g transform="translate(0,140) scale(.42)">${surya('ks3_s')}</g></g>
+  ${[0,1,2].map(i=>`<circle id="ks3_b${i}" r="${18+i*10}" fill="#fff2c8" opacity="0"/>`).join('')}</g>`,(t,lt)=>{
+  const d=win(t,wi('k07','सपने')-.5,wi('k07','सपने')+.3);
+  updKarna('ks3_k',{closed:1,breath:Math.sin(t*1.2)*6,kavGlow:.35,kundGlow:.4,armL:-22,foreL:-115,armR:22,foreR:115,tilt:4});
+  A('ks3_dream','opacity',d); A('ks3_dream','transform',`translate(540,560) scale(${.6+.4*eo(d)})`); A('ks3_ring','transform',`rotate(${t*20})`);
+  [0,1,2].forEach(i=>{A('ks3_b'+i,'opacity',.6*win(t,wi('k07','सपने')-.6+i*.12,wi('k07','सपने')-.4+i*.12));A('ks3_b'+i,'transform',`translate(${560+i*20},${900-i*120})`);});
+  A('ks3_fl','transform',`scale(1,${1+noise(t)*.1})`);
+  A('ks3_cam','transform',`translate(540,1100) scale(${1.1+lt*.02}) translate(-540,-1100)`);
+},.25,.2);
+
+// KS4 Surya warns
+scene('ks4',T('k08')-.2,T('k09')-.25,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,900)">${rays('ks4_rays','#fff2c8',24,.25)}</g>
+ <g id="ks4_cam"><g transform="translate(540,1300)">${surya('ks4_s')}</g>
+ <g id="ks4_ghost" opacity="0" transform="translate(860,1640) scale(.32)">${brahmin('ks4_b')}</g></g>`,(t,lt)=>{
+  A('ks4_s_disc','transform',`rotate(${t*8},0,-300)`); A('ks4_rays','transform',`rotate(${lt*6})`);
+  A('ks4_ghost','opacity',.85*win(t,wi('k08','ब्राह्मण')-.2,wi('k08','ब्राह्मण')+.3)*(1-win(t,wi('k08','मना')-.3,wi('k08','मना'))));
+  A('ks4_cam','transform',`translate(540,1000) scale(${1+lt*.03}) translate(-540,-1000)`);
+},.2,.25);
+
+// KS5 Karna's resolve
+scene('ks5',T('k09')-.25,T('k10')-.3,`<rect width="1080" height="1920" fill="url(#gDawn)"/><g transform="translate(540,760)">${rays('ks5_rays','#fff2c8',24,.18)}</g>
+ <g id="ks5_cam"><g transform="translate(540,1760)">${karnaFront('ks5_k')}</g></g>`,(t,lt)=>{
+  const h=eback(win(t,T('k09')+.2,T('k09')+.8));
+  updKarna('ks5_k',{blink:blinkAt(t,3),breath:Math.sin(t*1.8)*4,armL:lerp(10,-22,h),foreL:lerp(0,-112,h),kavGlow:.6,smile:win(t,wi('k09','खाली')-.3,wi('k09','खाली')+.2)});
+  A('ks5_rays','transform',`rotate(${lt*6})`);
+  A('ks5_cam','transform',`translate(540,950) scale(${1.45+lt*.03}) translate(-540,-950)`);
+},.25,.25);
+
+// KS6 + KS7 river arghya, brahmin arrives, asks, smile + Indra reveal shadow
+scene('ks6',T('k10')-.3,T('k13')-.25,`${riverBG('ks6')}<g id="ks6_cam">
+ <path id="ks6_pour" d="M0 0" stroke="#bfe7ff" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="24 12" opacity="0"/>
+ <g id="ks6_kw" transform="translate(360,1420) scale(1.15)">${karnaSide('ks6_k')}</g>
+ <g id="ks6_bw" transform="translate(1300,1700) scale(.7)"><g id="ks6_ind" opacity="0" transform="translate(0,-60)"><circle cy="-900" r="330" fill="url(#glowW)"/><g transform="translate(0,-860)"><g stroke="${OUT}" stroke-width="4" fill="#ffffff" opacity=".9"><path d="M-80 -136 L80 -136 L64 -230 L-64 -230Z"/><path d="M-52 -230 L52 -230 L34 -330 L-34 -330Z"/><path d="M-20 -330 L20 -330 L0 -400Z"/></g></g></g>${brahmin('ks6_b')}</g></g>`,(t,lt)=>{
+  const cam=eio(win(t,wi('k10','ब्राह्मण')-.6,wi('k10','ब्राह्मण')+.4));
+  const arr=eio(win(t,wi('k10','ब्राह्मण')-.4,E('k10')+.2));
+  const raise=eio(win(t,T('k10')-.2,T('k10')+.6));
+  const sm=win(t,T('k12'),T('k12')+.4);
+  updKarnaSide('ks6_k',{armF:lerp(-10,-150,raise),foreF:lerp(0,-10,raise),armB:lerp(-10,-145,raise),foreB:lerp(0,-14,raise),blink:blinkAt(t,2.8),breath:Math.sin(t*1.6)*2,headTilt:lerp(-6,8,cam)});
+  // pour stream from lotas (approx hand pos) to river
+  const pr=raise*(1-win(t,wi('k10','ब्राह्मण')-.3,wi('k10','ब्राह्मण')));
+  A('ks6_pour','d',`M ${360+130} ${1420-560} Q ${600} ${1000} ${640} ${1220}`); A('ks6_pour','opacity',pr); A('ks6_pour','stroke-dashoffset',-t*120);
+  A('ks6_bw','transform',`translate(${lerp(1300,860,arr)},${1700+Math.abs(Math.sin(t*5))*8*(arr<1&&arr>0?1:0)}) scale(.7)`);
+  const ask=eback(win(t,T('k11'),T('k11')+.5));
+  updBrahmin('ks6_b',{armL:lerp(6,62,ask),foreL:lerp(0,-30,ask),breath:Math.sin(t*1.7)*2,tilt:-4});
+  A('ks6_ind','opacity',.75*win(t,wi('k12','इंद्र')-.3,wi('k12','इंद्र')+.2));
+  A('ks6_sun','transform',`translate(800,${1060-lt*20})`);
+  A('ks6_waves','transform',`translate(${-((t*40)%180)},0)`);
+  A('ks6_cam','transform',`translate(540,1300) scale(${lerp(1.0,.92,cam)+sm*.1}) translate(${-540+sm*80},-1300)`);
+},.3,.2);
+
+// KS8 cut kavach and give
+scene('ks8',T('k13')-.25,T('k14')-.25,`<rect width="1080" height="1920" fill="url(#gDawn)"/><g transform="translate(540,800)">${rays('ks8_rays','#fff2c8',24,.2)}</g>
+ <g id="ks8_cam"><g transform="translate(400,1760) scale(.85)">${karnaFront('ks8_k')}</g>
+ <g transform="translate(880,1760) scale(.72)">${brahmin('ks8_b')}</g>
+ <path id="ks8_slash" d="M200 900 Q420 980 620 1180" stroke="#fffbe0" stroke-width="22" fill="none" stroke-linecap="round" opacity="0"/></g>`,(t,lt)=>{
+  const sw=eback(win(t,wi('k13','तलवार')-.3,wi('k13','तलवार')+.2)); const cut=wi('k13','अलग'); const sl=win(t,cut-.15,cut+.1);
+  const kOff=wi('k13','कुंडल'); const give=wi('k13','हाथों')-.2;
+  const kmove=eio(win(t,give-.6,give+.4)); const det=eo(win(t,cut,cut+.5));
+  updKarna('ks8_k',{blink:blinkAt(t,3.2),breath:Math.sin(t*1.8)*4,sword:t<cut+.8?1:1-win(t,cut+.8,cut+1.1),armR:lerp(-10,-160,sw)+lerp(0,120,sl),foreR:lerp(0,-20,sw),
+    kavY:-det*60, kavX:kmove*560, kavGlow:.6+det*.4, kund:1, kundOff:win(t,kOff-.1,kOff+.5)+kmove*0, scar:det*.8*(1-win(t,give+.5,give+1.5)), tilt:-3*det, armL:10});
+  // kundals fly with kavach after kOff
+  A('ks8_k_kL','transform',`translate(${-94-win(t,kOff-.1,kOff+.5)*80+kmove*1100},${40-win(t,kOff-.1,kOff+.5)*30+kmove*200})`);
+  A('ks8_k_kR','transform',`translate(${94+win(t,kOff-.1,kOff+.5)*80+kmove*800},${40-win(t,kOff-.1,kOff+.5)*30+kmove*200})`);
+  A('ks8_slash','opacity',sl>0&&sl<1?1:(t>cut+.1&&t<cut+.35?1-win(t,cut+.1,cut+.35):0));
+  updBrahmin('ks8_b',{armL:62,foreL:-40,breath:Math.sin(t*1.7)*2,tilt:-4});
+  A('ks8_rays','transform',`rotate(${lt*6})`);
+  A('ks8_cam','transform',`translate(540,1200) scale(${1.05+lt*.02}) translate(-540,-1200)`);
+},.25,.25);
+
+// KS9 Indra revealed, ashamed, gives Vasavi Shakti
+scene('ks9',T('k14')-.25,T('k16')-.3,`<rect width="1080" height="1920" fill="url(#gCosmos)"/>${stars(120,6)}<g transform="translate(540,700)">${rays('ks9_rays','#e8f0ff',24,.18)}</g>
+ <g id="ks9_cam"><g transform="translate(540,1800) scale(1.05)">${indra('ks9_i')}</g>
+ <g id="ks9_sh" opacity="0">${shakti('ks9_sk')}</g></g>`,(t,lt)=>{
+  const low=win(t,wi('k14','झुक')-.2,wi('k14','झुक')+.3); const give=eio(win(t,wi('k15','वासवी')-.6,wi('k15','वासवी')+.2));
+  updIndra('ks9_i',{breath:Math.sin(t*1.6)*3,tilt:low*6,lower:low,arm:lerp(-10,-60,give),fore:lerp(0,-50,give)});
+  A('ks9_sh','opacity',win(t,wi('k15','वासवी')-.5,wi('k15','वासवी')));
+  A('ks9_sh','transform',`translate(${lerp(680,790,give)},${lerp(1300,1100,give)}) rotate(${lerp(30,10,give)}) scale(.75)`);
+  A('ks9_sk_bolt','opacity',.5+.5*Math.sin(t*20));
+  A('ks9_rays','transform',`rotate(${lt*5})`);
+  A('ks9_cam','transform',`translate(540,1000) scale(${1.25+lt*.02}) translate(-540,-1000)`);
+},.25,.25);
+
+// KS10 sunset: Karna without kavach -> Daanveer
+scene('ks10',T('k16')-.3,T('k18')-.25,`${sunsetBG('ks10')}<g id="ks10_cam"><g transform="translate(540,1800)">${karnaFront('ks10_k')}</g></g>`,(t,lt)=>{
+  const dv=win(t,wi('k17','दानवीर')-.2,wi('k17','दानवीर')+.4);
+  updKarna('ks10_k',{kav:0,kund:0,blink:blinkAt(t,3.3),breath:Math.sin(t*1.8)*4,smile:dv,armR:lerp(-10,-150,eback(dv)),foreR:lerp(0,-20,dv),scar:.25});
+  A('ks10_rays','transform',`rotate(${lt*5})`);
+  A('ks10_cam','transform',`translate(540,1100) scale(${1.15+lt*.02}) translate(-540,-1100)`);
+},.3,.3);
+
+// KS11 CTA
+scene('ks11',T('k18')-.25,END,`<rect width="1080" height="1920" fill="url(#gSun)"/><g transform="translate(540,1000)">${rays('ks11_rays','#fff2c8',24,.26)}<circle r="260" fill="url(#gSunDisc)" opacity=".8"/></g>
+ <g id="ks11_cam"><g transform="translate(540,1820) scale(.95)">${karnaFront('ks11_k')}</g></g>`,(t,lt)=>{
+  updKarna('ks11_k',{blink:blinkAt(t,3),breath:Math.sin(t*1.8)*4,armR:-150,foreR:-20,smile:1,kavGlow:.8});
+  A('ks11_rays','transform',`rotate(${lt*5})`);
+},.3,.01);
+
+// ============================================================ OVERLAYS
+const OV=[]; function ov(kind,html,a,b,x,y,size){const d=document.createElement('div');d.className=kind;d.innerHTML=html;if(size)d.style.fontSize=size+'px';$('overlay').appendChild(d);OV.push({d,a,b,kind,x,y});}
+function cue(){
+ ov('gold','सूर्यपुत्र',T('k02')-.05,E('k02')+.3,540,300,130);
+ ov('tag','कवच',wi('k03','कवच')-.05,wi('k03','कुंडल')-.15,330,560,86);
+ ov('tag','कुंडल',wi('k03','कुंडल')-.05,E('k03')+.3,750,560,86);
+ ov('gold','अजेय',wi('k04','हरा')-.1,E('k04')+.25,540,330,170);
+ ov('tag','क्यों?',wi('k05','क्यों')-.05,E('k05')+.3,540,330,120);
+ ov('label','महाभारत युद्ध',T('k06')+.1,E('k06')+.2,540,300,60);
+ ov('label','सपना',wi('k07','सपने')-.1,E('k07')+.2,540,920,60);
+ ov('tag','इंद्र = ब्राह्मण',wi('k08','इंद्र')-.05,wi('k08','मना')-.2,540,330,80);
+ ov('tag','मना कर देना',wi('k08','मना')-.05,E('k08')+.25,540,330,84);
+ ov('gold','कोई खाली हाथ नहीं',wi('k09','खाली')-.15,E('k09')+.25,540,330,104);
+ ov('label','अर्घ्य',T('k10')+.3,wi('k10','ब्राह्मण')-.3,540,300,60);
+ ov('tag','कवच और कुंडल',wi('k11','कवच')-.05,E('k11')+.25,540,330,84);
+ ov('gold','इंद्र',wi('k12','इंद्र')-.1,E('k12')+.2,540,330,170);
+ ov('tag','दान',wi('k13','हाथों')-.1,E('k13')+.25,540,330,110);
+ ov('tag','आँखें झुक गईं',wi('k14','आँखें')-.05,E('k14')+.2,540,330,84);
+ ov('gold','वासवी शक्ति',wi('k15','वासवी')-.1,E('k15')+.25,540,330,124);
+ ov('tag','सुरक्षा खो दी',wi('k16','सुरक्षा')-.05,E('k16')+.25,540,330,84);
+ ov('gold','दानवीर कर्ण',wi('k17','दानवीर')-.1,T('k18')-.3,540,330,140);
+ ov('pill','कमेंट में लिखिए',T('k18')+.05,END,540,250,58);
+ ov('gold','दानवीर कर्ण',wi('k18','दानवीर')-.1,END,540,420,140);
+}
+
+// ============================================================ CAPTIONS
+const KEY=['कर्ण','सूर्यपुत्र','कवच','कुंडल','हरा','दान','क्यों','महाभारत','युद्ध','सूर्यदेव','सपने','इंद्र','ब्राह्मण','मना','खाली','हाथ','सूर्य','जल','मुस्कुराया','तलवार','अलग','आँखें','झुक','वासवी','शक्ति','सुरक्षा','इतिहास','दानवीर','कमेंट'];
+const CHUNKS=[];
+TIMING.lines.forEach(l=>{const ws=words(l.text);let cur=[],len=0;
+  ws.forEach((w,i)=>{cur.push(i);len+=w.length+1; const brk=/[,।?—]|\.\.\./.test(w)||len>20||i==ws.length-1;
+    if(brk){CHUNKS.push({id:l.id,idx:cur.slice(),ws});cur=[];len=0;}});});
+CHUNKS.forEach((c,k)=>{c.a=wt(c.id,c.idx[0])-.08; const nx=CHUNKS[k+1]; c.b=(nx&&nx.id===c.id)?wt(nx.id,nx.idx[0])-.08:L[c.id].end+.25;});
+function renderCap(t){const c=CHUNKS.find(c=>t>=c.a&&t<c.b); const el=$('cap');
+  if(!c){el.innerHTML='';el.dataset.k='';return;}
+  const key=c.id+c.idx[0]; if(el.dataset.k!==key){el.dataset.k=key;
+    el.innerHTML='<div class="capbox">'+c.idx.map(i=>{const w=c.ws[i];const k=KEY.some(K=>w.includes(K));return `<span data-t="${wt(c.id,i)}" style="color:${k?'#ffc94a':'#fff'}">${w}</span>`}).join(' ')+'</div>';}
+  const pop=eback(win(t,c.a,c.a+.18)); el.style.transform=`scale(${.9+.1*pop})`;
+  [...el.querySelectorAll('span')].forEach(s=>{s.style.opacity=t>=+s.dataset.t-.05?1:.32;});
+}
+// ============================================================ PARTICLES
+const PT=[...Array(70)].map((_,i)=>({x:(Math.sin(i*12.9898)*43758.5453%1+1)%1,y:(Math.sin(i*78.233)*12543.13%1+1)%1,r:3+((i*37)%9),s:.02+((i*13)%10)/300,ph:i}));
+function renderFx(t,tint){const c=$('fx').getContext('2d');c.clearRect(0,0,1080,1920);
+  PT.forEach(p=>{const y=((p.y-t*p.s)%1+1)%1*1920, x=p.x*1080+Math.sin(t*.5+p.ph)*30; const a=.16+.16*Math.sin(t*1.3+p.ph);
+    const g=c.createRadialGradient(x,y,0,x,y,p.r*3);g.addColorStop(0,`rgba(${tint},${a})`);g.addColorStop(1,`rgba(${tint},0)`);c.fillStyle=g;c.beginPath();c.arc(x,y,p.r*3,0,6.283);c.fill();});}
+// ============================================================ BUILD/RENDER
+function build(){$('gdefs').innerHTML=defs()+defs2(); const root=$('scenes');
+  SCENES.forEach(s=>{const d=document.createElement('div');d.className='scene';d.id='W_'+s.id;
+    d.innerHTML=`<svg viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">${s.svg}</svg>`;root.appendChild(d);s.div=d;});
+  cue();}
+const FLASH=()=>[T('k06')-.2,wi('k13','अलग'),T('k14')-.25,wi('k17','दानवीर')-.1];
+function flashAt(t){let o=0;FLASH().forEach(p=>{o=Math.max(o,Math.max(0,1-Math.abs(t-p)/.16))});return o*.8;}
+window.render=function(t){
+  SCENES.forEach(s=>{const o=fadeWin(t,s.a,s.b,s.fi,s.fo); s.div.style.opacity=o; s.div.style.display=o>0?'block':'none'; if(o>0) s.upd(t,t-s.a);});
+  OV.forEach(v=>{const o=fadeWin(t,v.a,v.b,.12,.2); v.d.style.opacity=o; if(o<=0){v.d.style.display='none';return;} v.d.style.display='block';
+    const s=(v.kind==='label'||v.kind==='shade')?1:v.kind==='pill'?eo(win(t,v.a-.12,v.a+.2)):eback(win(t,v.a-.12,v.a+.22)); const rot=v.kind==='tag'?-3+Math.sin(t*2)*.6:0;
+    const shake=v.kind==='tag'&&t<v.a+.3?Math.sin(t*60)*4*(1-win(t,v.a,v.a+.3)):0;
+    v.d.style.left=v.x+'px'; v.d.style.top=v.y+'px'; v.d.style.transform=`translate(-50%,-50%) translate(${shake}px,0) rotate(${rot}deg) scale(${s})`;});
+  renderCap(t);
+  const tint=(t>T('k06')-.2&&t<T('k08')-.2)||(t>T('k14')-.25&&t<T('k16')-.3)?'180,200,255':'255,215,150';
+  renderFx(t,tint); $('flash').style.opacity=flashAt(t);
+};
+build();
+window.CUES={ov:OV.map(v=>({a:v.a,kind:v.kind})),scenes:SCENES.map(s=>({id:s.id,a:s.a,b:s.b})),
+ walks:[],water:[[T('k10')-.1,wi('k10','ब्राह्मण')-.2]],arrows:[0,1,2,3,4].map(i=>T('k04')+.1+i*.55+.33),
+ slash:wi('k13','अलग')-.1,shimmer:[wi('k03','कवच'),wi('k03','कुंडल'),wi('k15','वासवी')],dream:wi('k07','सपने')-.5,
+ drums:[T('k05'),wi('k12','इंद्र'),wi('k17','दानवीर')],end:END};
+document.fonts.ready.then(()=>{window.READY=true; render(0);});
+</script>
+</body>
+</html>
