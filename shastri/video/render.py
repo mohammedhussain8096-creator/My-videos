@@ -621,7 +621,7 @@ def draw_doc(img, sp, t):
     x0, y0 = (W - pw) // 2, (H - ph) // 2 + int((1 - a) * 60 * U)
     full.alpha_composite(sh, (x0 - 40 + int(10 * U), y0 - 40 + int(16 * U))); full.alpha_composite(pg, (x0, y0))
     if doc.get('stamp'):
-        txt, at, col = doc['stamp']; put_stamp(full, txt, FILL[col], x0 + pw * 0.7, y0 + ph * 0.72, t, at, 78)
+        txt, at, col = doc['stamp']; put_stamp(full, txt, FILL[col], x0 + pw * 0.72, y0 + ph * 0.8, t, at, 70)
     full = full.rotate(rot, resample=Image.BICUBIC, center=(W / 2, H / 2))
     full.putalpha(full.getchannel('A').point(lambda v: int(v * a)))
     img.alpha_composite(full)
@@ -844,9 +844,9 @@ def main():
         return
     if mode == 'preview':
         lim = float(sys.argv[2]) if len(sys.argv) > 2 else 1e9
-        n = len([s for s in TIMING['scenes'] if s['start'] < lim]); name = 'Netaji_Preview.mp4'
+        n = len([s for s in TIMING['scenes'] if s['start'] < lim]); name = 'Shastri_Preview.mp4'
     else:
-        name = 'Netaji_Rahasyamayi_Maut.mp4'
+        name = 'Shastri_Tashkent_Ki_Raat.mp4'
     total = TIMING['scenes'][n - 1]['end']
     with Pool(int(os.environ.get('WORKERS', 4))) as pool:
         paths = pool.map(render_scene, range(n), chunksize=1)
