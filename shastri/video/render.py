@@ -167,9 +167,9 @@ def ll(lat, lon): return (lon - MJ['lon0']) * MJ['pxd'], (merc(MJ['lat1']) - mer
 SEA_RGB = (30, 52, 62); HAZE = (214, 200, 170)
 
 @lru_cache(None)
-def map_level(lv):
+def map_level(lv, nob=False):
     Image.MAX_IMAGE_PIXELS = None
-    im = Image.open(os.path.join(ASSETS, 'asia_merc.jpg')).convert('RGB')
+    im = Image.open(os.path.join(ASSETS, 'asia_merc_nob.jpg' if nob else 'asia_merc.jpg')).convert('RGB')
     if lv: im = im.resize((im.width >> lv, im.height >> lv), Image.LANCZOS)
     return im
 
@@ -208,10 +208,10 @@ def haze_mask():
     y = np.linspace(0, 1, H, dtype=np.float32)[:, None]
     return np.repeat(np.clip(1 - y / 0.42, 0, 1) ** 1.8 * 0.5, W, axis=1)[..., None]
 
-def ground(cam):
+def ground(cam, nob=False):
     gpp = cam.w / W                                        # ground px per screen px at the centre
     lv = 0 if gpp < 1.6 else 1 if gpp < 3.2 else 2 if gpp < 6.4 else 3
-    base = map_level(lv); sc = 1 / (1 << lv)
+    base = map_level(lv, nob); sc = 1 / (1 << lv)
     Hl = np.diag([sc, sc, 1.0]) @ np.linalg.inv(cam.Hs)  # screen -> level pixel
     Hl = Hl / Hl[2, 2]
     co = (Hl[0, 0], Hl[0, 1], Hl[0, 2], Hl[1, 0], Hl[1, 1], Hl[1, 2], Hl[2, 0], Hl[2, 1])
@@ -436,7 +436,7 @@ def draw_map(sp, t, dur):
     pitch = lerp(sp.get('pitch', 48), sp.get('pitch1', sp.get('pitch', 48)), k)
     yaw = lerp(sp.get('yaw0', -5.0), sp.get('yaw1', 5.0), t / dur)        # slow linear orbit
     cam = Cam(cx, cy, w, pitch, yaw)
-    out = ground(cam)
+    out = ground(cam, sp.get('noborders', False))
     H3 = w * 0.014                                                        # block height (ground px) scales with the view
     for f in sp.get('fill', []):                                          # raised country blocks
         g, col = f[0], f[1]; at = f[2] if len(f) > 2 and f[2] is not None else -9
@@ -553,22 +553,96 @@ def card_bg(tone):
     a += n[..., None] * 0.12
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
+# vintage 1960s wall clock: wooden case, brass bezel, aged cream dial with Roman numerals, spade hands, ticking red
+# second hand, glass glare, warm lamp light on a dark wall. Drawn at 2x and downsampled for smooth edges.
+CLK_R = 300
+@lru_cache(2)
+def clock_static():
+    S2 = 2; R = int(CLK_R * U * S2); size = int(R * 2.7); c = size / 2
+    im = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    yy_, xx_ = np.mgrid[0:size, 0:size].astype(np.float32); r = np.sqrt((xx_ - c) ** 2 + (yy_ - c) ** 2) / R
+    ang = np.arctan2(yy_ - c, xx_ - c)
+    light = (0.75 + 0.25 * np.cos(ang + 2.3))                                    # light from the top-left
+    def ring(r0, r1, col, shade=True, tex=0.0):
+        m = (r >= r0) & (r < r1)
+        a = np.zeros((size, size, 4), np.float32); col = np.array(col, np.float32)
+        k = light if shade else 1.0
+        if tex:
+            grain = np.sin(xx_ * 0.05 + np.sin(yy_ * 0.013) * 6) * tex
+            k = k * (1 + grain)
+        a[..., :3] = col * (k[..., None] if isinstance(k, np.ndarray) else k)
+        a[..., 3] = m * 255
+        lay = Image.fromarray(a.clip(0, 255).astype(np.uint8), 'RGBA'); im.alpha_composite(lay)
+    ring(1.13, 1.30, (92, 52, 26), tex=0.08)                                     # wooden case
+    ring(1.11, 1.13, (40, 22, 10), shade=False)
+    ring(1.02, 1.11, (196, 150, 70))                                             # brass bezel
+    bev = np.clip(1 - np.abs(r - 1.065) / 0.045, 0, 1) * (0.5 + 0.5 * np.cos(ang + 2.3))
+    hl = np.zeros((size, size, 4), np.float32); hl[..., :3] = 255; hl[..., 3] = bev * 120 * ((r > 1.02) & (r < 1.11))
+    im.alpha_composite(Image.fromarray(hl.astype(np.uint8), 'RGBA'))
+    dial = np.zeros((size, size, 4), np.float32)                                 # aged cream dial
+    rng = np.random.default_rng(4); n = np.asarray(Image.fromarray(rng.normal(128, 50, (size // 8, size // 8)).clip(0, 255).astype(np.uint8)).resize((size, size), Image.BICUBIC), np.float32) / 255
+    base = np.array([236, 224, 196], np.float32) * (0.92 + 0.1 * n[..., None]) * (1 - 0.18 * np.clip(r - 0.6, 0, 1)[..., None])
+    dial[..., :3] = base; dial[..., 3] = (r < 1.02) * 255
+    im.alpha_composite(Image.fromarray(dial.clip(0, 255).astype(np.uint8), 'RGBA'))
+    d = ImageDraw.Draw(im)
+    for rr, wd in ((0.97, 3), (0.88, 2)): d.ellipse([c - rr * R, c - rr * R, c + rr * R, c + rr * R], outline=(60, 40, 25), width=int(wd * S2 * U))
+    for i in range(60):                                                          # minute track
+        a_ = math.radians(i * 6); r0 = 0.88 if i % 5 == 0 else 0.905
+        d.line([c + math.sin(a_) * r0 * R, c - math.cos(a_) * r0 * R, c + math.sin(a_) * 0.97 * R, c - math.cos(a_) * 0.97 * R], fill=(45, 30, 20), width=int((5 if i % 5 == 0 else 2) * S2 * U))
+    f = ImageFont.truetype(os.path.join(ASSETS, 'fonts', FONTS['serif']), int(R * 0.15))
+    for i, num in enumerate(['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI']):
+        a_ = math.radians(i * 30); x, y = c + math.sin(a_) * 0.72 * R, c - math.cos(a_) * 0.72 * R
+        d.text((x, y), num, font=f, fill=(35, 25, 18), anchor='mm')
+    f2 = ImageFont.truetype(os.path.join(ASSETS, 'fonts', FONTS['serif']), int(R * 0.07))
+    d.text((c, c + 0.36 * R), 'ताशकंद', font=f2, fill=(90, 70, 50), anchor='mm')
+    return im.resize((size // S2, size // S2), Image.LANCZOS), R / S2
+
+@lru_cache(1)
+def clock_wall():
+    yy_, xx_ = np.mgrid[0:H, 0:W].astype(np.float32)
+    r = np.sqrt(((xx_ - W * 0.5) / (W * 0.55)) ** 2 + ((yy_ - H * 0.42) / (H * 0.75)) ** 2)
+    k = np.clip(1.1 - r, 0.12, 1)[..., None]
+    rng = np.random.default_rng(9); n = np.asarray(Image.fromarray(rng.normal(128, 40, (H // 3, W // 3)).clip(0, 255).astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32)[..., None] / 255
+    stripes = (np.sin(xx_ / (W / 34) * math.pi) * 0.03)[..., None]                # old wallpaper stripes
+    a = np.array([72, 58, 44], np.float32) * k * (0.9 + 0.2 * n + stripes)
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+
 def draw_clock(img, t, sp):
-    d = ImageDraw.Draw(img); cx, cy, R = W * 0.5, H * 0.47, 250 * U
-    d.ellipse([cx - R - 14 * U, cy - R - 14 * U, cx + R + 14 * U, cy + R + 14 * U], fill=(70, 55, 35))
-    d.ellipse([cx - R, cy - R, cx + R, cy + R], fill=(232, 220, 195))
-    for i in range(60):
-        a = math.radians(i * 6); r0 = R * (0.86 if i % 5 == 0 else 0.92)
-        d.line([cx + math.sin(a) * r0, cy - math.cos(a) * r0, cx + math.sin(a) * R * 0.97, cy - math.cos(a) * R * 0.97],
-               fill=(40, 30, 20), width=int((6 if i % 5 == 0 else 2) * U))
-    sec = sp.get('sec0', 50) + t * 1.0
-    h0, m0 = sp.get('hm', (11, 59))
-    mins = m0 + sec / 60; hrs = h0 + mins / 60
-    for ang, L, wd in ((hrs * 30, 0.5, 14), (mins * 6, 0.78, 9)):
-        a = math.radians(ang); d.line([cx, cy, cx + math.sin(a) * R * L, cy - math.cos(a) * R * L], fill=(30, 20, 15), width=int(wd * U))
-    a = math.radians((sec % 60) * 6)
-    d.line([cx - math.sin(a) * R * 0.15, cy + math.cos(a) * R * 0.15, cx + math.sin(a) * R * 0.85, cy - math.cos(a) * R * 0.85], fill=(170, 30, 25), width=int(4 * U))
-    d.ellipse([cx - 14 * U, cy - 14 * U, cx + 14 * U, cy + 14 * U], fill=(30, 20, 15))
+    face, R = clock_static(); cx, cy = W * 0.5, H * 0.47
+    wall = clock_wall().copy()
+    sh = Image.new('RGBA', face.size, (0, 0, 0, 0)); sh.putalpha(face.getchannel('A').filter(ImageFilter.GaussianBlur(22 * U)).point(lambda v: int(v * 0.75)))
+    wall.alpha_composite(sh, (int(cx - face.width / 2 + 26 * U), int(cy - face.height / 2 + 34 * U)))
+    wall.alpha_composite(face, (int(cx - face.width / 2), int(cy - face.height / 2)))
+    S2 = 2; hs = Image.new('RGBA', (face.width * S2, face.height * S2), (0, 0, 0, 0)); d = ImageDraw.Draw(hs); c = hs.width / 2; RR = R * S2
+    sec_f = sp.get('sec0', 50) + t
+    tick = math.floor(sec_f) + min(1.0, (sec_f % 1) / 0.12) + 0.06 * math.sin(min(1, (sec_f % 1) / 0.25) * math.pi) * (sec_f % 1 < 0.25)
+    h0, m0 = sp.get('hm', (11, 59)); mins = m0 + tick / 60; hrs = h0 + mins / 60
+    def hand(angle, L, wd, tail=0.12, col=(18, 14, 12), spade=False):
+        a_ = math.radians(angle); s, co = math.sin(a_), math.cos(a_)
+        px, py = -co, -s                                           # perpendicular
+        tip = (c + s * L * RR, c - co * L * RR); back = (c - s * tail * RR, c + co * tail * RR)
+        w_ = wd * S2 * U
+        d.polygon([(back[0] + px * w_, back[1] + py * w_), (tip[0] + px * w_ * 0.25, tip[1] + py * w_ * 0.25), tip,
+                   (tip[0] - px * w_ * 0.25, tip[1] - py * w_ * 0.25), (back[0] - px * w_, back[1] - py * w_)], fill=col)
+        if spade:
+            sx, sy = c + s * L * 0.78 * RR, c - co * L * 0.78 * RR; rs = w_ * 2.4
+            d.ellipse([sx - rs, sy - rs, sx + rs, sy + rs], fill=col)
+    shadow_off = 8 * S2 * U
+    hs_sh = Image.new('RGBA', hs.size, (0, 0, 0, 0)); d_sh = d
+    d = ImageDraw.Draw(hs_sh)
+    hand(hrs * 30, 0.50, 9, spade=True, col=(0, 0, 0)); hand(mins * 6, 0.80, 6, spade=True, col=(0, 0, 0))
+    hs_sh = hs_sh.filter(ImageFilter.GaussianBlur(5 * S2 * U)); hs_sh.putalpha(hs_sh.getchannel('A').point(lambda v: int(v * 0.45)))
+    hs.alpha_composite(hs_sh, (int(shadow_off), int(shadow_off)))
+    d = ImageDraw.Draw(hs)
+    hand(hrs * 30, 0.50, 9, spade=True); hand(mins * 6, 0.80, 6, spade=True)
+    hand((tick % 60) * 6, 0.88, 2.2, tail=0.22, col=(180, 28, 22))
+    d.ellipse([c - 16 * S2 * U, c - 16 * S2 * U, c + 16 * S2 * U, c + 16 * S2 * U], fill=(180, 140, 60), outline=(40, 25, 10), width=int(3 * S2 * U))
+    hs = hs.resize(face.size, Image.LANCZOS)
+    wall.alpha_composite(hs, (int(cx - face.width / 2), int(cy - face.height / 2)))
+    gl = Image.new('L', face.size, 0); ImageDraw.Draw(gl).pieslice([face.width * 0.2, face.height * 0.18, face.width * 0.8, face.height * 0.62], 200, 300, fill=70)
+    gl = gl.filter(ImageFilter.GaussianBlur(30 * U)); glare = Image.new('RGBA', face.size, (255, 255, 255, 0)); glare.putalpha(gl)
+    wall.alpha_composite(glare, (int(cx - face.width / 2), int(cy - face.height / 2)))
+    img.paste(wall.convert('RGB'))
 
 @lru_cache(64)
 def stamp_img(txt, col, size=70):
