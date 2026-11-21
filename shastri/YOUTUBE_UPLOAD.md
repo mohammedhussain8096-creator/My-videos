@@ -62,3 +62,6 @@ Documents, files and stamps shown in the video are illustrations, not real docum
 
 ## Notes
 - The chapters only work on the full 10:46 video uploaded as one file. Leave them out of the 3-part uploads.
+
+## 10 hashtags
+#LalBahadurShastri #ShastriJi #Tashkent #TashkentAgreement #JaiJawanJaiKisan #IndianHistory #HindiDocumentary #1965War #Mystery #लाल_बहादुर_शास्त्री
