@@ -82,58 +82,71 @@ def save(im, name):
     print('wrote', name, os.path.getsize(p) // 1024, 'KB')
 
 HD = lambda n: os.path.join(HERE, 'assets', 'hd', n + '.jpg')
-SUB = 'दिल का दौरा या कुछ और?'   # title 2: the thumbnail text complements it, never repeats it word for word
 
-def map_bg(view, pitch=50, yaw=0, fill=None, pulse=None, route=None):
-    sp = dict(view=view, pitch=pitch, yaw0=yaw, yaw1=yaw, fill=fill or [], pulse=pulse or [], routes=route or [])
-    m = R.draw_map(sp, 4.0, 4.0)
-    return ImageEnhance.Contrast(ImageEnhance.Color(m).enhance(1.2)).enhance(1.15).convert('RGBA')
+def face(im, h, x, yb, rim=(255, 185, 60), rx=0.5, ry=0.56):
+    """Shastri's portrait (assets/hd/shastri_face.jpg: 1965, CC0, Real-ESRGAN x2) with a soft oval fade, toned highlights, coloured glow"""
+    p = Image.open(os.path.join(HERE, 'assets', 'hd', 'shastri_face.jpg')).convert('RGB')
+    p = p.crop((int(p.width * 0.12), 0, int(p.width * 0.95), int(p.height * 0.72)))      # head, cap and shoulders
+    k = h / p.height; p = p.resize((int(p.width * k), h), Image.LANCZOS)
+    g = np.asarray(ImageEnhance.Contrast(p.convert('L')).enhance(1.15), np.float32) / 255
+    g = g ** 1.12 * 0.97                                                  # tame the white cap and kurta, keep the face bright
+    rgb = np.stack([g * 255 + 8, g * 247 + 4, g * 232], -1)              # warm black & white
+    py_, px_ = np.mgrid[0:p.height, 0:p.width].astype(np.float32)
+    r = np.sqrt(((px_ / p.width - 0.52) / rx) ** 2 + ((py_ / p.height - 0.42) / ry) ** 2)
+    A = Image.fromarray((np.clip((1.0 - r) / 0.3, 0, 1) * 255).astype(np.uint8))
+    pad = 200; Ab = Image.new('L', (p.width + 2 * pad, p.height + 2 * pad), 0); Ab.paste(A, (pad, pad))   # room for the glow
+    for blur, mul in ((70, 0.7), (25, 0.55)):
+        gl = Image.new('RGBA', Ab.size, rim + (0,)); gl.putalpha(Ab.filter(ImageFilter.GaussianBlur(blur)).point(lambda v: int(min(255, v * mul))))
+        im.alpha_composite(gl, (int(x) - pad, int(yb - p.height) - pad)) if int(x) - pad >= 0 and int(yb - p.height) - pad >= 0 else \
+            im.alpha_composite(gl.crop((max(0, pad - int(x)), max(0, pad - int(yb - p.height)), gl.width, gl.height)), (max(0, int(x) - pad), max(0, int(yb - p.height) - pad)))
+    pi = Image.fromarray(rgb.clip(0, 255).astype(np.uint8)).filter(ImageFilter.UnsharpMask(2, 80, 2)).convert('RGBA'); pi.putalpha(A)
+    im.alpha_composite(pi, (int(x), int(yb - p.height)))
 
-# HD1  big face + "दिल का दौरा?" / "या कुछ और?"
-im = R.card_bg_modern('dark', 2.0).convert('RGBA')
-g = np.asarray(im, np.float32); g[..., :3] *= 0.85; im = Image.fromarray(g.astype(np.uint8))
-im = vignette(im, 0.55, cx=0.7)
-portrait(im, 'shastri_bust', 1150, W - 980, H + 60, rim=(255, 185, 60), cx=0.5, cy=0.42, rx=0.5, ry=0.64)
-gtext(im, 'दिल का दौरा?', 190, (70, 250), top=(255, 255, 255), bot=(225, 228, 235), glow=(0, 0, 0))
-gtext(im, 'या कुछ और?', 220, (60, 500), glow=(255, 90, 0))
-pill(im, 'ताशकंद, 11 जनवरी 1966', 60, 80, 700)
+def bg_dark(t=2.0, tone='dark', k=0.9):
+    im = R.card_bg_modern(tone, t).convert('RGBA')
+    g = np.asarray(im, np.float32); g[..., :3] *= k; return Image.fromarray(g.astype(np.uint8))
+
+# 1  "दिल का दौरा? / या कुछ और?"
+im = vignette(bg_dark(), 0.55, cx=0.72)
+face(im, 1080, W - 980, H, rim=(255, 175, 50))
+gtext(im, 'दिल का दौरा?', 180, (70, 240), top=(255, 255, 255), bot=(220, 224, 232), glow=(0, 0, 0))
+gtext(im, 'या कुछ और?', 215, (60, 480), glow=(255, 90, 0))
+pill(im, 'ताशकंद, 11 जनवरी 1966', 58, 80, 680)
 save(im, 'Shastri_HD1_dil_ka_daura.jpg')
 
-# HD2  official vs family: two badges and a question mark
-im = R.card_bg_modern('dark', 5.0).convert('RGBA'); im = vignette(im, 0.5)
-portrait(im, 'shastri_bust', 1100, W // 2 - 380, H + 100, rim=(255, 255, 255), cx=0.5, cy=0.42, rx=0.5, ry=0.64)
-pill(im, 'सरकार: दिल का दौरा', 64, 80, 300, bg=(30, 140, 70))
-pill(im, 'परिवार: शरीर नीला क्यों?', 64, W - 900, 300, bg=(210, 30, 35))
-gtext(im, 'सच क्या है?', 200, (W // 2, 140), anchor='mm', glow=(255, 90, 0))
-pill(im, 'पोस्टमार्टम: नहीं हुआ', 56, W // 2, H - 150, bg=(15, 15, 20), center=True)
+# 2  सरकार vs परिवार
+im = vignette(bg_dark(5.0), 0.5)
+face(im, 1000, W // 2 - 470, H, rim=(255, 255, 255))
+gtext(im, 'सच क्या है?', 180, (W // 2, 110), anchor='mm', glow=(255, 90, 0))
+pill(im, 'सरकार: दिल का दौरा', 62, 60, 330, bg=(30, 140, 70))
+pill(im, 'परिवार: शरीर नीला क्यों?', 62, W - 880, 330, bg=(210, 30, 35))
+pill(im, 'पोस्टमार्टम: नहीं हुआ', 56, W // 2, H - 130, bg=(15, 15, 20), center=True)
 save(im, 'Shastri_HD2_sarkar_vs_parivar.jpg')
 
-# HD3  the 1:32 clock
+# 3  रात 1:32
 img = Image.new('RGB', (W, H)); R.draw_clock(img, 4.0, dict(hm=(1, 31), sec0=50)); im = img.convert('RGBA')
-im = im.transform(im.size, Image.AFFINE, (1, 0, -420, 0, 1, 0), resample=Image.BICUBIC)       # clock to the right
-im = vignette(im, 0.5, cx=0.7)
-portrait(im, 'shastri_bust', 1050, -120, H + 100, rim=(255, 185, 60), cx=0.5, cy=0.42, rx=0.5, ry=0.64)
-gtext(im, 'रात 1:32', 200, (W - 560, 130), anchor='mm', top=(255, 255, 255), bot=(225, 228, 235), glow=(0, 0, 0))
-gtext(im, 'क्या हुआ?', 190, (W - 560, H - 150), anchor='mm', glow=(255, 90, 0))
+im = im.transform(im.size, Image.AFFINE, (1, 0, -430, 0, 1, 0), resample=Image.BICUBIC); im = vignette(im, 0.5, cx=0.7)
+face(im, 1020, -180, H, rim=(255, 175, 50))
+gtext(im, 'रात 1:32', 190, (W - 560, 120), anchor='mm', top=(255, 255, 255), bot=(225, 228, 235), glow=(0, 0, 0))
+gtext(im, 'क्या हुआ?', 180, (W - 560, H - 140), anchor='mm', glow=(255, 90, 0))
 save(im, 'Shastri_HD3_raat_1_32.jpg')
 
-# HD4  map: Delhi to Tashkent
-P = R.sys.modules['plan']
-im = map_bg((36.0, 72.5, 22.0), pitch=46, yaw=6, fill=[('uzbek', 'gold', -9)], pulse=[(41.31, 69.24, 0.0, 'red')],
-            route=[dict(pts=[(28.61, 77.21), (41.31, 69.24)], at=0.0, dur=0.1, icon='plane', col='gold')])
-im = vignette(ImageEnhance.Brightness(im).enhance(0.85), 0.6)
-portrait(im, 'shastri_bust', 1080, -140, H + 110, rim=(60, 200, 255), cx=0.5, cy=0.42, rx=0.5, ry=0.64)
-gtext(im, 'ताशकंद', 210, (W - 640, 170), top=(255, 255, 255), bot=(225, 230, 240), glow=(0, 0, 0))
-gtext(im, 'की वो रात', 190, (W - 700, 390), glow=(255, 90, 0))
-pill(im, '60 साल बाद भी सवाल', 60, W - 620, H - 170)
+# 4  ताशकंद की वो रात (map)
+sp = dict(view=(36.0, 72.5, 22.0), pitch=46, yaw0=6, yaw1=6, fill=[('uzbek', 'gold', -9)], pulse=[(41.31, 69.24, 0.0, 'red')],
+          routes=[dict(pts=[(28.61, 77.21), (41.31, 69.24)], at=0.0, dur=0.1, icon='plane', col='gold')])
+m = ImageEnhance.Contrast(ImageEnhance.Color(R.draw_map(sp, 4.0, 4.0)).enhance(1.2)).enhance(1.15).convert('RGBA')
+im = vignette(ImageEnhance.Brightness(m).enhance(0.8), 0.6)
+face(im, 1020, -180, H, rim=(60, 200, 255))
+gtext(im, 'ताशकंद', 200, (W - 640, 160), top=(255, 255, 255), bot=(225, 230, 240), glow=(0, 0, 0))
+gtext(im, 'की वो रात', 185, (W - 700, 380), glow=(255, 90, 0))
+pill(im, '60 साल बाद भी सवाल', 58, W - 620, H - 160)
 save(im, 'Shastri_HD4_tashkent.jpg')
 
-# HD5  the secret file (News Headline card)
+# 5  गुप्त फ़ाइल
 img = R.card_bg_modern('red', 3.0).convert('RGBA')
-doc = dict(title='शास्त्री फ़ाइल', lines=[('पोस्टमार्टम: नहीं हुआ', -9), ('गवाह: दोनों हादसों के शिकार', -9), ('PMO: एक दस्तावेज़ अब भी गुप्त', -9)])
+doc = dict(title='शास्त्री फ़ाइल', lines=[('पोस्टमार्टम: नहीं हुआ', -9), ('दो गवाह: दोनों हादसों में', -9), ('PMO: एक दस्तावेज़ गुप्त', -9)])
 R.draw_doc(img, dict(doc=doc, docstyle='headline'), 9.0)
-im = img.transform(img.size, Image.AFFINE, (1, 0, -330, 0, 1, 40), resample=Image.BICUBIC)
-im = vignette(im, 0.5)
-portrait(im, 'shastri_bust', 1080, -150, H + 110, rim=(255, 185, 60), cx=0.5, cy=0.42, rx=0.5, ry=0.64)
-gtext(im, 'गुप्त फ़ाइल', 170, (W // 2 + 330, 110), anchor='mm', glow=(255, 60, 0))
+im = img.transform(img.size, Image.AFFINE, (1, 0, -360, 0, 1, 40), resample=Image.BICUBIC); im = vignette(im, 0.5)
+face(im, 1020, -240, H, rim=(255, 175, 50))
+gtext(im, 'गुप्त फ़ाइल', 170, (W // 2 + 360, 100), anchor='mm', glow=(255, 60, 0))
 save(im, 'Shastri_HD5_gupt_file.jpg')
