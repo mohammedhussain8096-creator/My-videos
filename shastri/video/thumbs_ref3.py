@@ -87,3 +87,46 @@ make2(bg_night, L, 'Shastri_R3_bg1_raat.jpg')
 make2(bg_newspaper, L, 'Shastri_R3_bg2_akhbaar.jpg')
 make2(bg_dotmap, L, 'Shastri_R3_bg3_dotmap.jpg')
 make2(bg_smoke, L, 'Shastri_R3_bg4_smoke.jpg')
+
+# ---- background like reference 3: golden-brown dusty war map
+def bg_reference(variant=0):
+    sp = dict(view=(32.6, 72.0, 16.0), pitch=34, yaw0=-6, yaw1=-6, india_outline=True)
+    m = np.asarray(R.draw_map(sp, 4.0, 4.0), np.float32)
+    g = m.mean(axis=2, keepdims=True) / 255
+    a = (np.array([70, 42, 18]) + g * np.array([215, 165, 95]))                       # golden-brown duotone
+    n1, n2, n3 = T.noise(W, H, 70, 31), T.noise(W, H, 12, 32), T.noise(W, H, 2, 33)
+    a *= (0.8 + 0.35 * n1[..., None]) * (0.9 + 0.2 * n2[..., None]); a += (n3[..., None] - 0.5) * 22
+    haze = np.clip(1 - T.yy / H, 0, 1) ** 2 * 0.25 + np.clip(1 - np.sqrt(((T.xx / W - 0.62) / 0.4) ** 2 + ((T.yy / H - 0.35) / 0.4) ** 2), 0, 1) * 0.25
+    a = a * (1 - haze[..., None]) + np.array([245, 205, 140]) * haze[..., None]      # sun-dust haze
+    a *= (1 - 0.65 * np.clip(np.sqrt(((T.xx / W - 0.5) / 0.62) ** 2 + ((T.yy / H - 0.5) / 0.62) ** 2) - 0.4, 0, 1))[..., None]
+    im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    # faded war scene, bottom-left (public-domain M48 Patton photo), sepia and dusty
+    tank = Image.open(T.PH('patton')).convert('L').resize((900, int(900 * 622 / 912)), Image.LANCZOS)
+    tank = ImageEnhance.Contrast(tank).enhance(1.5)
+    t = np.asarray(tank, np.float32)[..., None] / 255; tk = Image.fromarray((np.array([60, 38, 18]) + t * np.array([190, 150, 95])).clip(0, 255).astype(np.uint8))
+    T.soft_paste(im, tk, -40, H - tk.height + 30, feather=90, alpha=0.95)
+    # map lines: thick orange border and a red target on the map
+    d = ImageDraw.Draw(im); cx, cy = 760 if variant == 0 else 700, 300
+    for r, wd in ((64, 9), (36, 8)): d.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(200, 25, 25, 255), width=wd)
+    d.line([cx - 95, cy, cx + 95, cy], fill=(200, 25, 25, 255), width=7); d.line([cx, cy - 95, cx, cy + 95], fill=(200, 25, 25, 255), width=7)
+    d.ellipse([cx - 16, cy - 16, cx + 16, cy + 16], fill=(200, 25, 25, 255))
+    # scratches and dust specks
+    rr = np.random.default_rng(5)
+    for _ in range(40):
+        x, y = rr.random() * W, rr.random() * H; L = 40 + rr.random() * 160
+        d.line([x, y, x + rr.random() * 6 - 3, y + L], fill=(255, 235, 200, int(30 + rr.random() * 50)), width=2)
+    return im
+
+def make3(line2, name, variant=0):
+    im = bg_reference(variant)
+    ph = framed(T.SAY.crop((0, 160, 1300, 1100)), 640, 5)
+    sh = Image.new('RGBA', ph.size, (0, 0, 0, 0)); sh.putalpha(ph.getchannel('A').point(lambda v: 160 if v else 0).filter(ImageFilter.GaussianBlur(16)))
+    im.alpha_composite(sh, (900, 50)); im.alpha_composite(ph, (880, 26))
+    T.portrait(im, 1120, W - 900, H + 40)
+    T.bigtext(im, 'LAST 24 HOURS', 150, (50, 450), fill=(255, 255, 255), stroke=14)
+    T.bigtext(im, 'OF SHASTRI JI', 150, (50, 620), fill=(255, 214, 60), stroke=14)
+    T.banner_text(im, line2, 92, 50, 780, seed=3)
+    T.save(im, name)
+
+make3('शास्त्री जी को किसने मारा?', 'Shastri_R3_REFBG_kisne_mara.jpg')
+make3('मौत या साज़िश? क्या हुआ था?', 'Shastri_R3_REFBG_safe.jpg', variant=1)
