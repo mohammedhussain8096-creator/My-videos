@@ -675,28 +675,212 @@ def paper(w, h, seed=1):
     a *= (1 - 0.25 * np.clip(r - 0.7, 0, 1))[..., None]
     return Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
 
-def draw_doc(img, sp, t):
-    doc = sp['doc']; pw, ph = int(1180 * U), int(800 * U)
-    pg = paper(pw, ph).copy(); d = ImageDraw.Draw(pg)
-    d.rectangle([int(30 * U), int(30 * U), pw - int(30 * U), ph - int(30 * U)], outline=(120, 90, 60, 255), width=int(3 * U))
-    ti = text_img(doc['title'], 'bold', 58, fill=(60, 35, 20), shadow=False); pg.alpha_composite(ti, ((pw - ti.width) // 2, int(40 * U)))
-    d.line([int(90 * U), int(170 * U), pw - int(90 * U), int(170 * U)], fill=(120, 90, 60, 255), width=int(3 * U))
-    y = int(200 * U)
+# ------------------------------------------------------------------ document card styles (DOC_STYLE env or sp['docstyle'])
+#   classic   aged paper (original)
+#   govfile   Indian government file sheet: header, file number, margin line, ruled lines, punch holes, paper clip, coffee stain
+#   dossier   manila folder with the page inside, photo clipped on, red "गोपनीय" band, redaction bars
+#   telegram  yellow 1960s telegram form with the text on pasted strips
+#   modern    dark glass panel, gold accent bar, document icon, white text with bullets, badge instead of a stamp
+#   evidence  corkboard: notebook page pinned with a red pushpin and tape, red string to a small note
+DOC_STYLE = os.environ.get('DOC_STYLE', 'classic')
+
+def _typed(txt, at, t):
+    return txt[:max(1, int(len(txt) * min(1, (t - at) / 0.9)))] if t >= at else None
+
+@lru_cache(8)
+def _noise(w, h, seed, scale=6):
+    rng = np.random.default_rng(seed)
+    return np.asarray(Image.fromarray(rng.normal(128, 50, (max(2, h // scale), max(2, w // scale))).clip(0, 255).astype(np.uint8)).resize((w, h), Image.BICUBIC), np.float32) / 255
+
+def _page(w, h, col, seed=1, vign=0.25, grain=0.18):
+    n = _noise(w, h, seed); a = np.ones((h, w, 3), np.float32) * np.array(col, np.float32) + (n[..., None] - 0.5) * 255 * grain
+    y, x = np.mgrid[0:h, 0:w].astype(np.float32); r = np.sqrt(((x - w / 2) / (w / 2)) ** 2 + ((y - h / 2) / (h / 2)) ** 2)
+    a *= (1 - vign * np.clip(r - 0.7, 0, 1))[..., None]
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+
+def _shadowed(full, pg, x0, y0, blur=20, alpha=200, off=(10, 16)):
+    sh = Image.new('RGBA', (pg.width + 80, pg.height + 80), (0, 0, 0, 0))
+    m = Image.new('L', sh.size, 0); m.paste(pg.getchannel('A').point(lambda v: alpha if v > 10 else 0), (40, 40))
+    sh.putalpha(m.filter(ImageFilter.GaussianBlur(blur * U)))
+    full.alpha_composite(sh, (x0 - 40 + int(off[0] * U), y0 - 40 + int(off[1] * U))); full.alpha_composite(pg, (x0, y0))
+
+def _paperclip(d, x, y, s):
+    for k, wd in ((0, 7), (0, 3)):
+        col = (110, 115, 125, 255) if wd == 7 else (200, 205, 215, 255)
+        d.rounded_rectangle([x, y, x + 34 * s, y + 120 * s], radius=int(17 * s), outline=col, width=int(wd * s))
+        d.rounded_rectangle([x + 9 * s, y + 18 * s, x + 25 * s, y + 98 * s], radius=int(8 * s), outline=col, width=int(wd * s))
+
+def doc_govfile(doc, t, pw, ph):
+    pg = _page(pw, ph, (232, 222, 192), seed=2); d = ImageDraw.Draw(pg)
+    for i in range(14):                                                     # faint ruled lines
+        y = int((250 + i * 46) * U)
+        if y < ph - 40 * U: d.line([int(60 * U), y, pw - int(50 * U), y], fill=(150, 170, 190, 90), width=max(1, int(2 * U)))
+    d.line([int(150 * U), int(120 * U), int(150 * U), ph - int(20 * U)], fill=(200, 80, 80, 160), width=int(3 * U))   # margin
+    for yy in (0.3, 0.7): d.ellipse([int(50 * U), int(ph * yy - 14 * U), int(78 * U), int(ph * yy + 14 * U)], fill=(70, 60, 50, 255))
+    d.rectangle([0, 0, pw, int(100 * U)], fill=(214, 200, 165, 255)); d.line([0, int(100 * U), pw, int(100 * U)], fill=(120, 95, 60, 255), width=int(3 * U))
+    hdr = text_img('भारत सरकार', 'bold', 36, fill=(70, 45, 25), shadow=False); pg.alpha_composite(hdr, (int(170 * U), int(14 * U)))
+    fno = text_img('फ़ाइल सं. 2(67)/66', 'med', 30, fill=(90, 60, 35), shadow=False); pg.alpha_composite(fno, (pw - fno.width - int(40 * U), int(18 * U)))
+    ti = text_img(doc['title'], 'bold', 54, fill=(25, 30, 60), shadow=False); pg.alpha_composite(ti, (int(175 * U), int(115 * U)))
+    y = int(236 * U)
     for txt, at in doc['lines']:
-        if t >= at:
-            n = max(1, int(len(txt) * min(1, (t - at) / 0.9)))         # typewriter
-            li = text_img(txt[:n], 'serif', 50, fill=(40, 28, 18), shadow=False); pg.alpha_composite(li, (int(90 * U), y))
+        s = _typed(txt, at, t)
+        if s: li = text_img(s, 'serif', 46, fill=(28, 32, 70), shadow=False); pg.alpha_composite(li, (int(175 * U), y - int(40 * U)))
         y += int(92 * U)
-    a = ease(t / 0.6)
-    sh = Image.new('RGBA', (pw + 80, ph + 80), (0, 0, 0, 0)); ImageDraw.Draw(sh).rectangle([40, 40, 40 + pw, 40 + ph], fill=(0, 0, 0, 200))
-    sh = sh.filter(ImageFilter.GaussianBlur(20 * U))
-    rot = sp.get('rot', -2.0)
+    st = Image.new('RGBA', (pw, ph), (0, 0, 0, 0)); ds = ImageDraw.Draw(st)        # coffee ring
+    cx, cy, r = pw * 0.86, ph * 0.3, 85 * U
+    ds.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(150, 100, 50, 70), width=int(10 * U))
+    pg.alpha_composite(st.filter(ImageFilter.GaussianBlur(3 * U)))
+    _paperclip(ImageDraw.Draw(pg), int(pw * 0.06), -int(30 * U), U)
+    return pg, (0.74, 0.82)
+
+def doc_dossier(doc, t, pw, ph):
+    fw, fh = int(pw * 1.08), int(ph * 1.12)
+    folder = _page(fw, fh, (205, 160, 92), seed=3, vign=0.35)
+    fo = Image.new('RGBA', (fw, fh + int(60 * U)), (0, 0, 0, 0)); fo.alpha_composite(folder, (0, int(60 * U)))
+    ImageDraw.Draw(fo).rounded_rectangle([int(40 * U), 0, int(380 * U), int(90 * U)], radius=int(16 * U), fill=(198, 152, 86, 255))
+    tab = text_img('गोपनीय फ़ाइल', 'bold', 34, fill=(90, 50, 20), shadow=False); fo.alpha_composite(tab, (int(70 * U), int(4 * U)))
+    pg = _page(pw, ph, (240, 234, 218), seed=4, vign=0.15, grain=0.1); d = ImageDraw.Draw(pg)
+    ti = text_img(doc['title'], 'bold', 54, fill=(30, 25, 20), shadow=False); pg.alpha_composite(ti, (int(60 * U), int(40 * U)))
+    d.line([int(60 * U), int(145 * U), pw - int(300 * U), int(145 * U)], fill=(30, 25, 20, 255), width=int(3 * U))
+    y = int(170 * U)
+    for txt, at in doc['lines']:
+        s = _typed(txt, at, t)
+        if s: li = text_img(s, 'serif', 44, fill=(25, 22, 20), shadow=False); pg.alpha_composite(li, (int(60 * U), y))
+        y += int(84 * U)
+    rng = np.random.default_rng(7)                                          # redaction bars
+    for i in range(3):
+        yy = y + int(i * 46 * U) + int(10 * U)
+        if yy < ph - 60 * U: d.rectangle([int(60 * U), yy, int(60 * U + (300 + rng.random() * 500) * U), yy + int(26 * U)], fill=(15, 15, 15, 255))
+    try:                                                                    # clipped photo
+        ph_im = Image.open(os.path.join(ASSETS, 'photos_hd', 'shastri_kbr.jpg')).convert('L')
+        ph_im = ph_im.crop((int(ph_im.width * 0.42), int(ph_im.height * 0.0), int(ph_im.width * 0.95), int(ph_im.height * 0.45)))
+        pw2 = int(230 * U); ph_im = ImageOps.fit(ph_im, (pw2, int(pw2 * 1.2))).convert('RGBA')
+        card = Image.new('RGBA', (pw2 + int(24 * U), int(pw2 * 1.2) + int(24 * U)), (250, 248, 240, 255)); card.alpha_composite(ph_im, (int(12 * U), int(12 * U)))
+        card = card.rotate(4, expand=True, resample=Image.BICUBIC)
+        pg.alpha_composite(card, (pw - card.width - int(40 * U), int(30 * U)))
+        _paperclip(ImageDraw.Draw(pg), pw - int(150 * U), int(5 * U), U * 0.9)
+    except Exception:
+        pass
+    band = Image.new('RGBA', (int(560 * U), int(70 * U)), (200, 25, 25, 230))
+    bt = text_img('गोपनीय', 'bold', 44, fill=(255, 245, 235), shadow=False); band.alpha_composite(bt, ((band.width - bt.width) // 2, int(-6 * U)))
+    band = band.rotate(-28, expand=True, resample=Image.BICUBIC)
+    pg.alpha_composite(band, (pw - band.width + int(60 * U), ph - band.height + int(20 * U)))
+    fo.alpha_composite(pg, (int((fw - pw) / 2) + int(20 * U), int(60 * U) + int((fh - ph) / 2)))
+    return fo, (0.3, 0.8)
+
+def doc_telegram(doc, t, pw, ph):
+    pg = _page(pw, ph, (238, 214, 140), seed=5, vign=0.3, grain=0.14); d = ImageDraw.Draw(pg)
+    d.rectangle([int(24 * U), int(24 * U), pw - int(24 * U), ph - int(24 * U)], outline=(110, 70, 20, 255), width=int(4 * U))
+    hdr = text_img('तार  •  TELEGRAM', 'bold', 52, fill=(110, 50, 20), shadow=False); pg.alpha_composite(hdr, ((pw - hdr.width) // 2, int(36 * U)))
+    for i, lab in enumerate(['प्रेषक', 'तारीख़', 'स्थान']):
+        x = int((60 + i * 360) * U); d.rectangle([x, int(130 * U), x + int(330 * U), int(190 * U)], outline=(110, 70, 20, 255), width=int(2 * U))
+        lt = text_img(lab, 'med', 26, fill=(110, 70, 20), shadow=False); pg.alpha_composite(lt, (x + int(8 * U), int(128 * U)))
+    strip_y = int(230 * U)
+    ti = text_img(doc['title'], 'bold', 46, fill=(20, 20, 20), shadow=False)
+    strip = Image.new('RGBA', (ti.width + int(30 * U), ti.height - int(16 * U)), (250, 250, 245, 255)); strip.alpha_composite(ti, (int(15 * U), int(-8 * U)))
+    pg.alpha_composite(strip, (int(60 * U), strip_y)); strip_y += strip.height + int(24 * U)
+    for txt, at in doc['lines']:
+        s = _typed(txt, at, t)
+        if s:
+            li = text_img(s, 'bold', 42, fill=(25, 25, 25), shadow=False)
+            strip = Image.new('RGBA', (li.width + int(30 * U), li.height - int(16 * U)), (250, 250, 245, 255)); strip.alpha_composite(li, (int(15 * U), int(-8 * U)))
+            pg.alpha_composite(strip, (int(60 * U), strip_y))
+        strip_y += int(86 * U)
+    return pg, (0.75, 0.8)
+
+def doc_modern(doc, t, pw, ph, bg=None):
+    pg = Image.new('RGBA', (pw, ph), (0, 0, 0, 0))
+    if bg is not None:                                                     # frosted glass of what lies behind
+        x0, y0 = (W - pw) // 2, (H - ph) // 2
+        g = bg.crop((x0, y0, x0 + pw, y0 + ph)).filter(ImageFilter.GaussianBlur(24 * U)).convert('RGBA'); pg.alpha_composite(g)
+    m = Image.new('L', (pw, ph), 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, pw - 1, ph - 1], radius=int(34 * U), fill=255)
+    tint = Image.new('RGBA', (pw, ph), (18, 22, 32, 205)); pg.alpha_composite(tint)
+    d = ImageDraw.Draw(pg)
+    d.rounded_rectangle([0, 0, pw - 1, ph - 1], radius=int(34 * U), outline=(255, 255, 255, 60), width=int(2 * U))
+    d.rounded_rectangle([int(50 * U), int(60 * U), int(62 * U), ph - int(60 * U)], radius=int(6 * U), fill=(240, 180, 60, 255))
+    cx, cy, r = int(150 * U), int(125 * U), int(48 * U)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(240, 180, 60, 255))
+    d.rectangle([cx - 18 * U, cy - 26 * U, cx + 18 * U, cy + 26 * U], fill=(18, 22, 32, 255))
+    for k in (-12, 0, 12): d.line([cx - 10 * U, cy + k * U, cx + 10 * U, cy + k * U], fill=(240, 180, 60, 255), width=int(3 * U))
+    ti = text_img(doc['title'], 'bold', 58, fill=(255, 255, 255), shadow=False); pg.alpha_composite(ti, (int(220 * U), int(85 * U)))
+    d.line([int(220 * U), int(190 * U), pw - int(80 * U), int(190 * U)], fill=(255, 255, 255, 50), width=int(2 * U))
+    y = int(230 * U)
+    for txt, at in doc['lines']:
+        s = _typed(txt, at, t)
+        if s:
+            d.ellipse([int(225 * U), y + int(24 * U), int(243 * U), y + int(42 * U)], fill=(240, 180, 60, 255))
+            li = text_img(s, 'med', 48, fill=(235, 238, 245), shadow=False); pg.alpha_composite(li, (int(260 * U), y - int(14 * U)))
+        y += int(90 * U)
+    pg.putalpha(Image.fromarray(np.minimum(np.asarray(pg.getchannel('A')), np.asarray(m))))
+    return pg, None
+
+def doc_evidence(doc, t, pw, ph):
+    pg = _page(pw, ph, (246, 244, 232), seed=6, vign=0.12, grain=0.08); d = ImageDraw.Draw(pg)
+    for i in range(16):
+        y = int((150 + i * 44) * U)
+        if y < ph - 20 * U: d.line([0, y, pw, y], fill=(120, 160, 210, 140), width=max(1, int(2 * U)))
+    d.line([int(110 * U), 0, int(110 * U), ph], fill=(220, 90, 90, 180), width=int(3 * U))
+    ti = text_img(doc['title'], 'bold', 54, fill=(20, 40, 110), shadow=False); pg.alpha_composite(ti, (int(140 * U), int(40 * U)))
+    y = int(185 * U)
+    for txt, at in doc['lines']:
+        s = _typed(txt, at, t)
+        if s: li = text_img(s, 'med', 46, fill=(20, 35, 95), shadow=False); pg.alpha_composite(li, (int(140 * U), y - int(30 * U)))
+        y += int(88 * U)
+    for (tx, ty, ang) in ((0.12, 0.0, -8), (0.88, 0.0, 10)):               # tape strips
+        tp = Image.new('RGBA', (int(190 * U), int(54 * U)), (240, 230, 190, 170)).rotate(ang, expand=True, resample=Image.BICUBIC)
+        pg.alpha_composite(tp, (int(pw * tx - tp.width / 2), int(-tp.height * 0.35)))
+    return pg, (0.74, 0.8)
+
+@lru_cache(1)
+def cork_bg():
+    n = _noise(W, H, 11, 2); n2 = _noise(W, H, 12, 14)
+    a = np.array([150, 104, 62], np.float32) * (0.72 + 0.35 * n[..., None]) * (0.85 + 0.25 * n2[..., None])
+    return Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+
+def draw_doc(img, sp, t):
+    doc = sp['doc']; style = sp.get('docstyle', DOC_STYLE); pw, ph = int(1180 * U), int(800 * U)
+    a = ease(t / 0.6); rot = sp.get('rot', -2.0)
     full = Image.new('RGBA', img.size, (0, 0, 0, 0))
-    x0, y0 = (W - pw) // 2, (H - ph) // 2 + int((1 - a) * 60 * U)
-    full.alpha_composite(sh, (x0 - 40 + int(10 * U), y0 - 40 + int(16 * U))); full.alpha_composite(pg, (x0, y0))
+    if style == 'evidence':
+        img.alpha_composite(cork_bg())
+        note = _page(int(330 * U), int(240 * U), (250, 230, 120), seed=8, vign=0.1, grain=0.05)
+        nt = text_img('?', 'bold', 120, fill=(160, 30, 30), shadow=False); note.alpha_composite(nt, ((note.width - nt.width) // 2, (note.height - nt.height) // 2))
+        note = note.rotate(7, expand=True, resample=Image.BICUBIC); _shadowed(img, note, int(W * 0.8), int(H * 0.07), blur=10, alpha=160)
+    if style == 'modern':
+        pg, spos = doc_modern(doc, t, pw, ph, bg=img.convert('RGB')); rot = 0
+    else:
+        pg, spos = {'govfile': doc_govfile, 'dossier': doc_dossier, 'telegram': doc_telegram, 'evidence': doc_evidence}.get(style, None)(doc, t, pw, ph) \
+            if style in ('govfile', 'dossier', 'telegram', 'evidence') else (None, None)
+    if pg is None:                                                          # classic
+        pg = paper(pw, ph).copy(); d = ImageDraw.Draw(pg)
+        d.rectangle([int(30 * U), int(30 * U), pw - int(30 * U), ph - int(30 * U)], outline=(120, 90, 60, 255), width=int(3 * U))
+        ti = text_img(doc['title'], 'bold', 58, fill=(60, 35, 20), shadow=False); pg.alpha_composite(ti, ((pw - ti.width) // 2, int(40 * U)))
+        d.line([int(90 * U), int(170 * U), pw - int(90 * U), int(170 * U)], fill=(120, 90, 60, 255), width=int(3 * U))
+        y = int(200 * U)
+        for txt, at in doc['lines']:
+            s = _typed(txt, at, t)
+            if s: li = text_img(s, 'serif', 50, fill=(40, 28, 18), shadow=False); pg.alpha_composite(li, (int(90 * U), y))
+            y += int(92 * U)
+        spos = (0.72, 0.8)
+    x0, y0 = (W - pg.width) // 2, (H - pg.height) // 2 + int((1 - a) * 60 * U)
+    _shadowed(full, pg, x0, y0, alpha=200 if style != 'modern' else 140)
+    if style == 'evidence':                                                 # pushpin and red string
+        dd = ImageDraw.Draw(full); px, py = x0 + pg.width // 2, y0 + int(26 * U)
+        dd.line([(px, py), (W * 0.8 + 150 * U, H * 0.07 + 40 * U)], fill=(200, 20, 20, 255), width=int(4 * U))
+        dd.ellipse([px - 24 * U, py - 24 * U, px + 24 * U, py + 24 * U], fill=(210, 30, 30, 255), outline=(90, 10, 10, 255), width=int(3 * U))
+        dd.ellipse([px - 9 * U, py - 14 * U, px + 3 * U, py - 2 * U], fill=(255, 160, 160, 255))
     if doc.get('stamp'):
-        txt, at, col = doc['stamp']; put_stamp(full, txt, FILL[col], x0 + pw * 0.72, y0 + ph * 0.8, t, at, 70)
-    full = full.rotate(rot, resample=Image.BICUBIC, center=(W / 2, H / 2))
+        txt, at, col = doc['stamp']
+        if style == 'modern':                                               # badge
+            if t >= at:
+                k = ease((t - at) / 0.3); bt = text_img(txt, 'bold', 46, fill=(255, 255, 255), shadow=False)
+                bw, bh = bt.width + int(50 * U), bt.height - int(10 * U); badge = Image.new('RGBA', (bw, bh), (0, 0, 0, 0))
+                ImageDraw.Draw(badge).rounded_rectangle([0, 0, bw - 1, bh - 1], radius=bh // 2, fill=FILL[col] + (255,)); badge.alpha_composite(bt, (int(25 * U), int(-5 * U)))
+                badge.putalpha(badge.getchannel('A').point(lambda v: int(v * k)))
+                full.alpha_composite(badge, (int(x0 + pg.width - bw - 60 * U), int(y0 + pg.height - bh - 50 * U + (1 - k) * 20 * U)))
+        else:
+            put_stamp(full, txt, FILL[col], x0 + pg.width * spos[0], y0 + pg.height * spos[1], t, at, 70)
+    if rot: full = full.rotate(rot, resample=Image.BICUBIC, center=(W / 2, H / 2))
     full.putalpha(full.getchannel('A').point(lambda v: int(v * a)))
     img.alpha_composite(full)
 
