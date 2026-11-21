@@ -10,6 +10,8 @@ NOT used (they stay protected until 1 January 2027); the Tashkent night is shown
 | shastri_1965 | Prime Minister Shastri in 1965.jpg | CC0 |
 | nehru_shastri | Jawaharlal Nehru with Lal Bahadur Shastri and K. Kamaraj.jpg (before 1955) | Public domain |
 | shastri_sayeed (thumbnails) | Asadullah Sayeed IAS.jpg (1965) | CC0 |
+| sansad (thumbnail) | Delhi, Parlamentet, Dehli., Council c, 0964.b.1002.tif (Parliament House, 20th c.) | CC0 |
+| army1962 (thumbnail) | Indian soldiers on patrol during the 1962 Sino-Indian border war.jpg | Public domain |
 | patton | M48 Patton.jpg (US Army photo, the tank type) | Public domain |
 | gandhi1946, nehru_portrait | from the Partition video (see ../partition/IMAGE_CREDITS.md) | Public domain |
 

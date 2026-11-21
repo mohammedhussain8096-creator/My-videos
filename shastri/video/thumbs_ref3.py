@@ -130,3 +130,46 @@ def make3(line2, name, variant=0):
 
 make3('शास्त्री जी को किसने मारा?', 'Shastri_R3_REFBG_kisne_mara.jpg')
 make3('मौत या साज़िश? क्या हुआ था?', 'Shastri_R3_REFBG_safe.jpg', variant=1)
+
+# ---- background like reference 3 without a map: Sansad, army, tank in a golden-brown dusty collage
+def duo(img, lo=(50, 32, 16), hi=(250, 205, 140), contrast=1.35):
+    g = np.asarray(ImageEnhance.Contrast(img.convert('L')).enhance(contrast), np.float32)[..., None] / 255
+    return Image.fromarray((np.array(lo) * (1 - g) + np.array(hi) * g).clip(0, 255).astype(np.uint8))
+
+def cover_fit(img, w, h, fx=0.5, fy=0.5):
+    k = max(w / img.width, h / img.height); img = img.resize((int(img.width * k) + 1, int(img.height * k) + 1), Image.LANCZOS)
+    x = int((img.width - w) * fx); y = int((img.height - h) * fy); return img.crop((x, y, x + w, y + h))
+
+def bg_army():
+    n1, n2, n3 = T.noise(W, H, 70, 41), T.noise(W, H, 12, 42), T.noise(W, H, 2, 43)
+    a = np.array([92, 62, 32], np.float32) * (0.75 + 0.4 * n1[..., None]) * (0.9 + 0.2 * n2[..., None])
+    im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    sansad = duo(cover_fit(Image.open(T.PH('sansad')), 1250, 620, 0.5, 0.25))                    # parliament, top
+    T.soft_paste(im, sansad, 300, -40, feather=120, alpha=0.85)
+    army = duo(cover_fit(Image.open(T.PH('army1962')), 1000, 560, 0.62, 0.95), lo=(30, 18, 8), contrast=1.7)   # soldiers, bottom-left
+    T.soft_paste(im, army, -60, H - 470, feather=70, alpha=1.0)
+    tank = duo(Image.open(T.PH('patton')).resize((760, int(760 * 622 / 912)), Image.LANCZOS), lo=(30, 18, 8), contrast=1.8)  # tank, bottom-centre
+    T.soft_paste(im, tank, 560, H - 430, feather=70, alpha=1.0)
+    a = np.asarray(im.convert('RGB'), np.float32) + (n3[..., None] - 0.5) * 24
+    haze = np.clip(1 - np.sqrt(((T.xx / W - 0.55) / 0.45) ** 2 + ((T.yy / H - 0.3) / 0.45) ** 2), 0, 1) * 0.3
+    a = a * (1 - haze[..., None]) + np.array([250, 215, 150]) * haze[..., None]                # dusty sunlight
+    a *= (1 - 0.65 * np.clip(np.sqrt(((T.xx / W - 0.5) / 0.62) ** 2 + ((T.yy / H - 0.5) / 0.62) ** 2) - 0.4, 0, 1))[..., None]
+    im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA'); d = ImageDraw.Draw(im); rr = np.random.default_rng(7)
+    for _ in range(45):
+        x, y = rr.random() * W, rr.random() * H; L = 40 + rr.random() * 170
+        d.line([x, y, x + rr.random() * 6 - 3, y + L], fill=(255, 235, 200, int(30 + rr.random() * 50)), width=2)
+    return im
+
+def make4(line2, name):
+    im = bg_army()
+    ph = framed(T.SAY.crop((0, 160, 1300, 1100)), 600, 5)
+    sh = Image.new('RGBA', ph.size, (0, 0, 0, 0)); sh.putalpha(ph.getchannel('A').point(lambda v: 160 if v else 0).filter(ImageFilter.GaussianBlur(16)))
+    im.alpha_composite(sh, (930, 40)); im.alpha_composite(ph, (910, 18))
+    T.portrait(im, 1120, W - 900, H + 40)
+    T.bigtext(im, 'LAST 24 HOURS', 140, (50, 330), fill=(255, 255, 255), stroke=14)
+    T.bigtext(im, 'OF SHASTRI JI', 140, (50, 490), fill=(255, 214, 60), stroke=14)
+    T.banner_text(im, line2, 80, 50, 590, seed=3)
+    T.save(im, name)
+
+make4('शास्त्री जी को किसने मारा?', 'Shastri_R3_ARMY_kisne_mara.jpg')
+make4('मौत या साज़िश? क्या हुआ था?', 'Shastri_R3_ARMY_safe.jpg')
