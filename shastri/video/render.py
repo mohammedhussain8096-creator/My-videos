@@ -768,7 +768,7 @@ def paper(w, h, seed=1):
 #   telegram  yellow 1960s telegram form with the text on pasted strips
 #   modern    dark glass panel, gold accent bar, document icon, white text with bullets, badge instead of a stamp
 #   evidence  corkboard: notebook page pinned with a red pushpin and tape, red string to a small note
-DOC_STYLE = os.environ.get('DOC_STYLE', 'modern')
+DOC_STYLE = os.environ.get('DOC_STYLE', 'headline')
 
 def _typed(txt, at, t):
     return txt[:max(1, int(len(txt) * min(1, (t - at) / 0.9)))] if t >= at else None
@@ -1000,10 +1000,10 @@ def doc_headline(doc, t, pw, ph, bg=None):                                 # new
     d.rectangle([int(60 * U), int(245 * U), int(260 * U), int(253 * U)], fill=(210, 30, 35, 255))
     y = int(290 * U)
     for txt, at in doc['lines']:
-        s = _typed(txt, at, t)
-        if s:
+        li = typed_highlight(txt, 'med', 46, t, at, fill=(225, 228, 235))
+        if li is not None:
             d.rectangle([int(60 * U), y, int(68 * U), y + int(60 * U)], fill=(255, 255, 255, 120))
-            li = text_img(s, 'med', 46, fill=(225, 228, 235), shadow=False); pg.alpha_composite(li, (int(90 * U), y - int(20 * U)))
+            pg.alpha_composite(li, (int(90 * U), y - int(20 * U)))
         y += int(86 * U)
     return _finish(pg, m), None
 
@@ -1026,7 +1026,8 @@ def draw_files_modern(img, sp, t):
         d.rounded_rectangle([cx - 58 * U, cy - 32 * U, cx + 58 * U, cy + 40 * U], radius=int(10 * U), fill=GOLD + (255,))
         ty = text_img(year, 'bold', 56, fill=GOLD, shadow=False); pg.alpha_composite(ty, (int(fw / 2 - ty.width / 2), int(175 * U)))
         d.line([int(50 * U), int(270 * U), int(fw - 50 * U), int(270 * U)], fill=(255, 255, 255, 50), width=int(2 * U))
-        tn = text_img(name, 'bold', 44, fill=(245, 246, 250), shadow=False, maxw=390); pg.alpha_composite(tn, (int(fw / 2 - tn.width / 2), int(272 * U)))
+        tn = typed_highlight(name, 'bold', 44, t, at + 0.25, fill=(245, 246, 250), maxw=390)
+        if tn is not None: pg.alpha_composite(tn, (int(fw / 2 - tn.width / 2), int(272 * U)))
         pg = _finish(pg, m)
         full = Image.new('RGBA', img.size, (0, 0, 0, 0)); _shadowed(full, pg, int(x), int(y), alpha=150)
         for st in sp.get('stamps', []):                                     # badge pill instead of a rubber stamp
@@ -1043,6 +1044,51 @@ def draw_files_modern(img, sp, t):
             dm = Image.new('RGBA', img.size, (0, 0, 0, 0)); ImageDraw.Draw(dm).rounded_rectangle([x, y, x + fw, y + fh], radius=int(34 * U), fill=(0, 0, 0, 150))
             full.alpha_composite(dm)
         full.putalpha(full.getchannel('A').point(lambda v: int(v * a))); img.alpha_composite(full)
+
+# ------------------------------------------------------------------ typing + highlight (HL_STYLE env)
+# Points (document lines, folder names, checklist items) and the lower-corner captions are written as if typed while they
+# are spoken, and a highlighter band sweeps behind them. Main texts (photo text, dates, quotes, big words) are typed only.
+HL = {'gold': ((255, 200, 30), (20, 18, 12)), 'saffron': ((255, 128, 24), (20, 14, 8)), 'cyan': ((40, 210, 255), (8, 20, 30)),
+      'red': ((225, 35, 45), (255, 255, 255)), 'lime': ((140, 230, 60), (12, 24, 8))}
+HL_STYLE = os.environ.get('HL_STYLE', 'gold')
+
+def type_dur(txt): return min(2.4, max(0.6, len(txt) * 0.05))
+
+def reveal(im, frac, soft=None):
+    """show the left `frac` of a text image with a soft edge (keeps Devanagari shaping intact)"""
+    if frac >= 1: return im
+    if frac <= 0: return None
+    soft = soft or 30 * U; w = im.width; edge = frac * (w + soft)
+    ramp = np.clip((edge - np.arange(w, dtype=np.float32)) / soft, 0, 1)
+    out = im.copy(); out.putalpha(Image.fromarray((np.asarray(im.getchannel('A'), np.float32) * ramp[None, :]).astype(np.uint8)))
+    return out
+
+@lru_cache(256)
+def _text2(txt, kind, size, maxw, fill, fill_hl):
+    a = text_img(txt, kind, size, fill=fill, shadow=False, maxw=maxw)
+    b = text_img(txt, kind, size, fill=fill_hl, shadow=False, maxw=maxw)
+    return a, b
+
+def typed_highlight(txt, kind, size, t, at, fill=(240, 242, 248), maxw=None, highlight=True, dur=None):
+    """RGBA image of `txt` typed in from time `at`, with a highlighter band behind the typed part"""
+    if t < at: return None
+    dur = dur or type_dur(txt); frac = min(1.0, (t - at) / dur)
+    col, ink = HL[HL_STYLE]
+    a, b = _text2(txt, kind, size, maxw, fill, ink if highlight else fill)
+    bb = a.getchannel('A').getbbox() or (0, 0, a.width, a.height)
+    if not highlight: return reveal(a, frac)
+    hk = ease(min(1.0, (t - at) / (dur + 0.25)))                      # the band trails the typing a little
+    band = Image.new('RGBA', a.size, (0, 0, 0, 0)); d = ImageDraw.Draw(band)
+    x1 = bb[0] + (bb[2] - bb[0] + 16 * U) * hk
+    if x1 > bb[0]:
+        d.rounded_rectangle([bb[0] - 10 * U, bb[1] - 4 * U, x1, bb[3] + 8 * U], radius=int(8 * U), fill=col + (235,))
+    band.alpha_composite(reveal(b, frac) or Image.new('RGBA', a.size, (0, 0, 0, 0)))
+    cover = Image.new('L', a.size, 0); ImageDraw.Draw(cover).rectangle([0, 0, int(x1), a.height], fill=255)
+    rest = reveal(a, frac)
+    if rest is not None:
+        r = rest.copy(); ra = np.asarray(r.getchannel('A'), np.float32) * (1 - np.asarray(cover, np.float32) / 255)
+        r.putalpha(Image.fromarray(ra.astype(np.uint8))); band.alpha_composite(r)
+    return band
 
 @lru_cache(1)
 def cork_bg():
@@ -1115,7 +1161,8 @@ def draw_check(img, sp, t):
             c = (220, 40, 30, 255)
             d.line([x + 10 * U, y - b + 10 * U, x + 10 * U + (2 * b - 20 * U) * min(1, p * 2), y - b + 10 * U + (2 * b - 20 * U) * min(1, p * 2)], fill=c, width=int(11 * U))
             if p > 0.5: q = (p - 0.5) * 2; d.line([x + 2 * b - 10 * U, y - b + 10 * U, x + 2 * b - 10 * U - (2 * b - 20 * U) * q, y - b + 10 * U + (2 * b - 20 * U) * q], fill=c, width=int(11 * U))
-        ti = text_img(txt, 'bold', 70 if n < 4 else 62, fill=(250, 244, 232)); lay.alpha_composite(ti, (int(x + 2 * b + 30 * U), int(y - ti.height / 2)))
+        ti = typed_highlight(txt, 'bold', 70 if n < 4 else 62, t, at + 0.15, fill=(250, 244, 232))
+        if ti is not None: lay.alpha_composite(ti, (int(x + 2 * b + 30 * U), int(y - ti.height / 2)))
         lay.putalpha(lay.getchannel('A').point(lambda v: int(v * a))); img.alpha_composite(lay, (int((1 - a) * -40 * U), 0))
 
 def draw_files(img, sp, t):
@@ -1235,6 +1282,31 @@ def overlays(img, sp, t, dur):
             al = max([lightning_alpha(t, b) for b in opt.get('times', [at])] + [0])
             if al > 0.01: img.alpha_composite(Image.new('RGBA', img.size, (220, 230, 255, int(200 * al))))
             continue
+        if kind == 'caption':
+            ti = typed_highlight(txt, 'med', 46, t, at, fill=(250, 245, 235))
+            if ti is None: continue
+            bb = ti.getchannel('A').getbbox() or (0, 0, 10, 10)
+            bx = Image.new('RGBA', (bb[2] + int(40 * U), ti.height - int(20 * U)), (0, 0, 0, 0)); bd = ImageDraw.Draw(bx)
+            bd.rectangle([0, 0, bx.width, bx.height], fill=(10, 10, 14, 185)); bd.rectangle([0, 0, int(8 * U), bx.height], fill=HL[HL_STYLE][0] + (255,))
+            bx.alpha_composite(ti, (int(16 * U), -int(10 * U)))
+            img.alpha_composite(fade_alpha(bx, a), (int(80 * U), H - bx.height - int(90 * U))); continue
+        if kind in ('big', 'quote', 'date'):
+            im = ov_img(kind, txt, opt.get('sub', ''))
+            if kind == 'big' and opt.get('sub'):                         # main line first, then the sub line
+                main = ov_img(kind, txt, ''); frac = min(1, (t - at) / type_dur(txt))
+                subf = min(1, max(0, (t - at - type_dur(txt) * 0.8) / type_dur(opt['sub'])))
+                im2 = Image.new('RGBA', im.size, (0, 0, 0, 0)); top = im.crop((0, 0, im.width, main.height - int(50 * U))); bot = im.crop((0, main.height - int(50 * U), im.width, im.height))
+                r1 = reveal(top, frac); r2 = reveal(bot, subf)
+                if r1 is not None: im2.alpha_composite(r1)
+                if r2 is not None: im2.alpha_composite(r2, (0, main.height - int(50 * U)))
+                im_t = im2
+            else:
+                im_t = reveal(im, min(1, (t - at) / type_dur(txt))) or Image.new('RGBA', im.size, (0, 0, 0, 0))
+            if kind in ('quote', 'big') and opt.get('dim', True):
+                img.alpha_composite(Image.new('RGBA', img.size, (0, 0, 0, int((165 if kind == 'quote' else 120) * a))))
+            if kind == 'date': x, y = int(70 * U), int(60 * U)
+            else: x, y = int(opt.get('x', 0.5) * W - im.width / 2), int(opt.get('y', 0.5) * H - im.height / 2)
+            img.alpha_composite(fade_alpha(im_t, min(1, a * 2)), (x, y)); continue
         im = ov_img(kind, txt, opt.get('sub', ''))
         if kind in ('quote', 'big', 'title') and opt.get('dim', True):
             dim = Image.new('RGBA', img.size, (0, 0, 0, int((165 if kind == 'quote' else 120) * a))); img.alpha_composite(dim)
