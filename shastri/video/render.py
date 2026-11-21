@@ -553,6 +553,91 @@ def card_bg(tone):
     a += n[..., None] * 0.12
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
+# ------------------------------------------------------------------ modern card backgrounds (BG_STYLE env)
+#   navy      deep navy gradient, soft bokeh lights, faint news-grid lines
+#   cinema    teal-and-amber cinematic gradient with slow light rays and floating dust
+#   dotmap    dark slate with a dotted map of Asia (India highlighted) and a soft spotlight
+#   aurora    dark mesh-gradient of glowing colour blobs (blue / violet / amber), glassy
+#   desh      near-black with saffron and green glows in the corners and fine diagonal lines
+# Each is built once on a canvas 12% larger than the frame and drifts slowly (pan + breathing light) every frame.
+# 'red' cards get a crimson tint, 'paper' cards a warm tint, so tone changes still read.
+BG_STYLE = os.environ.get('BG_STYLE', 'classic')
+BG_PAD = 1.12
+TONE_TINT = {'dark': None, 'red': (150, 20, 25), 'paper': (150, 110, 60)}
+
+def _soft_blobs(w, h, blobs, seed=0):
+    yy_, xx_ = np.mgrid[0:h, 0:w].astype(np.float32); a = np.zeros((h, w, 3), np.float32)
+    for (cx, cy, r, col, k) in blobs:
+        d2 = ((xx_ / w - cx) ** 2 + (yy_ / h - cy) ** 2) / (r * r)
+        a += np.exp(-d2)[..., None] * np.array(col, np.float32) * k
+    return a
+
+@lru_cache(8)
+def bg_canvas(style, tone):
+    w, h = int(W * BG_PAD), int(H * BG_PAD); yy_, xx_ = np.mgrid[0:h, 0:w].astype(np.float32); rng = np.random.default_rng(21)
+    if style == 'navy':
+        a = np.array([8, 14, 32], np.float32) + _soft_blobs(w, h, [(0.3, 0.35, 0.55, (30, 60, 130), 1.0), (0.8, 0.75, 0.5, (20, 40, 100), 0.8)])
+        grid = ((np.abs(((xx_ / (W / 24)) % 1) - 0.5) > 0.48) | (np.abs(((yy_ / (W / 24)) % 1) - 0.5) > 0.48)).astype(np.float32)
+        a += grid[..., None] * np.array([40, 70, 120]) * 0.10
+        im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA'); d = ImageDraw.Draw(im)
+        for _ in range(40):
+            x, y, r = rng.random() * w, rng.random() * h, (10 + rng.random() * 60) * U
+            d.ellipse([x - r, y - r, x + r, y + r], fill=(120, 170, 255, int(20 + rng.random() * 40)))
+        im = Image.alpha_composite(Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA'), im.filter(ImageFilter.GaussianBlur(10 * U)))
+    elif style == 'cinema':
+        t_ = np.clip(xx_ / w * 0.8 + yy_ / h * 0.4, 0, 1)[..., None]
+        a = np.array([6, 30, 36], np.float32) * (1 - t_) + np.array([60, 32, 10], np.float32) * t_
+        a += _soft_blobs(w, h, [(0.85, 0.15, 0.35, (255, 170, 80), 0.35), (0.1, 0.9, 0.45, (20, 120, 130), 0.4)])
+        ang = np.arctan2(yy_ - h * -0.1, xx_ - w * 0.85); rays = (np.sin(ang * 22) * 0.5 + 0.5) ** 8
+        a += (rays * np.clip(1 - np.sqrt(((xx_ - w * 0.85) / w) ** 2 + ((yy_ + h * 0.1) / h) ** 2), 0, 1))[..., None] * np.array([255, 200, 140]) * 0.12
+        im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    elif style == 'dotmap':
+        a = np.array([14, 17, 22], np.float32) + _soft_blobs(w, h, [(0.62, 0.45, 0.45, (60, 70, 90), 0.8)])
+        im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA'); d = ImageDraw.Draw(im)
+        land = Image.new('L', (w, h), 0); dl = ImageDraw.Draw(land); ind = Image.new('L', (w, h), 0); di = ImageDraw.Draw(ind)
+        def pr(lat, lon): return (lon - 40) / 80 * w * 0.95 + w * 0.15, (45 - lat) / 50 * h * 0.95 + h * 0.03
+        for n, rs in countries().items():
+            for r in rs:
+                pts = [pr(la, lo) for lo, la in r]
+                if max(p[0] for p in pts) < 0 or min(p[0] for p in pts) > w: continue
+                dl.polygon(pts, fill=255)
+                if n == 'India': di.polygon(pts, fill=255)
+        jk = [(32.5, 74.0), (33.0, 73.6), (33.9, 73.4), (34.4, 72.8), (35.1, 72.0), (35.9, 71.6), (36.8, 72.4), (37.1, 74.6), (36.5, 76.0),
+              (35.9, 77.6), (35.6, 78.3), (35.7, 79.3), (35.3, 80.3), (34.3, 80.1), (33.4, 79.5), (32.6, 78.9), (32.8, 77.0), (32.3, 75.6)]
+        di.polygon([pr(la, lo) for la, lo in jk], fill=255); dl.polygon([pr(la, lo) for la, lo in jk], fill=255)   # India's official map of J&K and Ladakh
+        L = np.asarray(land); I = np.asarray(ind); step = int(16 * U); r = 3.2 * U
+        for y in range(step // 2, h, step):
+            for x in range(step // 2, w, step):
+                if L[y, x]:
+                    col = (240, 180, 60, 230) if I[y, x] else (110, 125, 150, 150)
+                    d.ellipse([x - r, y - r, x + r, y + r], fill=col)
+    elif style == 'aurora':
+        a = np.array([6, 6, 14], np.float32) + _soft_blobs(w, h, [(0.2, 0.25, 0.35, (40, 80, 220), 0.9), (0.75, 0.3, 0.32, (140, 50, 200), 0.8),
+                                                                (0.55, 0.85, 0.38, (230, 140, 40), 0.55), (0.95, 0.85, 0.3, (30, 160, 180), 0.5)])
+        im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(30 * U)).convert('RGBA')
+    else:  # desh
+        a = np.array([10, 10, 12], np.float32) + _soft_blobs(w, h, [(0.0, 0.0, 0.45, (255, 120, 20), 0.55), (1.0, 1.0, 0.45, (20, 140, 60), 0.55),
+                                                                 (0.5, 0.5, 0.5, (40, 40, 60), 0.5)])
+        lines = (((xx_ + yy_) / (22 * U)) % 1 < 0.06).astype(np.float32)
+        a += lines[..., None] * np.array([255, 255, 255]) * 0.025
+        im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    n = _noise(w, h, 31, 2)                                                  # fine grain so gradients never band
+    g = np.asarray(im.convert('RGB'), np.float32) + (n[..., None] - 0.5) * 10
+    tint = TONE_TINT.get(tone)
+    if tint is not None:
+        lum = g.mean(axis=2, keepdims=True) / 255; g = g * 0.55 + np.array(tint, np.float32) * (0.25 + lum) * 0.75
+    v = np.sqrt(((xx_ / w - 0.5) / 0.6) ** 2 + ((yy_ / h - 0.5) / 0.6) ** 2); g *= (1 - 0.45 * np.clip(v - 0.55, 0, 1))[..., None]
+    return Image.fromarray(g.clip(0, 255).astype(np.uint8))
+
+def card_bg_modern(tone, t, seed=0):
+    big = bg_canvas(BG_STYLE, tone)
+    mx, my = big.width - W, big.height - H
+    ph = seed * 1.7
+    x = int(mx * (0.5 + 0.45 * math.sin(t * 0.06 + ph))); y = int(my * (0.5 + 0.45 * math.cos(t * 0.05 + ph)))
+    im = big.crop((x, y, x + W, y + H))
+    k = 1.0 + 0.04 * math.sin(t * 0.8 + ph)                                  # breathing light
+    return ImageEnhance.Brightness(im).enhance(k)
+
 # vintage 1960s wall clock: wooden case, brass bezel, aged cream dial with Roman numerals, spade hands, ticking red
 # second hand, glass glare, warm lamp light on a dark wall. Drawn at 2x and downsampled for smooth edges.
 CLK_R = 300
@@ -682,7 +767,7 @@ def paper(w, h, seed=1):
 #   telegram  yellow 1960s telegram form with the text on pasted strips
 #   modern    dark glass panel, gold accent bar, document icon, white text with bullets, badge instead of a stamp
 #   evidence  corkboard: notebook page pinned with a red pushpin and tape, red string to a small note
-DOC_STYLE = os.environ.get('DOC_STYLE', 'classic')
+DOC_STYLE = os.environ.get('DOC_STYLE', 'modern')
 
 def _typed(txt, at, t):
     return txt[:max(1, int(len(txt) * min(1, (t - at) / 0.9)))] if t >= at else None
@@ -935,7 +1020,7 @@ def draw_card(sp, t, dur):
     if sp.get('bgimg'):
         img = blur_bg(sp['bgimg'], sp.get('grade', 'bw')).copy()
     else:
-        img = card_bg(sp.get('tone', 'dark')).copy()
+        img = (card_bg_modern(sp.get('tone', 'dark'), t, hash(str(sp.get('files') or sp.get('doc') or sp.get('check') or ''))%7) if BG_STYLE != 'classic' else card_bg(sp.get('tone', 'dark')).copy())
     if sp.get('clock'): draw_clock(img, t, sp)
     img = img.convert('RGBA')
     if sp.get('doc'): draw_doc(img, sp, t)
