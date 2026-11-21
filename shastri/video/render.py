@@ -464,6 +464,15 @@ def draw_map(sp, t, dur):
         out.alpha_composite(sh.filter(ImageFilter.GaussianBlur(10 * U)))
         out.alpha_composite(lay)
     draw_rivers(out, cam, sp, t, w)
+    if sp.get('india_outline'):                                            # India's official boundary of J&K and Ladakh (dashed)
+        jk = [(32.5, 74.0), (33.0, 73.6), (33.9, 73.4), (34.4, 72.8), (35.1, 72.0), (35.9, 71.6), (36.8, 72.4), (37.1, 74.6), (36.5, 76.0),
+              (35.9, 77.6), (35.6, 78.3), (35.7, 79.3), (35.3, 80.3), (34.3, 80.1), (33.4, 79.5), (32.6, 78.9)]
+        pts = cam.proj_many([ll(la, lo) for la, lo in jk]); dd = ImageDraw.Draw(out)
+        for (xa, ya), (xb, yb) in zip(pts, pts[1:]):
+            L = math.hypot(xb - xa, yb - ya); n = max(1, int(L / (26 * U)))
+            for k in range(0, n, 2):
+                u0, u1 = k / n, min(1, (k + 1) / n)
+                dd.line([(xa + (xb - xa) * u0, ya + (yb - ya) * u0), (xa + (xb - xa) * u1, ya + (yb - ya) * u1)], fill=(255, 150, 40, 235), width=int(5 * U))
     d = ImageDraw.Draw(out)
     for rt in sp.get('routes', []):                  # dict(pts=[(lat, lon)...], at, dur, col, icon, arc)
         p = ease((t - rt.get('at', 0)) / rt.get('dur', 2.5))
