@@ -19,16 +19,23 @@ def noise(w, h, sc, seed):
     r = np.random.default_rng(seed)
     return np.asarray(Image.fromarray(r.normal(128, 60, (max(2, h // sc), max(2, w // sc))).clip(0, 255).astype(np.uint8)).resize((w, h), Image.BICUBIC), np.float32) / 255
 
-def grunge_bg(base=(70, 14, 12), seed=1):
+def grunge_bg(base=(46, 38, 30), seed=1):
     n1, n2, n3 = noise(W, H, 60, seed), noise(W, H, 8, seed + 1), noise(W, H, 2, seed + 2)
-    a = np.array(base, np.float32) * (0.55 + 0.7 * n1[..., None]) * (0.85 + 0.3 * n2[..., None])
-    a += (n3[..., None] - 0.5) * 30                                              # film grain
-    sc = (np.random.default_rng(seed).random((H, W)) > 0.9985).astype(np.float32)   # dust / scratches
-    a += np.asarray(Image.fromarray((sc * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1)), np.float32)[..., None] * 0.8
-    r = np.sqrt(((xx / W - 0.5) / 0.6) ** 2 + ((yy / H - 0.5) / 0.6) ** 2); a *= (1 - 0.6 * np.clip(r - 0.45, 0, 1))[..., None]
+    a = np.array(base, np.float32) * (0.6 + 0.65 * n1[..., None]) * (0.85 + 0.3 * n2[..., None])
+    a += (n3[..., None] - 0.5) * 26                                               # film grain
+    im = Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
+    news = Image.new('RGBA', (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(news); r = np.random.default_rng(seed)
+    for col in range(8):                                                          # faint newspaper columns
+        x0 = 40 + col * 240
+        for row in range(70):
+            if r.random() < 0.85: d.line([x0, 20 + row * 15, x0 + 200 - int(r.random() * 40), 20 + row * 15], fill=(200, 185, 160, 26), width=5)
+    im.alpha_composite(news.rotate(-4, resample=Image.BICUBIC))
+    sc = (np.random.default_rng(seed).random((H, W)) > 0.9985).astype(np.float32)
+    a = np.asarray(im.convert('RGB'), np.float32) + np.asarray(Image.fromarray((sc * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1)), np.float32)[..., None] * 0.6
+    rr = np.sqrt(((xx / W - 0.5) / 0.6) ** 2 + ((yy / H - 0.5) / 0.6) ** 2); a *= (1 - 0.6 * np.clip(rr - 0.45, 0, 1))[..., None]
     return Image.fromarray(a.clip(0, 255).astype(np.uint8)).convert('RGBA')
 
-def bw(img, contrast=1.3, tint=(255, 235, 220)):
+def bw(img, contrast=1.3, tint=(250, 240, 222)):
     g = np.asarray(ImageEnhance.Contrast(img.convert('L')).enhance(contrast), np.float32)[..., None] / 255
     return Image.fromarray((g * np.array(tint, np.float32)).clip(0, 255).astype(np.uint8))
 
@@ -41,13 +48,15 @@ def soft_paste(im, ph, x, y, feather=60, alpha=1.0, red=0.0):
 
 def colourise(img):
     """warm hand-tinted look: shadows brown, mid-tones skin, highlights stay near white"""
-    g = np.asarray(ImageEnhance.Contrast(img.convert('L')).enhance(1.15), np.float32)[..., None] / 255
+    g = np.asarray(ImageEnhance.Contrast(img.convert('L')).enhance(1.4), np.float32)[..., None] / 255
     g = g ** 1.1
-    lo, mid, hi = np.array([24, 18, 16], np.float32), np.array([176, 132, 108], np.float32), np.array([244, 240, 232], np.float32)
+    lo, mid, hi = np.array([22, 20, 18], np.float32), np.array([168, 140, 118], np.float32), np.array([242, 240, 234], np.float32)
     out = np.where(g < 0.55, lo + (mid - lo) * (g / 0.55), mid + (hi - mid) * ((g - 0.55) / 0.45))
+    gray = g * 255
+    out = out * 0.75 + gray * 0.25                                         # keep it natural, not orange
     return Image.fromarray(out.clip(0, 255).astype(np.uint8))
 
-def portrait(im, h, x, yb, glow=(255, 60, 30)):
+def portrait(im, h, x, yb, glow=(0, 0, 0)):
     """Shastri cut out (assets/cut/shastri_face_cut.png), warm-toned, red rim glow, fading out at the bottom"""
     p = Image.open(os.path.join(HERE, 'assets', 'cut', 'shastri_face_cut.png')).convert('RGBA')
     k = h / p.height; p = p.resize((int(p.width * k), h), Image.LANCZOS)
@@ -55,7 +64,7 @@ def portrait(im, h, x, yb, glow=(255, 60, 30)):
     A = Image.fromarray(A.astype(np.uint8))
     c = colourise(p.convert('RGB')).filter(ImageFilter.UnsharpMask(2, 90, 2))
     pad = 160; Ab = Image.new('L', (p.width + 2 * pad, p.height + 2 * pad), 0); Ab.paste(A, (pad, pad))
-    for blur, mul in ((50, 0.9), (14, 0.9)):
+    for blur, mul in ((40, 0.8), (12, 0.6)):                              # soft dark shadow around him
         gl = Image.new('RGBA', Ab.size, glow + (0,)); gl.putalpha(Ab.filter(ImageFilter.GaussianBlur(blur)).point(lambda v: int(min(255, v * mul))))
         gx, gy = int(x) - pad, int(yb - h) - pad
         im.alpha_composite(gl.crop((max(0, -gx), max(0, -gy), gl.width, gl.height)), (max(0, gx), max(0, gy)))
@@ -127,7 +136,7 @@ def arrow(im, p0, p1, col=(225, 25, 25), width=26):
 def map_patch(view=(39.0, 71.0, 18.0), w=900, h=560):
     sp = dict(view=view, pitch=40, yaw0=0, yaw1=0, fill=[('uzbek', 'red', -9)], routes=[dict(pts=[(28.61, 77.21), (41.31, 69.24)], at=0, dur=0.1, icon='plane', col='gold')])
     m = R.draw_map(sp, 4.0, 4.0).resize((w, int(w * H / W)), Image.LANCZOS).crop((0, 0, w, h))
-    a = np.asarray(m, np.float32); g = a.mean(axis=2, keepdims=True); a = a * 0.45 + g * np.array([1.05, 0.55, 0.45]) * 0.55
+    a = np.asarray(m, np.float32) * 0.92
     return Image.fromarray(a.clip(0, 255).astype(np.uint8))
 
 def save(im, name):
@@ -137,7 +146,7 @@ SAY = Image.open(PH('shastri_sayeed')).convert('RGB')          # Shastri front-l
 OFF = Image.open(os.path.join(HERE, 'assets', 'photos_hd', 'shastri_1965.jpg')).convert('RGB')   # with army officers, 1965
 NEH = Image.open(PH('nehru_shastri')).convert('RGB')
 
-def collage_left(im, red=0.35):
+def collage_left(im, red=0.0):
     soft_paste(im, bw(SAY.crop((0, 120, 1500, 1440)).resize((900, 792), Image.LANCZOS)), -40, 220, feather=70, alpha=0.95, red=red)
     soft_paste(im, bw(OFF.resize((760, 558), Image.LANCZOS)), 560, 520, feather=60, alpha=0.9, red=red)
 
@@ -152,21 +161,21 @@ bigtext(im, 'या कुछ और?', 230, (60, H - 150), fill=(255, 220, 60))
 save(im, 'Shastri_REF1_dil_ka_daura.jpg')
 
 # REF2  map + "ताशकंद" tag, "शास्त्री जी की मौत का सच?"
-im = grunge_bg(base=(60, 20, 12), seed=2)
+im = grunge_bg(seed=2)
 soft_paste(im, map_patch(), 560, 300, feather=80, alpha=0.95)
 tag(im, 'ताशकंद', 870, 380)
-collage_left(im, red=0.25)
-portrait(im, 1060, W - 860, H + 20, glow=(255, 120, 40))
+collage_left(im)
+portrait(im, 1060, W - 860, H + 20)
 banner_text(im, 'शास्त्री जी की मौत', 165, 50, 25, seed=2)
 bigtext(im, 'का सच?', 240, (70, 350), fill=(255, 220, 60))
 save(im, 'Shastri_REF2_maut_ka_sach.jpg')
 
 # REF3  "आख़िरी 24 घंटे"
-im = grunge_bg(base=(20, 18, 20), seed=3)
-collage_left(im, red=0.5)
+im = grunge_bg(seed=3)
+collage_left(im)
 arrow(im, (560, 430), (420, 590))
-portrait(im, 1040, W - 860, H + 40, glow=(255, 40, 30))
-bigtext(im, 'शास्त्री जी के', 120, (60, H - 300), fill=(255, 255, 255))
+portrait(im, 1040, W - 860, H + 40)
+bigtext(im, 'शास्त्री जी के', 120, (60, H - 330), fill=(255, 255, 255))
 bigtext(im, 'आख़िरी 24 घंटे', 230, (40, H - 140), fill=(235, 30, 30))
 tag(im, 'ताशकंद, 10–11 जनवरी 1966', 60, 50, size=44)
 save(im, 'Shastri_REF3_aakhiri_24_ghante.jpg')
@@ -174,16 +183,16 @@ save(im, 'Shastri_REF3_aakhiri_24_ghante.jpg')
 # REF4  "पोस्टमार्टम क्यों नहीं?"
 im = grunge_bg(seed=4)
 cl = clipping(['पोस्टमार्टम नहीं', 'न ताशकंद में, न दिल्ली में'], rot=-6); im.alpha_composite(cl, (60, 360))
-soft_paste(im, bw(NEH.resize((480, 518), Image.LANCZOS)), 720, 430, feather=50, alpha=0.85, red=0.4)
+soft_paste(im, bw(NEH.resize((480, 518), Image.LANCZOS)), 720, 430, feather=50, alpha=0.85)
 portrait(im, 1060, W - 860, H + 20)
 banner_text(im, 'पोस्टमार्टम', 200, 50, 30, seed=4)
 bigtext(im, 'क्यों नहीं?', 210, (70, 340), fill=(255, 220, 60))
 save(im, 'Shastri_REF4_postmortem.jpg')
 
 # REF5  "शरीर नीला क्यों?"
-im = grunge_bg(base=(24, 26, 48), seed=5)
-collage_left(im, red=0.0)
-portrait(im, 1060, W - 860, H + 20, glow=(60, 120, 255))
+im = grunge_bg(seed=5)
+collage_left(im)
+portrait(im, 1060, W - 860, H + 20)
 banner_text(im, 'शरीर नीला क्यों?', 185, 50, 30, col=(30, 70, 200), seed=5)
 bigtext(im, 'परिवार का सवाल', 130, (80, H - 120), fill=(255, 255, 255))
 save(im, 'Shastri_REF5_sharir_neela.jpg')
@@ -198,10 +207,10 @@ bigtext(im, 'में क्या है?', 210, (70, 340), fill=(255, 220, 60
 save(im, 'Shastri_REF6_gupt_file.jpg')
 
 # REF7  "रात 1:32" with the clock
-im = grunge_bg(base=(40, 12, 10), seed=7)
+im = grunge_bg(seed=7)
 cimg = Image.new('RGB', (W, H)); R.draw_clock(cimg, 4.0, dict(hm=(1, 31), sec0=50))
 soft_paste(im, cimg.crop((560, 60, 1360, 960)).resize((600, 675), Image.LANCZOS), 560, 280, feather=70, alpha=0.95)
-collage_left(im, red=0.4)
+collage_left(im)
 portrait(im, 1060, W - 860, H + 20)
 banner_text(im, 'रात 1:32', 210, 50, 30, seed=7)
 bigtext(im, 'ताशकंद में क्या हुआ?', 140, (50, H - 120), fill=(255, 220, 60))
